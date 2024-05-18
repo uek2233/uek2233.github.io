@@ -3,11 +3,11 @@
   <title>小小黑</title>
   
   <subtitle>这个世界一点都不美好</subtitle>
-  <link href="http://example.com/atom.xml" rel="self"/>
+  <link href="https://uek2233.github.io/atom.xml" rel="self"/>
   
-  <link href="http://example.com/"/>
+  <link href="https://uek2233.github.io/"/>
   <updated>2024-05-17T14:28:06.134Z</updated>
-  <id>http://example.com/</id>
+  <id>https://uek2233.github.io/</id>
   
   <author>
     <name>小小黑</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>Hello World</title>
-    <link href="http://example.com/posts/4a17b156.html"/>
-    <id>http://example.com/posts/4a17b156.html</id>
+    <link href="https://uek2233.github.io/posts/4a17b156.html"/>
+    <id>https://uek2233.github.io/posts/4a17b156.html</id>
     <published>2024-05-17T11:02:04.954Z</published>
     <updated>2024-05-17T14:28:06.134Z</updated>
     
