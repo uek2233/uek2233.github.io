@@ -368,3 +368,25 @@
   #article-container figure.highlight {
     border-radius: 10px;
   }
+
+  .post-content h1 {
+    color: #F08080; /* 一级标题颜色 */
+  }
+  .post-content h2 {
+    color: #EB984E; /* 二级标题颜色 */
+  }
+  .post-content h3 {
+    color: #F7DC6F; /* 一级标题颜色 */
+  }
+  .post-content h4 {
+    color: #82E0AA; /* 二级标题颜色 */
+  }
+  .post-content h5 {
+    color: #85C1E9; /* 一级标题颜色 */
+  }
+  .post-content h6 {
+    color: #D2B4DE; /* 二级标题颜色 */
+  }
+  .post-content h7 {
+    color: #CCD1D1; /* 二级标题颜色 */
+  }
