@@ -6,7 +6,7 @@
   <link href="https://xxh1230.online/atom.xml" rel="self"/>
   
   <link href="https://xxh1230.online/"/>
-  <updated>2024-06-25T17:27:20.925Z</updated>
+  <updated>2024-06-26T01:10:58.186Z</updated>
   <id>https://xxh1230.online/</id>
   
   <author>
@@ -18,10 +18,10 @@
   
   <entry>
     <title>Latex公式的使用</title>
-    <link href="https://xxh1230.online/posts/null.html"/>
-    <id>https://xxh1230.online/posts/null.html</id>
+    <link href="https://xxh1230.online/posts/4232bc1d.html"/>
+    <id>https://xxh1230.online/posts/4232bc1d.html</id>
     <published>2024-06-25T17:18:00.000Z</published>
-    <updated>2024-06-25T17:27:20.925Z</updated>
+    <updated>2024-06-26T01:10:58.186Z</updated>
     
     <content type="html"><![CDATA[<p>在 hexo 中使用 Latex公式会报错，无法渲染。针对这个问题可以用下面的方法解决。</p><ol type="1"><li>卸载<code>npm un hexo-renderer-marked</code> 与安装<code>hexo-renderer-pandoc</code></li></ol><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm un hexo-renderer-marked</span><br><span class="line">npm i hexo-renderer-pandoc</span><br></pre></td></tr></table></figure><ol start="2" type="1"><li>配置主题文件配置文件下的 <code>mathjax</code> 设置，我的是主题配置文件是 <code>_config.butterfly.yml</code></li></ol><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">MathJax</span></span><br><span class="line">mathjax:</span><br><span class="line">  enable: true</span><br><span class="line">  per_page: true</span><br></pre></td></tr></table></figure><ol start="3" type="1"><li>安装 <code>pandoc</code> 不然 <code>hexo g</code> 会报<code>pandoc exited with code null</code> 的错误</li></ol><p>下载链接：<a class="btn-beautify green larger" href="https://github.com/jgm/pandoc/releases/tag/3.2.1'"   title="pandoc"><i class="far fa-hand-point-right"></i><span>pandoc</span></a></p><ol start="4" type="1"><li>将 <code>pandoc</code> 添加到环境变量中，然后重启电脑。</li></ol><p>打开命令行窗口，输入以下命令。来检验是否安装成功，安装成功会有下面的版本信息。</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pandoc -v</span><br></pre></td></tr></table></figure><p><imgsrc="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202024-06-09%20192047.png" /></p><ol start="5" type="1"><li>创建文档， 输入公式，运行命令 hexo 命令</li></ol><p><strong>Latex 公式学习网站：</strong><a class="btn-beautify green larger" href="https://www.cnblogs.com/1024th/p/11623258.html'"   title="Latex公式手册"><i class="far fa-hand-point-right"></i><span>Latex公式手册</span></a></p><p><strong>Latex 公式使用格式：</strong></p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">行内公式 $X_i$ 行内公式</span><br></pre></td></tr></table></figure><p>行内公式 <span class="math inline">\(X_i\)</span> 行内公式</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">行公式</span><br><span class="line"><span class="meta prompt_">$</span><span class="language-bash">$ y = f(x)$$</span></span><br></pre></td></tr></table></figure><p><span class="math display">\[ y = f(x)\]</span></p><p><strong>hexo 命令：</strong></p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hexo cl</span><br><span class="line">hexo g</span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>]]></content>
     
@@ -33,7 +33,7 @@
     <category term="hexo" scheme="https://xxh1230.online/categories/hexo/"/>
     
     
-    <category term="hexo Latex" scheme="https://xxh1230.online/tags/hexo-Latex/"/>
+    <category term="hexo" scheme="https://xxh1230.online/tags/hexo/"/>
     
   </entry>
   
