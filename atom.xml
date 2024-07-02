@@ -6,7 +6,7 @@
   <link href="https://xxh1230.online/atom.xml" rel="self"/>
   
   <link href="https://xxh1230.online/"/>
-  <updated>2024-07-02T15:43:19.252Z</updated>
+  <updated>2024-07-02T15:47:24.443Z</updated>
   <id>https://xxh1230.online/</id>
   
   <author>
@@ -21,9 +21,9 @@
     <link href="https://xxh1230.online/posts/51f321c6.html"/>
     <id>https://xxh1230.online/posts/51f321c6.html</id>
     <published>2024-07-02T15:35:45.000Z</published>
-    <updated>2024-07-02T15:43:19.252Z</updated>
+    <updated>2024-07-02T15:47:24.443Z</updated>
     
-    <content type="html"><![CDATA[<h1 id="git-的安装">1. Git 的安装</h1><ul><li>git 下载地址：<a class="btn-beautify " href="/"   title=""></a>]]></content>
+    <content type="html"><![CDATA[<h1 id="git-的安装">1. Git 的安装</h1><ul><li><p>git 下载地址：<a class="btn-beautify " href="/"   title=""></a>]]></content>
     
     
     <summary type="html">如何使用Git将项目上传到Github</summary>
@@ -42,7 +42,7 @@
     <link href="https://xxh1230.online/posts/a817377e.html"/>
     <id>https://xxh1230.online/posts/a817377e.html</id>
     <published>2024-07-02T15:35:45.000Z</published>
-    <updated>2024-07-02T15:43:23.223Z</updated>
+    <updated>2024-07-02T15:43:34.255Z</updated>
     
     <content type="html"><![CDATA[<h1 id="登录github点击右上角头像选中settings-设置">1.登录GitHub，点击右上角头像，选中Settings (设置)。</h1><figure><imgsrc="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20240702225954.png"alt="image.png|300" /><figcaption aria-hidden="true">image.png|300</figcaption></figure><h1 id="选择-developer-settings-这一项">2. 选择 Developer settings这一项</h1><p><imgsrc="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20240702230059.png"alt="image.png" /> # 3. 依次按照下面的选项选择 1. 选择 <strong>Personalaccess tokens</strong></p><p><imgsrc="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20240702230209.png"alt="image.png" /> 2. 选择 <strong>Tokens (classic)</strong></p><p><imgsrc="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20240702230256.png"alt="image.png" /> 3. 选择 <strong>Creat new token</strong> <imgsrc="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20240702230339.png"alt="image.png" /> 4. 选择 <strong>NOexpiration(无时间限制)</strong>，下面的选项<strong>全选</strong> <imgsrc="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20240702230420.png"alt="image.png" /></p><h1id="生成的token只显示一次需要保存好">4.生成的token只显示一次需要保存好</h1>]]></content>
     
