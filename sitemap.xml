@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://xxh1230.online/posts/81737f40.html</loc>
+    <loc>https://xxh1230.online/posts/673b0eac.html</loc>
     
     <lastmod>2024-07-16</lastmod>
     
@@ -11,7 +11,7 @@
   </url>
   
   <url>
-    <loc>https://xxh1230.online/posts/673b0eac.html</loc>
+    <loc>https://xxh1230.online/posts/81737f40.html</loc>
     
     <lastmod>2024-07-16</lastmod>
     
@@ -207,7 +207,7 @@
   </url>
   
   <url>
-    <loc>https://xxh1230.online/tags/c%E8%AF%AD%E8%A8%80/</loc>
+    <loc>https://xxh1230.online/tags/Pytorch/</loc>
     <lastmod>2024-07-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -221,7 +221,7 @@
   </url>
   
   <url>
-    <loc>https://xxh1230.online/tags/Pytorch/</loc>
+    <loc>https://xxh1230.online/tags/c%E8%AF%AD%E8%A8%80/</loc>
     <lastmod>2024-07-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -235,7 +235,7 @@
   </url>
   
   <url>
-    <loc>https://xxh1230.online/tags/stm32/</loc>
+    <loc>https://xxh1230.online/tags/%E4%BC%98%E5%8C%96%E7%AE%97%E6%B3%95/</loc>
     <lastmod>2024-07-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -249,7 +249,7 @@
   </url>
   
   <url>
-    <loc>https://xxh1230.online/tags/%E4%BC%98%E5%8C%96%E7%AE%97%E6%B3%95/</loc>
+    <loc>https://xxh1230.online/tags/stm32/</loc>
     <lastmod>2024-07-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -265,7 +265,7 @@
   </url>
   
   <url>
-    <loc>https://xxh1230.online/categories/c%E8%AF%AD%E8%A8%80/</loc>
+    <loc>https://xxh1230.online/categories/python/</loc>
     <lastmod>2024-07-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -279,14 +279,7 @@
   </url>
   
   <url>
-    <loc>https://xxh1230.online/categories/python/</loc>
-    <lastmod>2024-07-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://xxh1230.online/categories/stm32/</loc>
+    <loc>https://xxh1230.online/categories/c%E8%AF%AD%E8%A8%80/</loc>
     <lastmod>2024-07-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -294,6 +287,13 @@
   
   <url>
     <loc>https://xxh1230.online/categories/%E4%BC%98%E5%8C%96%E7%AE%97%E6%B3%95/</loc>
+    <lastmod>2024-07-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://xxh1230.online/categories/stm32/</loc>
     <lastmod>2024-07-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
