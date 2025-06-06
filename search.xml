@@ -508,7 +508,7 @@
       <link href="/music/index.html"/>
       <url>/music/index.html</url>
       
-        <content type="html"><![CDATA[<div class="gallery-group-main"><figure class="gallery-group">  <img class="gallery-group-img no-lightbox" src='https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/wallhaven-4xye9z_3827x2599.png' alt="Group Image Gallery">  <figcaption>  <div class="gallery-group-name">K-ON!</div>  <p>Guitar乐谱</p>  <a href='/music/K-ON!/catalog.html'></a>  </figcaption>  </figure>  <figure class="gallery-group">  <img class="gallery-group-img no-lightbox" src='https://uek-1314584698.cos.ap-beijing.myqcloud.com/blog/img/xxh/20250505215054.png' alt="Group Image Gallery">  <figcaption>  <div class="gallery-group-name">Beyond</div>  <p>Guitar乐谱</p>  <a href='/music/Beyond/catalog.html'></a>  </figcaption>  </figure>  <figure class="gallery-group">  <img class="gallery-group-img no-lightbox" src='https://uek-1314584698.cos.ap-beijing.myqcloud.com/blog/img/xxh/20250514214852.png' alt="Group Image Gallery">  <figcaption>  <div class="gallery-group-name">伍佰</div>  <p>Guitar乐谱</p>  <a href='/music/%E4%BC%8D%E4%BD%B0/catalog.html'></a>  </figcaption>  </figure>  </div>]]></content>
+        <content type="html"><![CDATA[<div class="gallery-group-main"><figure class="gallery-group">  <img class="gallery-group-img no-lightbox" src='https://uek-1314584698.cos.ap-beijing.myqcloud.com/blog/img/xxh/wallhaven-4xye9z_3827x2599.png' alt="Group Image Gallery">  <figcaption>  <div class="gallery-group-name">K-ON!</div>  <p>Guitar乐谱</p>  <a href='/music/K-ON!/catalog.html'></a>  </figcaption>  </figure>  <figure class="gallery-group">  <img class="gallery-group-img no-lightbox" src='https://uek-1314584698.cos.ap-beijing.myqcloud.com/blog/img/xxh/93fd79cc7fa9d643495233c9f43055ce.jpg' alt="Group Image Gallery">  <figcaption>  <div class="gallery-group-name">MYGO!!!</div>  <p>Guitar乐谱</p>  <a href='/music/MYGO!!!/catalog.html'></a>  </figcaption>  </figure>  <figure class="gallery-group">  <img class="gallery-group-img no-lightbox" src='https://uek-1314584698.cos.ap-beijing.myqcloud.com/blog/img/xxh/20250505215054.png' alt="Group Image Gallery">  <figcaption>  <div class="gallery-group-name">Beyond</div>  <p>Guitar乐谱</p>  <a href='/music/Beyond/catalog.html'></a>  </figcaption>  </figure>  <figure class="gallery-group">  <img class="gallery-group-img no-lightbox" src='https://uek-1314584698.cos.ap-beijing.myqcloud.com/blog/img/xxh/20250514214852.png' alt="Group Image Gallery">  <figcaption>  <div class="gallery-group-name">伍佰</div>  <p>Guitar乐谱</p>  <a href='/music/%E4%BC%8D%E4%BD%B0/catalog.html'></a>  </figcaption>  </figure>  </div>]]></content>
       
     </entry>
     
@@ -630,6 +630,28 @@
       <url>/music/Beyond/%E7%9C%9F%E7%9A%84%E7%88%B1%E4%BD%A0%E5%89%8D%E5%A5%8Fsolo.html</url>
       
         <content type="html"><![CDATA[<a class="btn-beautify blue larger" href="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/files%E7%9C%9F%E7%9A%84%E7%88%B1%E4%BD%A0%E5%89%8D%E5%A5%8Fsolo.gp"   title="GPT谱"><i class="far fa-hand-point-right"></i><span>GPT谱</span></a><div class="row">    <embed src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/files%E7%9C%9F%E7%9A%84%E7%88%B1%E4%BD%A0%E5%89%8D%E5%A5%8Fsolo.pdf" width="100%" height="550" type="application/pdf"></div>]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>MYGO!!!</title>
+      <link href="/music/MYGO!!!/catalog.html"/>
+      <url>/music/MYGO!!!/catalog.html</url>
+      
+        <content type="html"><![CDATA[<div class="note primary no-icon flat"><p><a href="/music/MYGO!!!/猛独が襲う.html">猛独が襲う</a></p></div>]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>猛独が襲う</title>
+      <link href="/music/MYGO!!!/%E7%8C%9B%E7%8B%AC%E3%81%8C%E8%A5%B2%E3%81%86.html"/>
+      <url>/music/MYGO!!!/%E7%8C%9B%E7%8B%AC%E3%81%8C%E8%A5%B2%E3%81%86.html</url>
+      
+        <content type="html"><![CDATA[<a class="btn-beautify blue larger" href="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/files%E7%8C%9B%E7%8B%AC%E3%81%8C%E8%A5%B2%E3%81%86.gp"   title="GPT谱"><i class="far fa-hand-point-right"></i><span>GPT谱</span></a><div class="row">    <embed src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/files%E7%8C%9B%E7%8B%AC%E3%81%8C%E8%A5%B2%E3%81%86.pdf" width="100%" height="550" type="application/pdf"></div>]]></content>
       
     </entry>
     
