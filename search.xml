@@ -4,7 +4,7 @@
   
     
     <entry>
-      <title>理解网络编程和套接字</title>
+      <title>第1章 理解网络编程和套接字</title>
       <link href="/posts/tcpip-ch01.html"/>
       <url>/posts/tcpip-ch01.html</url>
       
@@ -33,7 +33,7 @@
     
     
     <entry>
-      <title>套接字类型与协议设置</title>
+      <title>第2章 套接字类型与协议设置</title>
       <link href="/posts/tcpip-ch02.html"/>
       <url>/posts/tcpip-ch02.html</url>
       
@@ -62,7 +62,7 @@
     
     
     <entry>
-      <title>地址族与数据序列</title>
+      <title>第3章 地址族与数据序列</title>
       <link href="/posts/tcpip-ch03.html"/>
       <url>/posts/tcpip-ch03.html</url>
       
@@ -91,7 +91,7 @@
     
     
     <entry>
-      <title>基于TCP的服务器端与客户端（二）</title>
+      <title>第5章 基于TCP的服务器端与客户端（二）</title>
       <link href="/posts/tcpip-ch05.html"/>
       <url>/posts/tcpip-ch05.html</url>
       
@@ -120,7 +120,7 @@
     
     
     <entry>
-      <title>基于UDP的服务器端与客户端</title>
+      <title>第6章 基于UDP的服务器端与客户端</title>
       <link href="/posts/tcpip-ch06.html"/>
       <url>/posts/tcpip-ch06.html</url>
       
@@ -149,7 +149,7 @@
     
     
     <entry>
-      <title>优雅地断开套接字连接</title>
+      <title>第7章 优雅地断开套接字连接</title>
       <link href="/posts/tcpip-ch07.html"/>
       <url>/posts/tcpip-ch07.html</url>
       
@@ -178,7 +178,7 @@
     
     
     <entry>
-      <title>域名及网络</title>
+      <title>第8章 域名及网络</title>
       <link href="/posts/tcpip-ch08.html"/>
       <url>/posts/tcpip-ch08.html</url>
       
@@ -207,7 +207,7 @@
     
     
     <entry>
-      <title>套接字的多种可选项</title>
+      <title>第9章 套接字的多种可选项</title>
       <link href="/posts/tcpip-ch09.html"/>
       <url>/posts/tcpip-ch09.html</url>
       
@@ -236,7 +236,7 @@
     
     
     <entry>
-      <title>多进程服务器</title>
+      <title>第10章 多进程服务器</title>
       <link href="/posts/tcpip-ch10.html"/>
       <url>/posts/tcpip-ch10.html</url>
       
@@ -265,7 +265,7 @@
     
     
     <entry>
-      <title>进程间通信</title>
+      <title>第11章 进程间通信</title>
       <link href="/posts/tcpip-ch11.html"/>
       <url>/posts/tcpip-ch11.html</url>
       
@@ -294,7 +294,7 @@
     
     
     <entry>
-      <title>IO复用</title>
+      <title>第12章 IO复用</title>
       <link href="/posts/tcpip-ch12.html"/>
       <url>/posts/tcpip-ch12.html</url>
       
@@ -323,7 +323,7 @@
     
     
     <entry>
-      <title>多种IO函数</title>
+      <title>第13章 多种IO函数</title>
       <link href="/posts/tcpip-ch13.html"/>
       <url>/posts/tcpip-ch13.html</url>
       
@@ -352,7 +352,7 @@
     
     
     <entry>
-      <title>多播与广播</title>
+      <title>第14章 多播与广播</title>
       <link href="/posts/tcpip-ch14.html"/>
       <url>/posts/tcpip-ch14.html</url>
       
