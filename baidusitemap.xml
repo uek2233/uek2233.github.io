@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://xxh123.online/posts/tcpip-ch14.html</loc>
-    <lastmod>2026-06-04</lastmod>
-  </url>
-  <url>
-    <loc>https://xxh123.online/posts/tcpip-ch13.html</loc>
-    <lastmod>2026-06-04</lastmod>
-  </url>
-  <url>
-    <loc>https://xxh123.online/posts/tcpip-ch12.html</loc>
+    <loc>https://xxh123.online/posts/tcpip-ch10.html</loc>
     <lastmod>2026-06-04</lastmod>
   </url>
   <url>
@@ -17,27 +9,19 @@
     <lastmod>2026-06-04</lastmod>
   </url>
   <url>
-    <loc>https://xxh123.online/posts/tcpip-ch10.html</loc>
+    <loc>https://xxh123.online/posts/tcpip-ch12.html</loc>
     <lastmod>2026-06-04</lastmod>
   </url>
   <url>
-    <loc>https://xxh123.online/posts/tcpip-ch09.html</loc>
+    <loc>https://xxh123.online/posts/tcpip-ch13.html</loc>
     <lastmod>2026-06-04</lastmod>
   </url>
   <url>
-    <loc>https://xxh123.online/posts/tcpip-ch08.html</loc>
+    <loc>https://xxh123.online/posts/tcpip-ch14.html</loc>
     <lastmod>2026-06-04</lastmod>
   </url>
   <url>
-    <loc>https://xxh123.online/posts/tcpip-ch07.html</loc>
-    <lastmod>2026-06-04</lastmod>
-  </url>
-  <url>
-    <loc>https://xxh123.online/posts/tcpip-ch06.html</loc>
-    <lastmod>2026-06-04</lastmod>
-  </url>
-  <url>
-    <loc>https://xxh123.online/posts/tcpip-ch05.html</loc>
+    <loc>https://xxh123.online/posts/tcpip-ch02.html</loc>
     <lastmod>2026-06-04</lastmod>
   </url>
   <url>
@@ -45,7 +29,23 @@
     <lastmod>2026-06-04</lastmod>
   </url>
   <url>
-    <loc>https://xxh123.online/posts/tcpip-ch02.html</loc>
+    <loc>https://xxh123.online/posts/tcpip-ch05.html</loc>
+    <lastmod>2026-06-04</lastmod>
+  </url>
+  <url>
+    <loc>https://xxh123.online/posts/tcpip-ch06.html</loc>
+    <lastmod>2026-06-04</lastmod>
+  </url>
+  <url>
+    <loc>https://xxh123.online/posts/tcpip-ch07.html</loc>
+    <lastmod>2026-06-04</lastmod>
+  </url>
+  <url>
+    <loc>https://xxh123.online/posts/tcpip-ch08.html</loc>
+    <lastmod>2026-06-04</lastmod>
+  </url>
+  <url>
+    <loc>https://xxh123.online/posts/tcpip-ch09.html</loc>
     <lastmod>2026-06-04</lastmod>
   </url>
   <url>
