@@ -1,0 +1,546 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>第2章 套接字类型与协议设置 | Kikyo</title><meta name="author" content="Kikyo"><meta name="copyright" content="Kikyo"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="2.1 套接字协议及其数据传输特性1234&#96;&#96;&#96;c#include&lt;sys&#x2F;socket.h&gt;int socket(int domain, int type, int protocol);  domain：套接字中使用的协议族（Prototol Family）信息 type: 套接字数据传输类型信息 protocol 计算机间通信使用的协议信息  协议族 domain    名称 协议">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第2章 套接字类型与协议设置">
+<meta property="og:url" content="https://xxh123.online/posts/tcpip-ch02.html">
+<meta property="og:site_name" content="Kikyo">
+<meta property="og:description" content="2.1 套接字协议及其数据传输特性1234&#96;&#96;&#96;c#include&lt;sys&#x2F;socket.h&gt;int socket(int domain, int type, int protocol);  domain：套接字中使用的协议族（Prototol Family）信息 type: 套接字数据传输类型信息 protocol 计算机间通信使用的协议信息  协议族 domain    名称 协议">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://lsky.xxh123.online/uploads/img/6a21d5091499c.jpg">
+<meta property="article:published_time" content="2026-05-17T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-05T07:42:28.882Z">
+<meta property="article:author" content="Kikyo">
+<meta property="article:tag" content="TCP&#x2F;IP">
+<meta property="article:tag" content="网络编程">
+<meta property="article:tag" content="读书笔记">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://lsky.xxh123.online/uploads/img/6a21d5091499c.jpg"><link rel="shortcut icon" href="/img/Rocket.png"><link rel="canonical" href="https://xxh123.online/posts/tcpip-ch02.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="manifest" href="/manifest.json"/><meta name="msapplication-TileColor" content="#40B2E6"/><link rel="apple-touch-icon" sizes="180x180" href="/img/siteicon/128.png"/><link rel="icon" type="image/png" sizes="32x32" href="/img/siteicon/32.png"/><link rel="icon" type="image/png" sizes="16x16" href="/img/siteicon/16.png"/><link rel="mask-icon" href="/img/siteicon/128.png" color="#5bbad5"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '第2章 套接字类型与协议设置',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-06-05 15:42:28'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css" media="defer" onload="this.media='all'"><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/runtime/runtime.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/assets/font-awesome-animation.min.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/tag_plugins.css" media="defer" onload="this.media='all'"><script src="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/assets/carousel-touch.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/animate.min.css" media="print" onload="this.media='screen'"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.2.0"><link rel="alternate" href="/atom.xml" title="Kikyo" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/202405192117137.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">30</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/"><i class="fa-fw fas fa-home faa-tada"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/archives/"><i class="fa-fw fas fa-archive faa-tada"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/artitalk/"><i class="fa-fw fas fa-comment-dots faa-tada"></i><span> 闲言碎语</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/music/"><i class="fa-fw fas fa-music faa-tada"></i><span> 音乐馆</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/categories/"><i class="fa-fw fas fa-folder-open faa-tada"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/wallpapers/"><i class="fa-fw fab fa-artstation faa-tada"></i><span> 壁纸</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/comments/"><i class="fa-fw fas fa-envelope faa-tada"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/link/"><i class="fa-fw fas fa-link faa-tada"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/bangumis/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-hecha"></use></svg><span> 追番</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/about/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-zhifeiji"></use></svg><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://lsky.xxh123.online/uploads/img/6a21d5091499c.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Kikyo"><span class="site-name">Kikyo</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/"><i class="fa-fw fas fa-home faa-tada"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/archives/"><i class="fa-fw fas fa-archive faa-tada"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/artitalk/"><i class="fa-fw fas fa-comment-dots faa-tada"></i><span> 闲言碎语</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/music/"><i class="fa-fw fas fa-music faa-tada"></i><span> 音乐馆</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/categories/"><i class="fa-fw fas fa-folder-open faa-tada"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/wallpapers/"><i class="fa-fw fab fa-artstation faa-tada"></i><span> 壁纸</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/comments/"><i class="fa-fw fas fa-envelope faa-tada"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/link/"><i class="fa-fw fas fa-link faa-tada"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/bangumis/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-hecha"></use></svg><span> 追番</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/about/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-zhifeiji"></use></svg><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">第2章 套接字类型与协议设置</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-17T16:00:00.000Z" title="发表于 2026-05-18 00:00:00">2026-05-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-06-05T07:42:28.882Z" title="更新于 2026-06-05 15:42:28">2026-06-05</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/TCP-IP%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">TCP-IP网络编程</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>9分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="第2章 套接字类型与协议设置"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="2-1-套接字协议及其数据传输特性"><a href="#2-1-套接字协议及其数据传输特性" class="headerlink" title="2.1 套接字协议及其数据传输特性"></a>2.1 套接字协议及其数据传输特性</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">```c</span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">socket</span><span class="params">(<span class="type">int</span> domain, <span class="type">int</span> type, <span class="type">int</span> protocol)</span>;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>domain：套接字中使用的协议族（Prototol Family）信息</li>
+<li>type: 套接字数据传输类型信息</li>
+<li>protocol 计算机间通信使用的协议信息</li>
+</ul>
+<h3 id="协议族-domain"><a href="#协议族-domain" class="headerlink" title="协议族 domain"></a>协议族 domain</h3><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>协议族</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PF_INET</td>
+<td>IPv4互联网协议族</td>
+</tr>
+<tr>
+<td>PF_INET6</td>
+<td>IPv6互联网协议族</td>
+</tr>
+<tr>
+<td>PF_LOCAL</td>
+<td>本地通信的UNIX协议族</td>
+</tr>
+<tr>
+<td>PF_PACKET</td>
+<td>底层套接字的协议族</td>
+</tr>
+<tr>
+<td>PF_IPX</td>
+<td>IPX Novell协议族</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="套接字类型-Type"><a href="#套接字类型-Type" class="headerlink" title="套接字类型 Type"></a>套接字类型 Type</h3><ul>
+<li><p><strong>SOCK_STREAM</strong>：面向连接的套接字（TCP）</p>
+<ul>
+<li>传输过程中数据不会消失</li>
+<li>按序传输数据</li>
+<li>传输的数据不存在数据边界</li>
+</ul>
+</li>
+<li><p><strong>SOCK_DGRAM</strong>：面向连接的套接字（UDP）</p>
+<ul>
+<li>强调快速传输而非传输顺序</li>
+<li>传输的数据可能丢失也可能损毁</li>
+<li>传输的数据有数据边界</li>
+<li>限制每次传输的数据大小</li>
+</ul>
+</li>
+</ul>
+<h3 id="protocol"><a href="#protocol" class="headerlink" title="protocol"></a>protocol</h3><p> PF_INET 指的是 IPv4 网络协议族，在该网络协议族下面向连接的套接字只有 TCP，面向连接的套接字只有 UDP，默认写 0 即可</p>
+<h2 id="2-2-TCP套接字示例"><a href="#2-2-TCP套接字示例" class="headerlink" title="2.2 TCP套接字示例"></a>2.2 TCP套接字示例</h2><p>TCP套接字：传输的数据不存在边界，在客户端中可以分多次调用 read 函数以接收服务器端发送的数据，也可以只调用一次 read 函数接受全部函数。</p>
+<h3 id="服务端"><a href="#服务端" class="headerlink" title="服务端"></a>服务端</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">error_handing</span><span class="params">(<span class="type">char</span> *message)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span>&#123;</span><br><span class="line">    <span class="type">int</span> serv_sock;</span><br><span class="line">    <span class="type">int</span> clnt_sock;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">serv_addr</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">clnt_addr</span>;</span></span><br><span class="line">    <span class="type">socklen_t</span> clnt_addr_size;</span><br><span class="line"></span><br><span class="line">    <span class="type">char</span> message[] = <span class="string">&quot;Hello world!&quot;</span>;</span><br><span class="line">    <span class="keyword">if</span>(argc!=<span class="number">2</span>)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Usage : %s &lt;port&gt;\n&quot;</span>, argv[<span class="number">0</span>]);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    serv_sock = socket(PF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span>(serv_sock == <span class="number">-1</span>)&#123;</span><br><span class="line">        error_handing(<span class="string">&quot;socket() error&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">memset</span>(&amp;serv_addr, <span class="number">0</span>, <span class="keyword">sizeof</span>(serv_addr));</span><br><span class="line">    serv_addr.sin_family = AF_INET;</span><br><span class="line">    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);</span><br><span class="line">    serv_addr.sin_port = htons(atoi(argv[<span class="number">1</span>]));</span><br><span class="line">    <span class="keyword">if</span>(bind(serv_sock, (<span class="keyword">struct</span> sockaddr*)&amp;serv_addr, <span class="keyword">sizeof</span>(serv_addr)) &lt;mark&gt;<span class="number">-1</span>)&#123;</span><br><span class="line">        error_handing(<span class="string">&quot;bind() error&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(listen(serv_sock, <span class="number">5</span>)&lt;/mark&gt;<span class="number">-1</span>)&#123;</span><br><span class="line">        error_handing(<span class="string">&quot;listen() error&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    clnt_addr_size = <span class="keyword">sizeof</span>(clnt_addr);</span><br><span class="line">    clnt_sock = accept(serv_sock, (<span class="keyword">struct</span> sockaddr*)&amp;clnt_addr, &amp;clnt_addr_size);</span><br><span class="line">    <span class="keyword">if</span>(clnt_sock == <span class="number">-1</span>)&#123;</span><br><span class="line">        error_handing(<span class="string">&quot;accept() error&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// write(clnt_sock, message, sizeof(message));</span></span><br><span class="line">    <span class="type">int</span> idx = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span>(write(clnt_sock, &amp;message[idx++], <span class="number">1</span>))&#123;</span><br><span class="line">        <span class="keyword">if</span>(idx &gt;= <span class="keyword">sizeof</span>(message))&#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    close(clnt_sock);</span><br><span class="line">    close(serv_sock);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> <span class="type">void</span> <span class="title function_">error_handing</span><span class="params">(<span class="type">char</span> *message)</span>&#123;</span><br><span class="line">    <span class="built_in">fputs</span>(message, <span class="built_in">stderr</span>);</span><br><span class="line">    fputc(<span class="string">&#x27;\n&#x27;</span>, <span class="built_in">stderr</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<h3 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">error_handing</span><span class="params">(<span class="type">char</span> *message)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span>&#123;</span><br><span class="line">    <span class="type">int</span> sock;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">serv_addr</span>;</span></span><br><span class="line">    <span class="type">char</span> message[<span class="number">30</span>];</span><br><span class="line">    <span class="type">int</span> idx = <span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> str_len = <span class="number">0</span>, read_len = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span>(argc!=<span class="number">3</span>)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Usage : %s &lt;IP&gt; &lt;port&gt;\n&quot;</span>, argv[<span class="number">0</span>]);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    sock = socket(PF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span>(sock == <span class="number">-1</span>)&#123;</span><br><span class="line">        error_handing(<span class="string">&quot;socket() error&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">memset</span>(&amp;serv_addr, <span class="number">0</span>, <span class="keyword">sizeof</span>(serv_addr));</span><br><span class="line">    serv_addr.sin_family = AF_INET;</span><br><span class="line">    serv_addr.sin_addr.s_addr = inet_addr(argv[<span class="number">1</span>]);</span><br><span class="line">    serv_addr.sin_port = htons(atoi(argv[<span class="number">2</span>]));    </span><br><span class="line">    <span class="keyword">if</span>(connect(sock, (<span class="keyword">struct</span> sockaddr*)&amp;serv_addr, <span class="keyword">sizeof</span>(serv_addr)) ==<span class="number">-1</span>)&#123;</span><br><span class="line">        error_handing(<span class="string">&quot;connect() error&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;sleep 1s\n&quot;</span>);</span><br><span class="line">    sleep(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">while</span>(read_len = read(sock, &amp;message[idx++], <span class="number">1</span>))&#123;</span><br><span class="line">        <span class="keyword">if</span>(read_len == <span class="number">-1</span>)&#123;</span><br><span class="line">            error_handing(<span class="string">&quot;read() error&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        str_len += read_len;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Message from server : %s \n&quot;</span>, message);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Function read call count: %d\n&quot;</span>, str_len);</span><br><span class="line">    close(sock);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">error_handing</span><span class="params">(<span class="type">char</span> *message)</span>&#123;</span><br><span class="line">    <span class="built_in">fputs</span>(message, <span class="built_in">stderr</span>);</span><br><span class="line">    fputc(<span class="string">&#x27;\n&#x27;</span>, <span class="built_in">stderr</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="地址族与数据序列"><a href="#地址族与数据序列" class="headerlink" title="地址族与数据序列"></a>地址族与数据序列</h1><h2 id="3-1-套接字的IP地址和端口号"><a href="#3-1-套接字的IP地址和端口号" class="headerlink" title="3.1 套接字的IP地址和端口号"></a>3.1 套接字的IP地址和端口号</h2><p>IP地址用于区分计算机，一个端口号对应一个主机内的一个套接字进程</p>
+<ul>
+<li>A类地址的首字节范围：0～127</li>
+<li>B类地址的首字节范围：128～191</li>
+<li>C类地址的首字节范围：192～223</li>
+</ul>
+<h2 id="3-2-地址信息的表示"><a href="#3-2-地址信息的表示" class="headerlink" title="3.2 地址信息的表示"></a>3.2 地址信息的表示</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span>&#123;</span></span><br><span class="line">  <span class="type">sa_family_t</span> 		sin_family;          <span class="comment">//地址族（Address Family）</span></span><br><span class="line">  <span class="type">uint16_t</span>    		sin_port;			 <span class="comment">//16位TCP/UDP端口号</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">in_addr</span>    <span class="title">sin_addr</span>;</span>			 <span class="comment">//32位IP地址</span></span><br><span class="line">  <span class="type">char</span> 			    sin_zero[<span class="number">8</span>]          <span class="comment">//不使用</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">in_addr</span>&#123;</span></span><br><span class="line">  <span class="type">in_addr_t</span>  		s_addr;              <span class="comment">//32位IPv4地址</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>成员 <code>sin_family</code></li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>地址族（Address Family）</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AF_INET</td>
+<td>IPv4网络协议中使用的地址族</td>
+</tr>
+<tr>
+<td>AF_INET6</td>
+<td>IPv6网络协议中使用的地址族</td>
+</tr>
+<tr>
+<td>AF_LOCAL</td>
+<td>本地通信中采用的UNIX协议的地址族</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li><p>成员 <code>sin_port</code></p>
+<p>  该成员是以<strong>网络字节序</strong>保存的 16 位端口号</p>
+</li>
+<li><p>成员 <code>sin_addr</code></p>
+<p>  该成员是以<strong>网络字节序</strong>保存的 32 位 IP</p>
+</li>
+<li>成员 <code>sin_zero</code><br>  无特殊含义。只是为了使结构体 sockaddr_in 的大小与 sockaddr 结构体保持一致而插入的成员。必须填充为0</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">serv_addr</span>;</span></span><br><span class="line"><span class="keyword">if</span>(bind(serv_addr, (<span class="keyword">struct</span> sockaddr*)&amp;serv_addr,<span class="keyword">sizeof</span>(serv_addr))==<span class="number">-1</span>)</span><br><span class="line">  error_handling(<span class="string">&quot;bind() error&quot;</span>);</span><br></pre></td></tr></table></figure>
+<h2 id="3-3-网络字节序与地址变换"><a href="#3-3-网络字节序与地址变换" class="headerlink" title="3.3 网络字节序与地址变换"></a>3.3 网络字节序与地址变换</h2><p>CPU 向内存保存数据的方式有两种，意味着 CPU 解析数据的方式也分为两种，假设要在内存中存储整数 0x12 0x34 0x56 0x78。</p>
+<ul>
+<li>大端序（Bid Endian）: 高位字节存放到低位地址-0x12 0x34 0x56 0x78</li>
+<li>小端序（Little Endian）: 高位字节存放到高位地址-0x78 0x56 0x34 0x12（Inter CPU）</li>
+</ul>
+<p>每种 CPU 的数据保存方式可能不同。因此，代表 CPU 数据保存方式的<strong>主机字节序（Host Byte Order</strong>在不同CPU中也各不相同，这会小端序的主机向大序端的主机发送数据可能会导致接收方收到了错误的数据。为了解决上述问题，在通过网络传输数据时约定了统一方式，这种约定称为<strong>网络字节序</strong>，统一为大端序。</p>
+<h3 id="3-3-1-字节序转换"><a href="#3-3-1-字节序转换" class="headerlink" title="3.3.1 字节序转换"></a>3.3.1 字节序转换</h3><ul>
+<li>unsigned short htons(unsigned short);</li>
+<li>unsigned short ntohs(unsigned short);</li>
+<li>unsigned long htonl(unsigned long);</li>
+<li>unsigned long ntohl(unsigned long);</li>
+</ul>
+<p>htons 中 的 h 代表主机（host）字节序，n 代表网络（network）字节序，s 指 short，l 指 long（==Linux中long类型占用4字节==）。</p>
+<p>htons，可以解释为：把 short 类型数据从主机字节序转化为网络字节序。<br>ntohs，可以解释为：把short型数据从网络字节序转化为主机字节序。</p>
+<h2 id="3-4-网络地址的初始化与分配"><a href="#3-4-网络地址的初始化与分配" class="headerlink" title="3.4 网络地址的初始化与分配"></a>3.4 网络地址的初始化与分配</h2><p>sockaddr_in 中保存地址信息的成员为 32 位整数型，因此为了分配 IP 地址，需要将字符串类型，转换为 4 字节整数型数据。</p>
+<h3 id="inet-addr"><a href="#inet-addr" class="headerlink" title="inet_addr"></a>inet_addr</h3><p>将字符串类型，转换为 4 字节整数型数据。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="type">in_addr_t</span> <span class="title function_">inet_addr</span><span class="params">(<span class="type">const</span> <span class="type">char</span>* <span class="built_in">string</span>)</span>;</span><br><span class="line"><span class="comment">//成功时返回32位大端序整数型值</span></span><br><span class="line"><span class="comment">//失败时返回INADDR_NONE</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>* argv[])</span>&#123;</span><br><span class="line">    <span class="type">char</span> addr1[] = <span class="string">&quot;1.2.3.4&quot;</span>;</span><br><span class="line">    <span class="type">char</span> addr2[] = <span class="string">&quot;1.2.3.256&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> conv_addr = inet_addr(addr1);</span><br><span class="line">    <span class="keyword">if</span>(conv_addr == INADDR_NONE)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;inet_addr error\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;conv_addr:%lx\n&quot;</span>, conv_addr);</span><br><span class="line">    &#125;</span><br><span class="line">    conv_addr = inet_addr(addr2);</span><br><span class="line">    <span class="keyword">if</span>(conv_addr == INADDR_NONE)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;inet_addr error\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;conv_addr:%lx\n&quot;</span>, conv_addr);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="inet-aton"><a href="#inet-aton" class="headerlink" title="inet_aton"></a>inet_aton</h3><p>inet_aton 函数与 inet_addr 函数在功能上完全相同，也将字符串形式 IP 地址信息带入sockaddr_in 结构体中声明的 in_addr 结构体变量。而 inet_aton 函数则不需要此过程，因为它会在转换后，再把结果填入该结构体变量。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">inet_aton</span><span class="params">(<span class="type">const</span> <span class="type">char</span>* <span class="built_in">string</span>, <span class="keyword">struct</span> in_addr* addr)</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>* argv[])</span>&#123;</span><br><span class="line">    <span class="type">char</span> addr[] = <span class="string">&quot;127.232.124.79&quot;</span>;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">addr_inet</span>;</span></span><br><span class="line">    <span class="keyword">if</span>(!inet_aton(addr, &amp;addr_inet.sin_addr))&#123;</span><br><span class="line">        perror(<span class="string">&quot;inet_aton error\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span>&#123;</span><br><span class="line">         <span class="built_in">printf</span>(<span class="string">&quot;addr_inet.sin_addr:%x\n&quot;</span>, addr_inet.sin_addr.s_addr);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="inet-aton-1"><a href="#inet-aton-1" class="headerlink" title="inet_aton"></a>inet_aton</h3><p>将网络字节序整数型 IP 地址转换成为字符串形式。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="type">char</span>* <span class="title function_">inet_ntoa</span><span class="params">(<span class="keyword">struct</span> in_addr addr)</span>;</span><br><span class="line"><span class="comment">//成功时返回转换的字符串地址值，失败时返回-1</span></span><br></pre></td></tr></table></figure>
+<p><em>*返回值是 char</em> 类型，字符串保存到内部空间，如果返回字符串没有保存，下次调用该函数信息上次信息会丢失*</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>* argv[])</span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">addr1</span>, <span class="title">addr2</span>;</span></span><br><span class="line">    <span class="type">char</span> *str_ptr;</span><br><span class="line">    <span class="type">char</span> str_arr[<span class="number">20</span>];</span><br><span class="line"></span><br><span class="line">    addr1.sin_addr.s_addr = htonl(<span class="number">0x1020304</span>);</span><br><span class="line">    addr2.sin_addr.s_addr = htonl(<span class="number">0x1010101</span>);</span><br><span class="line"></span><br><span class="line">    str_ptr = inet_ntoa(addr1.sin_addr);</span><br><span class="line">    <span class="built_in">strcpy</span>(str_arr, str_ptr);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;str_ptr:%s\n&quot;</span>, str_ptr);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;str_arr:%s\n&quot;</span>, str_arr);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// str_ptr 指向地址的内容在函数内部修改了</span></span><br><span class="line">    inet_ntoa(addr2.sin_addr);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;str_ptr:%s\n&quot;</span>, str_ptr);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;str_arr:%s\n&quot;</span>, str_arr);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta"># output</span></span><br><span class="line">str_ptr:<span class="number">1.2</span><span class="number">.3</span><span class="number">.4</span></span><br><span class="line">str_arr:<span class="number">1.2</span><span class="number">.3</span><span class="number">.4</span></span><br><span class="line">str_ptr:<span class="number">1.1</span><span class="number">.1</span><span class="number">.1</span></span><br><span class="line">str_arr:<span class="number">1.2</span><span class="number">.3</span><span class="number">.4</span></span><br></pre></td></tr></table></figure>
+<h3 id="INADDR-ANY"><a href="#INADDR-ANY" class="headerlink" title="INADDR_ANY"></a>INADDR_ANY</h3><p>利用常数 INADDR_ANY 分配服务器端的IP地址，采用这种方式，则可自动获取运行服务器端的计算机IP地址，不必亲自输入。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">addr</span>;</span></span><br><span class="line"><span class="type">char</span>* serv_port = <span class="string">&quot;9190&quot;</span>;</span><br><span class="line"><span class="built_in">memset</span>(&amp;addr, <span class="number">0</span>, <span class="keyword">sizeof</span>(addr));</span><br><span class="line">addr.sin_family = AF_INET;</span><br><span class="line">addr.sin_addr.s_addr = htonl(INADDR_ANY);</span><br><span class="line">addr.sin_port = htons(atoi(serv_port));</span><br></pre></td></tr></table></figure>
+<h1 id="第4章-基于TCP的服务器端-客户端"><a href="#第4章-基于TCP的服务器端-客户端" class="headerlink" title="第4章 基于TCP的服务器端/客户端"></a>第4章 基于TCP的服务器端/客户端</h1></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xxh123.online">Kikyo</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xxh123.online/posts/tcpip-ch02.html">https://xxh123.online/posts/tcpip-ch02.html</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://xxh123.online" target="_blank">Kikyo</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/TCP-IP/">TCP/IP</a><a class="post-meta__tags" href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">网络编程</a><a class="post-meta__tags" href="/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记</a></div><div class="post_share"><div class="social-share" data-image="https://lsky.xxh123.online/uploads/img/6a21d5091499c.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/posts/tcpip-ch01.html" title="第1章 理解网络编程和套接字"><img class="cover" src="https://lsky.xxh123.online/uploads/img/6a21d50840871.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">第1章 理解网络编程和套接字</div></div></a></div><div class="next-post pull-right"><a href="/posts/tcpip-ch05.html" title="第5章 基于TCP的服务器端与客户端（二）"><img class="cover" src="https://lsky.xxh123.online/uploads/img/6a21d50ac1108.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">第5章 基于TCP的服务器端与客户端（二）</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/posts/tcpip-ch01.html" title="第1章 理解网络编程和套接字"><img class="cover" src="https://lsky.xxh123.online/uploads/img/6a21d50840871.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-18</div><div class="title">第1章 理解网络编程和套接字</div></div></a></div><div><a href="/posts/tcpip-ch05.html" title="第5章 基于TCP的服务器端与客户端（二）"><img class="cover" src="https://lsky.xxh123.online/uploads/img/6a21d50ac1108.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-18</div><div class="title">第5章 基于TCP的服务器端与客户端（二）</div></div></a></div><div><a href="/posts/tcpip-ch06.html" title="第6章 基于UDP的服务器端与客户端"><img class="cover" src="https://lsky.xxh123.online/uploads/img/6a21d5d03282d.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-18</div><div class="title">第6章 基于UDP的服务器端与客户端</div></div></a></div><div><a href="/posts/tcpip-ch07.html" title="第7章 优雅地断开套接字连接"><img class="cover" src="https://lsky.xxh123.online/uploads/img/6a21d5d135741.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-18</div><div class="title">第7章 优雅地断开套接字连接</div></div></a></div><div><a href="/posts/tcpip-ch09.html" title="第9章 套接字的多种可选项"><img class="cover" src="https://lsky.xxh123.online/uploads/img/6a21d5d2dda7a.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-18</div><div class="title">第9章 套接字的多种可选项</div></div></a></div><div><a href="/posts/tcpip-ch03.html" title="第3章 地址族与数据序列"><img class="cover" src="https://lsky.xxh123.online/uploads/img/6a21d509dc5c5.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-18</div><div class="title">第3章 地址族与数据序列</div></div></a></div></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/202405192117137.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Kikyo</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">30</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ywj77"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon faa-parent animated-hover" href="https://github.com/ywj77" target="_blank" title="Github"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-github"></use></svg></a><a class="social-icon faa-parent animated-hover" href="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&amp;email=3442237157@qq.com" target="_blank" title="Email"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-youjian1"></use></svg></a><a class="social-icon faa-parent animated-hover" href="/atom.xml" target="_blank" title="RSS"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-rss"></use></svg></a><a class="social-icon faa-parent animated-hover" href="https://space.bilibili.com/3546385680959950" target="_blank" title="BiliBili"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-wf_Bzhan"></use></svg></a><a class="social-icon faa-parent animated-hover" href="tencent://Message/?Uin=3442237157&amp;amp;websiteName=local.edu.com:8888=&amp;amp;Menu=yes" target="_blank" title="QQ"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-qq"></use></svg></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E5%A5%97%E6%8E%A5%E5%AD%97%E5%8D%8F%E8%AE%AE%E5%8F%8A%E5%85%B6%E6%95%B0%E6%8D%AE%E4%BC%A0%E8%BE%93%E7%89%B9%E6%80%A7"><span class="toc-number">1.</span> <span class="toc-text">2.1 套接字协议及其数据传输特性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%8F%E8%AE%AE%E6%97%8F-domain"><span class="toc-number">1.1.</span> <span class="toc-text">协议族 domain</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A5%97%E6%8E%A5%E5%AD%97%E7%B1%BB%E5%9E%8B-Type"><span class="toc-number">1.2.</span> <span class="toc-text">套接字类型 Type</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#protocol"><span class="toc-number">1.3.</span> <span class="toc-text">protocol</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-TCP%E5%A5%97%E6%8E%A5%E5%AD%97%E7%A4%BA%E4%BE%8B"><span class="toc-number">2.</span> <span class="toc-text">2.2 TCP套接字示例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="toc-number">2.1.</span> <span class="toc-text">服务端</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="toc-number">2.2.</span> <span class="toc-text">客户端</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9C%B0%E5%9D%80%E6%97%8F%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%8F%E5%88%97"><span class="toc-number"></span> <span class="toc-text">地址族与数据序列</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84IP%E5%9C%B0%E5%9D%80%E5%92%8C%E7%AB%AF%E5%8F%A3%E5%8F%B7"><span class="toc-number">1.</span> <span class="toc-text">3.1 套接字的IP地址和端口号</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-%E5%9C%B0%E5%9D%80%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA"><span class="toc-number">2.</span> <span class="toc-text">3.2 地址信息的表示</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-%E7%BD%91%E7%BB%9C%E5%AD%97%E8%8A%82%E5%BA%8F%E4%B8%8E%E5%9C%B0%E5%9D%80%E5%8F%98%E6%8D%A2"><span class="toc-number">3.</span> <span class="toc-text">3.3 网络字节序与地址变换</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-1-%E5%AD%97%E8%8A%82%E5%BA%8F%E8%BD%AC%E6%8D%A2"><span class="toc-number">3.1.</span> <span class="toc-text">3.3.1 字节序转换</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E5%88%86%E9%85%8D"><span class="toc-number">4.</span> <span class="toc-text">3.4 网络地址的初始化与分配</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#inet-addr"><span class="toc-number">4.1.</span> <span class="toc-text">inet_addr</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#inet-aton"><span class="toc-number">4.2.</span> <span class="toc-text">inet_aton</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#inet-aton-1"><span class="toc-number">4.3.</span> <span class="toc-text">inet_aton</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#INADDR-ANY"><span class="toc-number">4.4.</span> <span class="toc-text">INADDR_ANY</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC4%E7%AB%A0-%E5%9F%BA%E4%BA%8ETCP%E7%9A%84%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF-%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="toc-number"></span> <span class="toc-text">第4章 基于TCP的服务器端&#x2F;客户端</span></a></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/f131f429.html" title="Git的常用命令"><img src="https://lsky.xxh123.online/uploads/img/6a2168cc71bfe.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Git的常用命令"/></a><div class="content"><a class="title" href="/posts/f131f429.html" title="Git的常用命令">Git的常用命令</a><time datetime="2026-06-04T11:52:35.000Z" title="发表于 2026-06-04 19:52:35">2026-06-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/tcpip-ch01.html" title="第1章 理解网络编程和套接字"><img src="https://lsky.xxh123.online/uploads/img/6a21d50840871.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="第1章 理解网络编程和套接字"/></a><div class="content"><a class="title" href="/posts/tcpip-ch01.html" title="第1章 理解网络编程和套接字">第1章 理解网络编程和套接字</a><time datetime="2026-05-17T16:00:00.000Z" title="发表于 2026-05-18 00:00:00">2026-05-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/tcpip-ch02.html" title="第2章 套接字类型与协议设置"><img src="https://lsky.xxh123.online/uploads/img/6a21d5091499c.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="第2章 套接字类型与协议设置"/></a><div class="content"><a class="title" href="/posts/tcpip-ch02.html" title="第2章 套接字类型与协议设置">第2章 套接字类型与协议设置</a><time datetime="2026-05-17T16:00:00.000Z" title="发表于 2026-05-18 00:00:00">2026-05-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/tcpip-ch05.html" title="第5章 基于TCP的服务器端与客户端（二）"><img src="https://lsky.xxh123.online/uploads/img/6a21d50ac1108.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="第5章 基于TCP的服务器端与客户端（二）"/></a><div class="content"><a class="title" href="/posts/tcpip-ch05.html" title="第5章 基于TCP的服务器端与客户端（二）">第5章 基于TCP的服务器端与客户端（二）</a><time datetime="2026-05-17T16:00:00.000Z" title="发表于 2026-05-18 00:00:00">2026-05-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/tcpip-ch06.html" title="第6章 基于UDP的服务器端与客户端"><img src="https://lsky.xxh123.online/uploads/img/6a21d5d03282d.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="第6章 基于UDP的服务器端与客户端"/></a><div class="content"><a class="title" href="/posts/tcpip-ch06.html" title="第6章 基于UDP的服务器端与客户端">第6章 基于UDP的服务器端与客户端</a><time datetime="2026-05-17T16:00:00.000Z" title="发表于 2026-05-18 00:00:00">2026-05-18</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2026 By Kikyo</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>if (!window.MathJax) {
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      tags: 'ams'
+    },
+    chtml: {
+      scale: 1.1
+    },
+    options: {
+      renderActions: {
+        findScript: [10, doc => {
+          for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+            const display = !!node.type.match(/; *mode=display/)
+            const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+            const text = document.createTextNode('')
+            node.parentNode.replaceChild(text, node)
+            math.start = {node: text, delim: '', n: 0}
+            math.end = {node: text, delim: '', n: 0}
+            doc.math.push(math)
+          }
+        }, '']
+      }
+    }
+  }
+  
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js'
+  script.id = 'MathJax-script'
+  script.async = true
+  document.head.appendChild(script)
+} else {
+  MathJax.startup.document.state(0)
+  MathJax.texReset()
+  MathJax.typesetPromise()
+}</script><script>(() => {
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://twikoo.xxh123.online/',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = () => {
+    twikoo.init(Object.assign({
+      el: '#twikoo-wrap',
+      envId: 'https://twikoo.xxh123.online/',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      }
+    }, null))
+
+    
+  }
+
+  const loadTwikoo = () => {
+    if (typeof twikoo === 'object') setTimeout(init,0)
+    else getScript('https://cdn.jsdelivr.net/npm/twikoo@1.6.31/dist/twikoo.all.min.js').then(init)
+  }
+
+  if ('Twikoo' === 'Twikoo' || !true) {
+    if (true) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script></div><div class="aplayer no-destroy" data-id="10081861680" data-server="netease" data-type="playlist"   data-order="list" data-fixed="true" data-preload="auto" data-autoplay="false" data-mutex="true" ></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener
+  btf.removeGlobalFnEvent('pjax')
+  btf.removeGlobalFnEvent('themeChange')
+
+  document.getElementById('rightside').classList.remove('rightside-show')
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', e => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><div class="app-refresh" id="app-refresh" style="position: fixed;top: -2.2rem;left: 0;right: 0;z-index: 99999;padding: 0 1rem;font-size: 15px;height: 2.2rem;transition: all 0.3s ease;"><div class="app-refresh-wrap" style=" display: flex;color: #fff;height: 100%;align-items: center;justify-content: center;"><label>✨ 有新文章啦！ 👉</label><a href="javascript:void(0)" onclick="location.reload()"><span style="color: #fff;text-decoration: underline;cursor: pointer;">🍗点击食用🍔</span></a></div></div><script>if ('serviceWorker' in navigator) {
+if (navigator.serviceWorker.controller) {
+navigator.serviceWorker.addEventListener('controllerchange', function() {
+showNotification()
+})
+}
+window.addEventListener('load', function() {
+navigator.serviceWorker.register('/sw.js')
+})
+}
+function showNotification() {
+if (GLOBAL_CONFIG.Snackbar) {
+var snackbarBg =
+document.documentElement.getAttribute('data-theme') === 'light' ?
+GLOBAL_CONFIG.Snackbar.bgLight :
+GLOBAL_CONFIG.Snackbar.bgDark
+var snackbarPos = GLOBAL_CONFIG.Snackbar.position
+Snackbar.show({
+text: '✨ 有新文章啦！ 👉',
+backgroundColor: snackbarBg,
+duration: 500000,
+pos: snackbarPos,
+actionText: '🍗点击食用🍔',
+actionTextColor: '#fff',
+onActionClick: function(e) {
+location.reload()
+},
+})
+} else {
+var showBg =
+document.documentElement.getAttribute('data-theme') === 'light' ?
+'#3b70fc' :
+'#1f1f1f'
+var cssText = `top: 0; background: ${showBg};`
+document.getElementById('app-refresh').style.cssText = cssText
+}
+}</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_footer_beautify_injector_config(){
+    var parent_div_git = document.getElementById('footer-wrap');
+    var item_html = '<div id="workboard"></div><p id="ghbdages"><a class="github-badge" target="_blank" href="https://hexo.io/" style="margin-inline:5px" data-title="博客框架为Hexo_v5.4.0" title=""><img src="https://img.shields.io/badge/Frame-Hexo-blue?style=flat&amp;logo=hexo" alt=""/></a><a class="github-badge" target="_blank" href="https://butterfly.js.org/" style="margin-inline:5px" data-title="主题版本Butterfly_v4.2.2" title=""><img src="https://img.shields.io/badge/Theme-Butterfly-6513df?style=flat&amp;logo=bitdefender" alt=""/></a><a class="github-badge" target="_blank" href="https://www.jsdelivr.com/" style="margin-inline:5px" data-title="本站使用JsDelivr为静态资源提供CDN加速" title=""><img src="https://img.shields.io/badge/CDN-jsDelivr-orange?style=flat&amp;logo=jsDelivr" alt=""/></a><a class="github-badge" target="_blank" href="https://beian.miit.gov.cn/#/Integrated/index" style="margin-inline:5px" data-title="本站已在湘进行备案" title=""><img src="https://img.shields.io/badge/湘ICP备-2022004213号-e1d492?style=flat&amp;logo=data:image/png;base64,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" alt=""/></a><a class="github-badge" target="_blank" href="https://github.com/" style="margin-inline:5px" data-title="本站项目由Github托管" title=""><img src="https://img.shields.io/badge/Source-Github-d021d6?style=flat&amp;logo=GitHub" alt=""/></a><a class="github-badge" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" style="margin-inline:5px" data-title="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可" title=""><img src="https://img.shields.io/badge/Copyright-BY--NC--SA%204.0-d42328?style=flat&amp;logo=Claris" alt=""/></a></p>';
+    console.log('已挂载butterfly_footer_beautify')
+    parent_div_git.insertAdjacentHTML("beforeend",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_footer_beautify_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_footer_beautify_injector_config();
+  }
+  </script><script async src="/js/runtime/runtime.js"></script><script async src="/js/ali_font.js"></script><div class="js-pjax"><script async="async">var arr = document.getElementsByClassName('recent-post-item');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__zoomIn');
+    arr[i].setAttribute('data-wow-duration', '1.5s');
+    arr[i].setAttribute('data-wow-delay', '200ms');
+    arr[i].setAttribute('data-wow-offset', '30');
+    arr[i].setAttribute('data-wow-iteration', '1');
+  }</script><script async="async">var arr = document.getElementsByClassName('card-widget');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__zoomIn');
+    arr[i].setAttribute('data-wow-duration', '');
+    arr[i].setAttribute('data-wow-delay', '200ms');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('flink-list-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__flipInY');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('flink-list-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__animated');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('article-sort-item');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__slideInRight');
+    arr[i].setAttribute('data-wow-duration', '1.5s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('site-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__flipInY');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('site-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__animated');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script></div><script defer src="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/wow.min.js"></script><script defer src="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/wow_init.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"position":"left","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script></body></html>
