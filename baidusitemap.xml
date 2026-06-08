@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://xxh123.online/posts/tcpip-ch11.html</loc>
+    <lastmod>2026-06-08</lastmod>
+  </url>
+  <url>
     <loc>https://xxh123.online/posts/tcpip-ch12.html</loc>
     <lastmod>2026-06-05</lastmod>
   </url>
@@ -10,10 +14,6 @@
   </url>
   <url>
     <loc>https://xxh123.online/posts/tcpip-ch14.html</loc>
-    <lastmod>2026-06-05</lastmod>
-  </url>
-  <url>
-    <loc>https://xxh123.online/posts/tcpip-ch11.html</loc>
     <lastmod>2026-06-05</lastmod>
   </url>
   <url>
