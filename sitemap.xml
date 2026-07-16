@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://xxh123.online/posts/jsoncpp-guide.html</loc>
+    
+    <lastmod>2026-07-16</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://xxh123.online/posts/f131f429.html</loc>
     
     <lastmod>2026-07-16</lastmod>
@@ -767,6 +776,13 @@
     <priority>0.2</priority>
   </url>
   
+  <url>
+    <loc>https://xxh123.online/tags/JSON/</loc>
+    <lastmod>2026-07-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
 
   
   <url>
@@ -848,6 +864,13 @@
   
   <url>
     <loc>https://xxh123.online/categories/%E4%BC%98%E5%8C%96%E7%AE%97%E6%B3%95/</loc>
+    <lastmod>2026-07-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://xxh123.online/categories/C/</loc>
     <lastmod>2026-07-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
