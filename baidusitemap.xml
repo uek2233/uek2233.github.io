@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://xxh123.online/posts/f131f429.html</loc>
+    <lastmod>2026-07-16</lastmod>
+  </url>
+  <url>
     <loc>https://xxh123.online/posts/tcpip-ch17.html</loc>
     <lastmod>2026-07-16</lastmod>
   </url>
@@ -25,15 +29,15 @@
     <lastmod>2026-07-16</lastmod>
   </url>
   <url>
-    <loc>https://xxh123.online/posts/93a4bc9e.html</loc>
-    <lastmod>2026-07-16</lastmod>
-  </url>
-  <url>
     <loc>https://xxh123.online/posts/tcpip-ch15.html</loc>
     <lastmod>2026-07-16</lastmod>
   </url>
   <url>
     <loc>https://xxh123.online/posts/tcpip-ch16.html</loc>
+    <lastmod>2026-07-16</lastmod>
+  </url>
+  <url>
+    <loc>https://xxh123.online/posts/93a4bc9e.html</loc>
     <lastmod>2026-07-16</lastmod>
   </url>
   <url>
@@ -51,10 +55,6 @@
   <url>
     <loc>https://xxh123.online/posts/tcpip-index.html</loc>
     <lastmod>2026-07-15</lastmod>
-  </url>
-  <url>
-    <loc>https://xxh123.online/posts/f131f429.html</loc>
-    <lastmod>2026-07-06</lastmod>
   </url>
   <url>
     <loc>https://xxh123.online/posts/tcpip-ch11.html</loc>
