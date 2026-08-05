@@ -2,6 +2,33 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://xxh123.online/posts/tcpip-index.html</loc>
+    
+    <lastmod>2026-08-05</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://xxh123.online/posts/tcpip-ch05.html</loc>
+    
+    <lastmod>2026-08-05</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://xxh123.online/posts/tcpip-ch04.html</loc>
+    
+    <lastmod>2026-08-05</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://xxh123.online/posts/tcpip-ch09.html</loc>
     
     <lastmod>2026-08-05</lastmod>
@@ -137,15 +164,6 @@
   </url>
   
   <url>
-    <loc>https://xxh123.online/posts/tcpip-index.html</loc>
-    
-    <lastmod>2026-07-15</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>https://xxh123.online/posts/tcpip-ch11.html</loc>
     
     <lastmod>2026-07-05</lastmod>
@@ -192,15 +210,6 @@
   
   <url>
     <loc>https://xxh123.online/posts/tcpip-ch14.html</loc>
-    
-    <lastmod>2026-06-04</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>https://xxh123.online/posts/tcpip-ch05.html</loc>
     
     <lastmod>2026-06-04</lastmod>
     
