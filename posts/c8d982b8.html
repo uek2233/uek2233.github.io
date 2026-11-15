@@ -371,7 +371,7 @@ src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20240625202930.
   }
 
   const loadMermaid = () => {
-    window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js').then(runMermaid)
+    window.loadMermaid ? runMermaid() : getScript('https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.8.0/mermaid.min.js').then(runMermaid)
   }
 
   btf.addGlobalFn('themeChange', runMermaid, 'mermaid')

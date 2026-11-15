@@ -855,7 +855,7 @@ CMakeLists.txt（完整模板）</span></a></li><li class="toc-item toc-level-3"
   }
 
   const loadMermaid = () => {
-    window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js').then(runMermaid)
+    window.loadMermaid ? runMermaid() : getScript('https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.8.0/mermaid.min.js').then(runMermaid)
   }
 
   btf.addGlobalFn('themeChange', runMermaid, 'mermaid')

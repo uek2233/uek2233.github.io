@@ -413,7 +413,7 @@ fd，还可能带来安全问题（子进程误操作监听端口）。</li>
   }
 
   const loadMermaid = () => {
-    window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js').then(runMermaid)
+    window.loadMermaid ? runMermaid() : getScript('https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.8.0/mermaid.min.js').then(runMermaid)
   }
 
   btf.addGlobalFn('themeChange', runMermaid, 'mermaid')

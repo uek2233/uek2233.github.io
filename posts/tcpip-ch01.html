@@ -341,7 +341,7 @@ socket 是阻塞模式，本次调用也不会阻塞。</li>
   }
 
   const loadMermaid = () => {
-    window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js').then(runMermaid)
+    window.loadMermaid ? runMermaid() : getScript('https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.8.0/mermaid.min.js').then(runMermaid)
   }
 
   btf.addGlobalFn('themeChange', runMermaid, 'mermaid')
