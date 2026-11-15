@@ -1,0 +1,1642 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Linux 应用编程：字符串处理函数全解 | Kikyo</title><meta name="author" content="Kikyo"><meta name="copyright" content="Kikyo"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="字符串处理  学习 Linux 应用编程时整理的笔记，涵盖：字符串的输入&#x2F;输出、长度计算、拷贝、拼接、比较、查找、与数字互转，以及 POSIX 正则表达式。 阅读建议：先掌握「怎么进、怎么出」（输入&#x2F;输出），再熟悉「多长、怎么复制拼接」（长度&#x2F;拷贝&#x2F;拼接），然后是「怎么比、怎么找」（比较&#x2F;查找），最后是「怎么转」（数字互转与正则）。   字符串输出    函数 作用 成功返回 失败返回     p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux 应用编程：字符串处理函数全解">
+<meta property="og:url" content="https://xxh123.online/posts/linux-string.html">
+<meta property="og:site_name" content="Kikyo">
+<meta property="og:description" content="字符串处理  学习 Linux 应用编程时整理的笔记，涵盖：字符串的输入&#x2F;输出、长度计算、拷贝、拼接、比较、查找、与数字互转，以及 POSIX 正则表达式。 阅读建议：先掌握「怎么进、怎么出」（输入&#x2F;输出），再熟悉「多长、怎么复制拼接」（长度&#x2F;拷贝&#x2F;拼接），然后是「怎么比、怎么找」（比较&#x2F;查找），最后是「怎么转」（数字互转与正则）。   字符串输出    函数 作用 成功返回 失败返回     p">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/05_photo_2026-11-15_15-33-27.jpg">
+<meta property="article:published_time" content="2026-11-15T03:00:00.000Z">
+<meta property="article:modified_time" content="2026-11-15T07:47:13.215Z">
+<meta property="article:author" content="Kikyo">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="字符串">
+<meta property="article:tag" content="C语言">
+<meta property="article:tag" content="正则表达式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/05_photo_2026-11-15_15-33-27.jpg"><link rel="shortcut icon" href="/img/Rocket.png"><link rel="canonical" href="https://xxh123.online/posts/linux-string.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="manifest" href="/manifest.json"/><meta name="msapplication-TileColor" content="#40B2E6"/><link rel="apple-touch-icon" sizes="180x180" href="/img/siteicon/128.png"/><link rel="icon" type="image/png" sizes="32x32" href="/img/siteicon/32.png"/><link rel="icon" type="image/png" sizes="16x16" href="/img/siteicon/16.png"/><link rel="mask-icon" href="/img/siteicon/128.png" color="#5bbad5"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Linux 应用编程：字符串处理函数全解',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-11-15 15:47:13'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css" media="defer" onload="this.media='all'"><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/runtime/runtime.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/assets/font-awesome-animation.min.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/tag_plugins.css" media="defer" onload="this.media='all'"><script src="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/assets/carousel-touch.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/animate.min.css" media="print" onload="this.media='screen'"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.2.0"><link rel="alternate" href="/atom.xml" title="Kikyo" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/202405192117137.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">51</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">58</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/"><i class="fa-fw fas fa-home faa-tada"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/archives/"><i class="fa-fw fas fa-archive faa-tada"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/artitalk/"><i class="fa-fw fas fa-comment-dots faa-tada"></i><span> 闲言碎语</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/music/"><i class="fa-fw fas fa-music faa-tada"></i><span> 音乐馆</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/categories/"><i class="fa-fw fas fa-folder-open faa-tada"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/wallpapers/"><i class="fa-fw fab fa-artstation faa-tada"></i><span> 壁纸</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/comments/"><i class="fa-fw fas fa-envelope faa-tada"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/link/"><i class="fa-fw fas fa-link faa-tada"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/bangumis/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-hecha"></use></svg><span> 追番</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/about/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-zhifeiji"></use></svg><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/05_photo_2026-11-15_15-33-27.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Kikyo"><span class="site-name">Kikyo</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/"><i class="fa-fw fas fa-home faa-tada"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/archives/"><i class="fa-fw fas fa-archive faa-tada"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/artitalk/"><i class="fa-fw fas fa-comment-dots faa-tada"></i><span> 闲言碎语</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/music/"><i class="fa-fw fas fa-music faa-tada"></i><span> 音乐馆</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/categories/"><i class="fa-fw fas fa-folder-open faa-tada"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/wallpapers/"><i class="fa-fw fab fa-artstation faa-tada"></i><span> 壁纸</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/comments/"><i class="fa-fw fas fa-envelope faa-tada"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/link/"><i class="fa-fw fas fa-link faa-tada"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/bangumis/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-hecha"></use></svg><span> 追番</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/about/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-zhifeiji"></use></svg><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Linux 应用编程：字符串处理函数全解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-11-15T03:00:00.000Z" title="发表于 2026-11-15 11:00:00">2026-11-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-11-15T07:47:13.215Z" title="更新于 2026-11-15 15:47:13">2026-11-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Linux/">Linux</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Linux/%E5%BA%94%E7%94%A8%E7%BC%96%E7%A8%8B/">应用编程</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">7.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>29分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Linux 应用编程：字符串处理函数全解"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="字符串处理">字符串处理</h1>
+<blockquote>
+<p>学习 Linux
+应用编程时整理的笔记，涵盖：字符串的输入/输出、长度计算、拷贝、拼接、比较、查找、与数字互转，以及
+POSIX 正则表达式。</p>
+<p>阅读建议：先掌握「怎么进、怎么出」（输入/输出），再熟悉「多长、怎么复制拼接」（长度/拷贝/拼接），然后是「怎么比、怎么找」（比较/查找），最后是「怎么转」（数字互转与正则）。</p>
+</blockquote>
+<hr>
+<h2 id="字符串输出">字符串输出</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>puts()</code></td>
+<td style="text-align: left;">输出字符串到标准输出，末尾自动换行</td>
+<td style="text-align: left;">非负值（0）</td>
+<td style="text-align: left;"><code>EOF</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>putchar()</code></td>
+<td style="text-align: left;">输出单个字符到标准输出</td>
+<td style="text-align: left;">写入的字符</td>
+<td style="text-align: left;"><code>EOF</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fputs()</code></td>
+<td style="text-align: left;">输出字符串到指定文件流，不自动换行</td>
+<td style="text-align: left;">非负值（0）</td>
+<td style="text-align: left;"><code>EOF</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fputc()</code></td>
+<td style="text-align: left;">输出单个字符到指定文件流</td>
+<td style="text-align: left;">写入的字符</td>
+<td style="text-align: left;"><code>EOF</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 输出函数可以按「对象（字符串/字符）×
+目的地（标准输出/指定流）」组成 2×2 矩阵，4 个函数两两对应。</p>
+</blockquote>
+<h3 id="puts-输出字符串到标准输出">puts() — 输出字符串到标准输出</h3>
+<p><strong>作用</strong>::
+将字符串输出到标准输出设备，输出完字符串内容后自动输出一个换行符
+<code>'\n'</code>（相当于把字符串结尾的 <code>'\0'</code> 转成了
+<code>'\n'</code>）。仅限于输出字符串。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">puts</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *s)</span>;</span><br><span class="line"><span class="comment">// 成功：返回非负值（0）</span></span><br><span class="line"><span class="comment">// 失败：返回 EOF，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>s</code>：要输出的字符串（必须以 <code>'\0'</code> 结尾）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><code>puts()</code> 输出后<strong>自动追加换行符</strong>，等价于
+<code>printf("%s\n", s)</code></li>
+<li>只能输出字符串，不能带格式控制；需要格式化时用
+<code>printf()</code></li>
+<li>与 <code>fputs(s, stdout)</code> 的区别：<code>fputs()</code>
+不会自动追加换行</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">puts</span>(<span class="string">&quot;hello world&quot;</span>);   <span class="comment">/* 输出: hello world\n */</span></span><br></pre></td></tr></table></figure>
+<h3 id="putchar-输出单个字符到标准输出">putchar() —
+输出单个字符到标准输出</h3>
+<p><strong>作用</strong>:: 将一个字符输出到标准输出设备，等价于
+<code>fputc(c, stdout)</code>。只能输出单个字符。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">putchar</span><span class="params">(<span class="type">int</span> c)</span>;</span><br><span class="line"><span class="comment">// 成功：返回写入的字符（其 ASCII 码值）</span></span><br><span class="line"><span class="comment">// 失败：返回 EOF</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>c</code>：要输出的字符（int 类型，实际按 unsigned char
+处理）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>参数虽然是 <code>int</code>，但实际写入的是
+<code>unsigned char</code> 转换后的字符</li>
+<li>输出单个字符用 <code>putchar()</code>，输出字符串用
+<code>puts()</code> 或 <code>printf("%s", ...)</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">putchar</span>(<span class="string">&#x27;A&#x27;</span>);    <span class="comment">/* 输出: A */</span></span><br><span class="line"><span class="built_in">putchar</span>(<span class="string">&#x27;\n&#x27;</span>);   <span class="comment">/* 输出换行 */</span></span><br></pre></td></tr></table></figure>
+<h3 id="fputs-输出字符串到指定流">fputs() — 输出字符串到指定流</h3>
+<p><strong>作用</strong>:: 与 <code>puts()</code>
+类似，但可以指定输出到哪个文件流（文件、标准输出、标准错误等），<strong>不会</strong>自动追加换行符。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">fputs</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *s, FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 成功：返回非负值（0）</span></span><br><span class="line"><span class="comment">// 失败：返回 EOF，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>s</code>：要输出的字符串</li>
+<li><code>stream</code>：目标文件流，如
+<code>stdout</code>、<code>stderr</code> 或 <code>fopen()</code>
+打开的文件</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><code>fputs()</code> 不自动加换行，需要换行要手动加
+<code>'\n'</code>（<code>puts()</code> 自动加）</li>
+<li>写文件时若文件按文本模式打开，换行符会被转换为
+<code>\r\n</code>（Windows）；Linux 下无此转换</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">FILE *fp = fopen(<span class="string">&quot;log.txt&quot;</span>, <span class="string">&quot;a&quot;</span>);</span><br><span class="line"><span class="keyword">if</span> (fp) &#123;</span><br><span class="line">    <span class="built_in">fputs</span>(<span class="string">&quot;write error\n&quot;</span>, fp);</span><br><span class="line">    fclose(fp);</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">fputs</span>(<span class="string">&quot;hello&quot;</span>, <span class="built_in">stdout</span>);   <span class="comment">/* 不换行 */</span></span><br></pre></td></tr></table></figure>
+<h3 id="fputc-输出单个字符到指定流">fputc() — 输出单个字符到指定流</h3>
+<p><strong>作用</strong>:: 与 <code>putchar()</code>
+类似，但可以指定输出到哪个文件流。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">fputc</span><span class="params">(<span class="type">int</span> c, FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 成功：返回写入的字符（其 ASCII 码值）</span></span><br><span class="line"><span class="comment">// 失败：返回 EOF</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>c</code>：要输出的字符（int 类型）</li>
+<li><code>stream</code>：目标文件流</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>写入失败时返回 <code>EOF</code></li>
+<li><code>putchar(c)</code> 等价于 <code>fputc(c, stdout)</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fputc(<span class="string">&#x27;x&#x27;</span>, <span class="built_in">stderr</span>);</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="字符串输入">字符串输入</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>gets()</code></td>
+<td style="text-align: left;">从标准输入读取一行字符串（⚠️
+已废弃，勿用）</td>
+<td style="text-align: left;">缓冲区指针 <code>s</code></td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fgets()</code></td>
+<td style="text-align: left;">从指定流读取一行字符串，可限制最大长度（✅
+推荐）</td>
+<td style="text-align: left;">缓冲区指针 <code>s</code></td>
+<td style="text-align: left;"><code>NULL</code>（末尾或出错）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>getchar()</code></td>
+<td style="text-align: left;">从标准输入读取一个字符</td>
+<td style="text-align: left;">读取的字符（int）</td>
+<td style="text-align: left;"><code>EOF</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fgetc()</code></td>
+<td style="text-align: left;">从指定流读取一个字符</td>
+<td style="text-align: left;">读取的字符（int）</td>
+<td style="text-align: left;"><code>EOF</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡
+输入函数的核心要点：<strong>缓冲区溢出防护</strong>。<code>gets()</code>
+无法限制长度是它被废弃的根本原因，一律用 <code>fgets()</code> 替代。</p>
+</blockquote>
+<h3 id="gets-从标准输入读取字符串-已废弃">gets() —
+从标准输入读取字符串（⚠️ 已废弃）</h3>
+<p><strong>作用</strong>::
+从标准输入设备（键盘）中获取用户输入的字符串，以回车换行符作为分隔符，将
+<code>'\n'</code> 替换为字符串结束符 <code>'\0'</code>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *<span class="title function_">gets</span><span class="params">(<span class="type">char</span> *s)</span>;</span><br><span class="line"><span class="comment">// 成功：返回缓冲区指针 s</span></span><br><span class="line"><span class="comment">// 失败或到文件末尾：返回 NULL</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>s</code>：存放输入字符串的缓冲区</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>没有长度限制参数，无法防止缓冲区溢出</strong>——这是著名的安全漏洞来源，C11
+标准已将其移除，生产代码严禁使用，一律用 <code>fgets()</code> 替代</li>
+<li><code>gets()</code>
+会将回车换行符从输入缓冲区中取出并丢弃，缓冲区不会遗留
+<code>'\n'</code></li>
+<li>与 <code>scanf("%s", ...)</code> 的区别：
+<ul>
+<li><code>scanf</code> 以空格、换行、TAB
+等空白字符作为字符串分隔符，遇到就停止读取，这些字符不会进入字符串；<code>gets()</code>
+将空格和 TAB 视为字符串内容的一部分，仅以回车作为分隔符</li>
+<li><code>scanf()</code>
+不会把分隔符从输入缓冲区中读走，读完后缓冲区里还残留着分隔符；<code>gets()</code>
+会把回车取走并丢弃</li>
+</ul></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* ❌ 危险示例：缓冲区只有 64 字节，输入超过 63 字节就会溢出 */</span></span><br><span class="line"><span class="type">char</span> buf[<span class="number">64</span>];</span><br><span class="line">gets(buf);</span><br></pre></td></tr></table></figure>
+<h3 id="fgets-从指定流读取字符串-推荐">fgets() — 从指定流读取字符串（✅
+推荐）</h3>
+<p><strong>作用</strong>::
+从指定的文件流（标准输入或普通文件）中读取一行字符串，可以设置最大读取字符数，防止缓冲区溢出。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *<span class="title function_">fgets</span><span class="params">(<span class="type">char</span> *s, <span class="type">int</span> size, FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 成功：返回缓冲区指针 s</span></span><br><span class="line"><span class="comment">// 失败或读到末尾且没有读到任何字符：返回 NULL</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>s</code>：存放读取内容的缓冲区</li>
+<li><code>size</code>：最多读取 <code>size - 1</code>
+个字符（留一个位置给 <code>'\0'</code>）</li>
+<li><code>stream</code>：数据来源，如 <code>stdin</code> 或
+<code>fopen()</code> 打开的文件</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>与 <code>gets()</code> 的区别：
+<ul>
+<li><code>gets()</code> 只能从标准输入读取；<code>fgets()</code>
+既可以从标准输入、也可以从普通文件读取</li>
+<li><code>fgets()</code> 可以设置最大字符数，<code>gets()</code>
+不能</li>
+<li><code>gets()</code> 会把 <code>'\n'</code>
+读出来并丢弃；<code>fgets()</code> 也会把 <code>'\n'</code>
+读出来，但<strong>不丢弃</strong>，而是作为字符串的一部分保留（放在
+<code>'\0'</code> 前面）</li>
+</ul></li>
+<li>如果这一行长度超过 <code>size - 1</code>，<code>fgets()</code>
+只读前 <code>size - 1</code>
+个字符，剩下的留在缓冲区中，下次调用继续读（实际生产中长行需要配合循环处理）</li>
+<li>读到 <code>'\n'</code> 就停止，因此 <code>fgets()</code>
+适合按行读取</li>
+<li>读取到的字符串末尾<strong>总会添加</strong> <code>'\0'</code></li>
+<li>返回 <code>NULL</code> 时用 <code>feof()</code> /
+<code>ferror()</code> 区分是「读到了末尾」还是「读取出错」</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> buf[<span class="number">128</span>];</span><br><span class="line"><span class="keyword">if</span> (fgets(buf, <span class="keyword">sizeof</span>(buf), <span class="built_in">stdin</span>)) &#123;</span><br><span class="line">    <span class="comment">/* 去掉 fgets 保留的换行符 */</span></span><br><span class="line">    buf[<span class="built_in">strcspn</span>(buf, <span class="string">&quot;\n&quot;</span>)] = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;输入内容: %s\n&quot;</span>, buf);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="getchar-从标准输入读取一个字符">getchar() —
+从标准输入读取一个字符</h3>
+<p><strong>作用</strong>::
+从标准输入设备读取一个字符，包括空格、TAB、换行回车符等，等价于
+<code>fgetc(stdin)</code>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">getchar</span><span class="params">(<span class="type">void</span>)</span>;</span><br><span class="line"><span class="comment">// 成功：返回读取到的字符（其 ASCII 码值）</span></span><br><span class="line"><span class="comment">// 到文件末尾或出错：返回 EOF</span></span><br></pre></td></tr></table></figure>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>返回值是 <code>int</code> 而不是 <code>char</code>——因为要能表示
+<code>EOF</code>（-1），用 <code>char</code> 接收会截断</li>
+<li>终端输入是行缓冲的：用户按下回车后，<code>getchar()</code>
+才会真正从缓冲区取数据</li>
+<li>读取一个字符后，缓冲区中剩余的字符（包括回车）还在，需要时可用循环清空</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> c;</span><br><span class="line"><span class="keyword">while</span> ((c = getchar()) != <span class="string">&#x27;\n&#x27;</span> &amp;&amp; c != EOF)</span><br><span class="line">    ;   <span class="comment">/* 丢弃当前行剩余字符 */</span></span><br></pre></td></tr></table></figure>
+<h3 id="fgetc-从指定流读取一个字符">fgetc() — 从指定流读取一个字符</h3>
+<p><strong>作用</strong>:: 从指定的文件流中读取一个字符，等价于
+<code>getc(stream)</code>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">fgetc</span><span class="params">(FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 成功：返回读取到的字符（其 ASCII 码值）</span></span><br><span class="line"><span class="comment">// 到文件末尾或出错：返回 EOF</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>stream</code>：数据来源文件流</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>返回值同样是 <code>int</code>，用 <code>EOF</code>
+判断读取结束或出错</li>
+<li>返回 <code>EOF</code> 后，用 <code>feof()</code> /
+<code>ferror()</code> 区分「到文件末尾」还是「读取出错」</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">FILE *fp = fopen(<span class="string">&quot;data.txt&quot;</span>, <span class="string">&quot;r&quot;</span>);</span><br><span class="line"><span class="type">int</span> c;</span><br><span class="line"><span class="keyword">if</span> (fp) &#123;</span><br><span class="line">    <span class="keyword">while</span> ((c = fgetc(fp)) != EOF) &#123;</span><br><span class="line">        <span class="built_in">putchar</span>(c);</span><br><span class="line">    &#125;</span><br><span class="line">    fclose(fp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="字符串长度">字符串长度</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">返回值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>strlen()</code></td>
+<td style="text-align: left;">计算字符串长度（不含结尾的
+<code>'\0'</code>）</td>
+<td style="text-align: left;"><code>size_t</code> 类型长度</td>
+</tr>
+</tbody>
+</table>
+<h3 id="strlen-计算字符串长度">strlen() — 计算字符串长度</h3>
+<p><strong>作用</strong>:: 计算字符串的长度，即从起始位置到第一个
+<code>'\0'</code> 之间的字符个数（<strong>不包括</strong>
+<code>'\0'</code> 本身）。字符串必须包含结束字符
+<code>'\0'</code>，否则行为未定义。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">size_t</span> <span class="title function_">strlen</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *s)</span>;</span><br><span class="line"><span class="comment">// 返回：字符串长度（size_t 无符号类型）</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>s</code>：字符串首地址，必须以 <code>'\0'</code> 结尾</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>返回类型是
+<code>size_t</code>（无符号），<strong>不要</strong>与负数直接比较，也不要相减后判断正负（会变成很大的无符号数）</li>
+<li>若字符串没有 <code>'\0'</code> 结尾（如 <code>strncpy()</code>
+截断导致的「非 C 字符串」），<code>strlen()</code>
+会一直往后扫描直到遇到内存中的 <code>'\0'</code>，可能越界——这是常见
+bug</li>
+<li>时间复杂度为 O(n)，会遍历整个字符串；循环里反复调用
+<code>strlen()</code> 会低效，可先把长度存起来</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> str[] = <span class="string">&quot;hello&quot;</span>;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%zu\n&quot;</span>, <span class="built_in">strlen</span>(str));   <span class="comment">/* 输出: 5 */</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%zu\n&quot;</span>, <span class="keyword">sizeof</span>(str));   <span class="comment">/* 输出: 6（含 &#x27;\0&#x27;） */</span></span><br></pre></td></tr></table></figure>
+<h3 id="sizeof-与-strlen-的区别">sizeof 与 strlen 的区别</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">对比项</th>
+<th style="text-align: left;"><code>sizeof</code></th>
+<th style="text-align: left;"><code>strlen()</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">本质</td>
+<td style="text-align: left;">C
+语言内置的<strong>操作符/关键字</strong></td>
+<td style="text-align: left;">C 语言<strong>库函数</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;">计算时机</td>
+<td
+style="text-align: left;"><strong>编译时</strong>由编译器算出结果</td>
+<td style="text-align: left;"><strong>运行时</strong>才计算</td>
+</tr>
+<tr>
+<td style="text-align: left;">作用对象</td>
+<td style="text-align: left;">数据类型的大小或变量占用内存的大小</td>
+<td style="text-align: left;">只能作用于以 <code>'\0'</code>
+结尾的字符串</td>
+</tr>
+<tr>
+<td style="text-align: left;">计算结果</td>
+<td
+style="text-align: left;">变量/类型所占的<strong>内存字节数</strong></td>
+<td style="text-align: left;">字符串的<strong>实际长度</strong>（不含
+<code>'\0'</code>）</td>
+</tr>
+<tr>
+<td style="text-align: left;">对数组</td>
+<td style="text-align: left;">返回整个数组的字节数（含
+<code>'\0'</code>）</td>
+<td style="text-align: left;">返回 <code>'\0'</code> 前的字符个数</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> buf[<span class="number">64</span>] = <span class="string">&quot;hello&quot;</span>;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%zu\n&quot;</span>, <span class="keyword">sizeof</span>(buf));   <span class="comment">/* 64：整个数组的大小，编译期确定 */</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%zu\n&quot;</span>, <span class="built_in">strlen</span>(buf));   <span class="comment">/* 5：字符串实际长度，运行时计算 */</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>📌 注意：<code>sizeof</code>
+作用于<strong>指针</strong>时只返回指针本身的大小（如 8
+字节），而不是它指向的字符串长度；<code>strlen</code>
+作用于指针时则会遍历指针指向的字符串。</p>
+</blockquote>
+<hr>
+<h2 id="字符串拷贝">字符串拷贝</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>strcpy()</code></td>
+<td style="text-align: left;">把源字符串（含
+<code>'\0'</code>）复制到目标缓冲区</td>
+<td style="text-align: left;">目标指针 <code>dest</code></td>
+<td style="text-align: left;">N/A（不检查）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>strncpy()</code></td>
+<td style="text-align: left;">复制指定数量字符到目标缓冲区</td>
+<td style="text-align: left;">目标指针 <code>dest</code></td>
+<td style="text-align: left;">N/A（不检查）</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡
+拷贝函数都不检查目标缓冲区大小，<strong>缓冲区溢出风险由调用者负责</strong>。<code>strncpy()</code>
+并不能完全解决这个问题，还引入了「可能不带
+<code>'\0'</code>」的新坑。</p>
+</blockquote>
+<h3 id="strcpy-复制字符串">strcpy() — 复制字符串</h3>
+<p><strong>作用</strong>:: 将 <code>src</code>
+指向的字符串（<strong>包括结束字符 <code>'\0'</code></strong>）复制到
+<code>dest</code> 指向的缓冲区中。<code>src</code> 必须包含结束字符
+<code>'\0'</code>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *<span class="title function_">strcpy</span><span class="params">(<span class="type">char</span> *dest, <span class="type">const</span> <span class="type">char</span> *src)</span>;</span><br><span class="line"><span class="comment">// 返回：目标缓冲区指针 dest（便于链式调用）</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>dest</code>：目标缓冲区，必须足够大以容纳 <code>src</code>
+全部内容（含 <code>'\0'</code>）</li>
+<li><code>src</code>：源字符串，必须以 <code>'\0'</code> 结尾</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>不会检查 <code>dest</code>
+的空间是否足够</strong>，<code>dest</code> 太小会导致缓冲区溢出（buffer
+overflow），这是常见安全漏洞</li>
+<li><code>src</code> 必须是以 <code>'\0'</code>
+结尾的字符串，否则会越界复制</li>
+<li><code>dest</code> 和 <code>src</code>
+不能重叠（重叠区域行为未定义），重叠场景用 <code>memmove()</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> dest[<span class="number">32</span>];</span><br><span class="line"><span class="built_in">strcpy</span>(dest, <span class="string">&quot;hello&quot;</span>);          <span class="comment">/* dest 内容: &quot;hello\0&quot; */</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%s\n&quot;</span>, dest);</span><br></pre></td></tr></table></figure>
+<h3 id="strncpy-复制指定数量的字符">strncpy() — 复制指定数量的字符</h3>
+<p><strong>作用</strong>:: 与 <code>strcpy()</code>
+类似，但可以指定从源字符串 <code>src</code> 复制到目标缓冲区
+<code>dest</code> 的字符数量 <code>n</code>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *<span class="title function_">strncpy</span><span class="params">(<span class="type">char</span> *dest, <span class="type">const</span> <span class="type">char</span> *src, <span class="type">size_t</span> n)</span>;</span><br><span class="line"><span class="comment">// 返回：目标缓冲区指针 dest</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>dest</code>：目标缓冲区</li>
+<li><code>src</code>：源字符串</li>
+<li><code>n</code>：最多复制的字符数</li>
+</ul>
+<p><strong>注意事项</strong>（重点！）：</p>
+<ol type="1">
+<li><strong>如果 <code>src</code> 长度 &gt;= <code>n</code>，只复制
+<code>n</code> 个字符，不会自动补
+<code>'\0'</code></strong>——<code>dest</code> 很可能不是以
+<code>'\0'</code> 结尾的「非 C 字符串」，后续调用 <code>strlen()</code>
+/ <code>strcpy()</code> / <code>printf("%s")</code> 都会出问题</li>
+<li>如果 <code>src</code> 长度 &lt; <code>n</code>，复制完
+<code>src</code> 后剩余部分会用 <code>'\0'</code>
+<strong>填充</strong>（零填充）</li>
+<li>安全用法：复制后手动补一个
+<code>'\0'</code>（见下方示例），保证字符串始终以 <code>'\0'</code>
+结尾</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> dest[<span class="number">16</span>];</span><br><span class="line"><span class="built_in">strncpy</span>(dest, <span class="string">&quot;hello world&quot;</span>, <span class="number">5</span>);   <span class="comment">/* 只复制前 5 个字符 &quot;hello&quot; */</span></span><br><span class="line">dest[<span class="number">5</span>] = <span class="string">&#x27;\0&#x27;</span>;                    <span class="comment">/* 手动补 &#x27;\0&#x27;（截断时 strncpy 不会补） */</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%s\n&quot;</span>, dest);              <span class="comment">/* hello */</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="字符串拼接">字符串拼接</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>strcat()</code></td>
+<td style="text-align: left;">把源字符串追加到目标字符串末尾</td>
+<td style="text-align: left;">目标指针 <code>dest</code></td>
+<td style="text-align: left;">N/A（不检查）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>strncat()</code></td>
+<td style="text-align: left;">追加指定数量字符到目标字符串末尾</td>
+<td style="text-align: left;">目标指针 <code>dest</code></td>
+<td style="text-align: left;">N/A（不检查）</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 拼接的本质是「找到 <code>dest</code> 的
+<code>'\0'</code>，从那里开始覆盖写入」。两个函数都不检查目标空间；<code>strncat()</code>
+限制的是<strong>追加的数量</strong>，而不是<strong>总空间</strong>。</p>
+</blockquote>
+<h3 id="strcat-拼接字符串">strcat() — 拼接字符串</h3>
+<p><strong>作用</strong>:: 把 <code>src</code> 所指向的字符串追加到
+<code>dest</code> 所指向的字符串末尾。<code>dest</code> 末尾的
+<code>'\0'</code> 结束字符会被覆盖，<code>src</code> 末尾的结束字符
+<code>'\0'</code> 会一起被复制过去，最终合并后的字符串只有一个
+<code>'\0'</code>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *<span class="title function_">strcat</span><span class="params">(<span class="type">char</span> *dest, <span class="type">const</span> <span class="type">char</span> *src)</span>;</span><br><span class="line"><span class="comment">// 返回：目标缓冲区指针 dest</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>dest</code>：目标字符串，<strong>必须有足够的剩余空间</strong>（strlen(dest)
++ strlen(src) + 1）</li>
+<li><code>src</code>：要追加的源字符串</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>不检查空间</strong>：<code>dest</code> 剩余空间必须 &gt;=
+<code>strlen(src) + 1</code>，否则缓冲区溢出</li>
+<li><code>dest</code> 必须是以 <code>'\0'</code>
+结尾的字符串，<code>strcat()</code> 从 <code>dest</code> 的
+<code>'\0'</code> 处开始追加</li>
+<li><code>dest</code> 与 <code>src</code> 不能重叠</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> path[<span class="number">64</span>] = <span class="string">&quot;/home/coco&quot;</span>;</span><br><span class="line"><span class="built_in">strcat</span>(path, <span class="string">&quot;/notes&quot;</span>);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%s\n&quot;</span>, path);   <span class="comment">/* /home/coco/notes */</span></span><br></pre></td></tr></table></figure>
+<h3 id="strncat-拼接指定数量的字符">strncat() — 拼接指定数量的字符</h3>
+<p><strong>作用</strong>:: 与 <code>strcat()</code>
+作用相似，但可以指定最多从 <code>src</code> 追加 <code>n</code>
+个字符到目标字符串末尾，并在追加完成后自动添加结束字符
+<code>'\0'</code>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *<span class="title function_">strncat</span><span class="params">(<span class="type">char</span> *dest, <span class="type">const</span> <span class="type">char</span> *src, <span class="type">size_t</span> n)</span>;</span><br><span class="line"><span class="comment">// 返回：目标缓冲区指针 dest</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>dest</code>：目标字符串</li>
+<li><code>src</code>：源字符串</li>
+<li><code>n</code>：最多追加的字符数（<strong>不含
+<code>'\0'</code></strong>）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>参数 <code>n</code>
+是「最多追加几个字符」，追加后<strong>总会</strong>在末尾补
+<code>'\0'</code>，所以 <code>dest</code> 至少需要
+<code>strlen(dest) + n + 1</code> 字节空间</li>
+<li>与 <code>strncpy()</code> 不同：<code>strncat()</code> 不会用
+<code>'\0'</code> 填充剩余空间，也不会产生非 C 字符串</li>
+<li>若 <code>src</code> 长度不足 <code>n</code>，则复制到
+<code>src</code> 的 <code>'\0'</code> 为止</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> buf[<span class="number">32</span>] = <span class="string">&quot;hello&quot;</span>;</span><br><span class="line"><span class="built_in">strncat</span>(buf, <span class="string">&quot; world!!!&quot;</span>, <span class="number">6</span>);   <span class="comment">/* 最多追加 6 个字符 &quot; world&quot; */</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%s\n&quot;</span>, buf);            <span class="comment">/* hello world */</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="字符串比较">字符串比较</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">返回值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>strcmp()</code></td>
+<td style="text-align: left;">逐字符比较两个字符串（按 ASCII 码）</td>
+<td style="text-align: left;"><code>&lt;0</code> / <code>0</code> /
+<code>&gt;0</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>strncmp()</code></td>
+<td style="text-align: left;">只比较两个字符串的前 n 个字符</td>
+<td style="text-align: left;"><code>&lt;0</code> / <code>0</code> /
+<code>&gt;0</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="strcmp-比较两个字符串">strcmp() — 比较两个字符串</h3>
+<p><strong>作用</strong>:: 比较两个字符串的大小，逐字符比较对应的 ASCII
+码值，直到出现差异或遇到 <code>'\0'</code>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">strcmp</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *s1, <span class="type">const</span> <span class="type">char</span> *s2)</span>;</span><br><span class="line"><span class="comment">// 返回：s1 &lt; s2 时为负数；s1 == s2 时为 0；s1 &gt; s2 时为正数</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>s1</code>、<code>s2</code>：要比较的两个字符串</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>返回值是「小于/等于/大于
+0」，<strong>不要</strong>依赖具体数值（有的平台返回差值，有的返回
+-1/0/1）</li>
+<li>比较的是字符的 ASCII 码值，'A'（65）&lt;
+'a'（97），区分大小写；需要忽略大小写用 <code>strcasecmp()</code>（Linux
+下可用）</li>
+<li>不要用 == 直接比较两个字符串内容 == 比较的是指针地址，不是内容</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="built_in">strcmp</span>(str, <span class="string">&quot;quit&quot;</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;退出\n&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="strncmp-比较前-n-个字符">strncmp() — 比较前 n 个字符</h3>
+<p><strong>作用</strong>:: 与 <code>strcmp()</code> 类似，但最多只比较前
+<code>n</code> 个字符，适合比较字符串前缀。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">strncmp</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *s1, <span class="type">const</span> <span class="type">char</span> *s2, <span class="type">size_t</span> n)</span>;</span><br><span class="line"><span class="comment">// 返回：前 n 个字符比较结果，语义同 strcmp()</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>s1</code>、<code>s2</code>：要比较的字符串</li>
+<li><code>n</code>：最多比较的字符数</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>比较到 <code>n</code> 个字符或遇到 <code>'\0'</code> 就停止</li>
+<li>常用于判断前缀：如判断字符串是否以 "http://" 开头</li>
+<li>注意 <code>n</code> 不能超过字符串实际长度，否则会越界读取</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="built_in">strncmp</span>(url, <span class="string">&quot;http://&quot;</span>, <span class="number">7</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;HTTP 链接\n&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="字符串查找">字符串查找</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>strchr()</code></td>
+<td
+style="text-align: left;">在字符串中查找<strong>第一个</strong>指定字符</td>
+<td style="text-align: left;">该字符位置指针</td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>strrchr()</code></td>
+<td
+style="text-align: left;">在字符串中查找<strong>最后一个</strong>指定字符（从右往左）</td>
+<td style="text-align: left;">该字符位置指针</td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>strstr()</code></td>
+<td
+style="text-align: left;">在字符串中查找<strong>第一次</strong>出现的子字符串</td>
+<td style="text-align: left;">子串位置指针</td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="strchr-查找第一个指定字符">strchr() — 查找第一个指定字符</h3>
+<p><strong>作用</strong>:: 在给定字符串 <code>s</code> 中查找字符
+<code>c</code> 第一次出现的位置，返回指向该位置的指针。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *<span class="title function_">strchr</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *s, <span class="type">int</span> c)</span>;</span><br><span class="line"><span class="comment">// 成功：返回字符 c 第一次出现位置的指针</span></span><br><span class="line"><span class="comment">// 失败：返回 NULL</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>s</code>：被查找的字符串</li>
+<li><code>c</code>：要查找的字符（int 类型，实际按 char 处理）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>参数 <code>c</code> 是 <code>int</code>，但会先转换为
+<code>char</code> 再参与匹配</li>
+<li>字符串结束字符 <code>'\0'</code>
+也被视为字符串的一部分——<code>strchr(s, '\0')</code> 会返回指向结尾
+<code>'\0'</code> 的指针，而不是 <code>NULL</code></li>
+<li>常用于查找分隔符：如用 <code>strchr(line, ':')</code>
+找到冒号后截取字段</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> *p = <span class="built_in">strchr</span>(<span class="string">&quot;hello:world&quot;</span>, <span class="string">&#x27;:&#x27;</span>);</span><br><span class="line"><span class="keyword">if</span> (p) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;冒号后: %s\n&quot;</span>, p + <span class="number">1</span>);   <span class="comment">/* world */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="strrchr-查找最后一个指定字符">strrchr() —
+查找最后一个指定字符</h3>
+<p><strong>作用</strong>:: 在字符串中从后往前（从右向左）查找字符
+<code>c</code>，返回<strong>最后一次出现</strong>（即从右往左第一次出现）的位置指针；找不到返回
+<code>NULL</code>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *<span class="title function_">strrchr</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *s, <span class="type">int</span> c)</span>;</span><br><span class="line"><span class="comment">// 成功：返回字符 c 最后一次出现位置的指针</span></span><br><span class="line"><span class="comment">// 失败：返回 NULL</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>s</code>：被查找的字符串</li>
+<li><code>c</code>：要查找的字符（int 类型）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>查找方向与 <code>strchr()</code>
+相反，返回的是<strong>最后一次</strong>出现的位置</li>
+<li><code>'\0'</code> 同样参与查找（<code>strrchr(s, '\0')</code>
+返回指向字符串结尾的指针）</li>
+<li>典型应用：从文件路径中提取文件名——找最后一个 <code>/</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">char</span> *path = <span class="string">&quot;/home/coco/notes.md&quot;</span>;</span><br><span class="line"><span class="type">char</span> *p = <span class="built_in">strrchr</span>(path, <span class="string">&#x27;/&#x27;</span>);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%s\n&quot;</span>, p ? p + <span class="number">1</span> : path);   <span class="comment">/* notes.md */</span></span><br></pre></td></tr></table></figure>
+<h3 id="strstr-查找子字符串">strstr() — 查找子字符串</h3>
+<p><strong>作用</strong>:: 在给定字符串 <code>haystack</code>
+中查找第一次出现子字符串 <code>needle</code>
+的位置，返回指向该位置的指针；找不到返回
+<code>NULL</code>。查找过程不包含 <code>'\0'</code>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *<span class="title function_">strstr</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *haystack, <span class="type">const</span> <span class="type">char</span> *needle)</span>;</span><br><span class="line"><span class="comment">// 成功：返回子串第一次出现位置的指针</span></span><br><span class="line"><span class="comment">// 失败：返回 NULL</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>haystack</code>：被查找的字符串</li>
+<li><code>needle</code>：要查找的子字符串</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>返回的指针指向 <code>haystack</code>
+内部，可以通过指针偏移取出匹配位置之后的剩余内容</li>
+<li>如果 <code>needle</code> 是空字符串 <code>""</code>，返回
+<code>haystack</code> 本身</li>
+<li>与 <code>strchr()</code> 的区别：<code>strchr()</code>
+找<strong>单个字符</strong>，<code>strstr()</code>
+找<strong>子字符串</strong>（多个字符组成的序列）</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">char</span> *msg = <span class="string">&quot;error: file not found&quot;</span>;</span><br><span class="line"><span class="type">char</span> *p = <span class="built_in">strstr</span>(msg, <span class="string">&quot;error&quot;</span>);</span><br><span class="line"><span class="keyword">if</span> (p) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;发现错误信息\n&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="字符串与数字互转">字符串与数字互转</h2>
+<h3 id="字符串-整型">字符串 → 整型</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败/无法解析</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>atoi()</code> / <code>atol()</code>
+/ <code>atoll()</code></td>
+<td style="text-align: left;">字符串转 int / long / long
+long（仅十进制，简单版）</td>
+<td style="text-align: left;">转换结果</td>
+<td style="text-align: left;">返回 0（<strong>无法区分</strong>）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>strtol()</code> /
+<code>strtoll()</code> / <code>strtoul()</code> /
+<code>strtoull()</code></td>
+<td style="text-align: left;">字符串转 long
+系列（支持多进制、错误检测，✅ 推荐）</td>
+<td style="text-align: left;">转换结果</td>
+<td style="text-align: left;">溢出返回
+<code>LONG_MAX</code>/<code>LONG_MIN</code> 并设置
+<code>errno</code>；无有效数字返回 0</td>
+</tr>
+</tbody>
+</table>
+<h4 id="atoi-atol-atoll-字符串转整型简单版">atoi() / atol() / atoll() —
+字符串转整型（简单版）</h4>
+<p><strong>作用</strong>:: 将数字字符串分别转换为
+<code>int</code>、<code>long int</code>、<code>long long int</code>
+类型的数据。只能转换十进制表示的数字字符串（0~9），自动跳过前导空白字符。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">atoi</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *nptr)</span>;</span><br><span class="line"><span class="type">long</span> <span class="title function_">atol</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *nptr)</span>;</span><br><span class="line"><span class="type">long</span> <span class="type">long</span> <span class="title function_">atoll</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *nptr)</span>;</span><br><span class="line"><span class="comment">// 返回：转换后的整数值</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>nptr</code>：数字字符串，如 "123"、"-45"</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>没有错误检测</strong>：字符串不是合法数字时返回
+0，无法区分是「真的输入了 0」还是「解析失败」</li>
+<li>溢出行为未定义，不适用于对可靠性要求高的场景</li>
+<li>遇到第一个非数字字符就停止解析（"123abc" 转成 123）</li>
+<li>生产代码建议用 <code>strtol()</code> 系列替代</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> a = atoi(<span class="string">&quot;123&quot;</span>);      <span class="comment">/* 123 */</span></span><br><span class="line"><span class="type">long</span> b = atol(<span class="string">&quot;-45&quot;</span>);     <span class="comment">/* -45 */</span></span><br><span class="line"><span class="type">long</span> <span class="type">long</span> c = atoll(<span class="string">&quot;007&quot;</span>); <span class="comment">/* 7 */</span></span><br></pre></td></tr></table></figure>
+<h4 id="strtol-家族-字符串转整型增强版推荐">strtol() 家族 —
+字符串转整型（增强版，推荐）</h4>
+<p><strong>作用</strong>:: 将字符串转换为
+<code>long int</code>（<code>strtol</code>）、<code>long long int</code>（<code>strtoll</code>）、<code>unsigned long int</code>（<code>strtoul</code>）、<code>unsigned long long int</code>（<code>strtoull</code>）类型数据。与
+<code>atoi()</code>
+不同，支持多种进制（二进制、八进制、十六进制等）的字符串，并带有完整的错误检测。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">long</span> <span class="title function_">strtol</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *nptr, <span class="type">char</span> **endptr, <span class="type">int</span> base)</span>;</span><br><span class="line"><span class="type">long</span> <span class="type">long</span> <span class="title function_">strtoll</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *nptr, <span class="type">char</span> **endptr, <span class="type">int</span> base)</span>;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">long</span> <span class="title function_">strtoul</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *nptr, <span class="type">char</span> **endptr, <span class="type">int</span> base)</span>;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">long</span> <span class="type">long</span> <span class="title function_">strtoull</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *nptr, <span class="type">char</span> **endptr, <span class="type">int</span> base)</span>;</span><br><span class="line"><span class="comment">// 成功：返回转换结果</span></span><br><span class="line"><span class="comment">// 溢出：返回 LONG_MAX / LONG_MIN（或 ULONG_MAX 等），并设置 errno = ERANGE</span></span><br><span class="line"><span class="comment">// 无有效数字：返回 0</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>nptr</code>：数字字符串</li>
+<li><code>endptr</code>：输出参数。不为 <code>NULL</code>
+时，保存「停止解析的位置」指针，用于检测字符串是否被完整解析、以及取出剩余部分</li>
+<li><code>base</code>：进制，取值：
+<ul>
+<li><code>0</code>：自动识别——<code>0x</code>/<code>0X</code>
+前缀按十六进制，<code>0</code> 前缀按八进制，否则按十进制</li>
+<li><code>2</code>~<code>36</code>：指定进制（如 <code>2</code>
+二进制、<code>8</code> 八进制、<code>16</code> 十六进制）</li>
+</ul></li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>判断有没有解析出数字</strong>：<code>*endptr == nptr</code>（endptr
+指向的位置与开头相同）→ 没有解析出任何数字</li>
+<li><strong>判断是否完整消费</strong>：<code>*endptr == '\0'</code> →
+整个字符串都是合法数字</li>
+<li><strong>判断是否溢出</strong>：返回值等于
+<code>LONG_MAX</code>/<code>LONG_MIN</code> 且
+<code>errno == ERANGE</code></li>
+<li>支持前导空白、正负号、进制前缀（<code>0x</code> 等）自动处理</li>
+<li>推荐用法：先 <code>errno = 0;</code> 清零，转换后同时检查
+<code>errno</code>、<code>endptr</code> 和返回值</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;errno.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">const</span> <span class="type">char</span> *str = <span class="string">&quot;0x1F&quot;</span>;</span><br><span class="line"><span class="type">char</span> *end = <span class="literal">NULL</span>;</span><br><span class="line">errno = <span class="number">0</span>;</span><br><span class="line"><span class="type">long</span> val = strtol(str, &amp;end, <span class="number">0</span>);</span><br><span class="line"><span class="keyword">if</span> (errno == ERANGE) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;溢出\n&quot;</span>);</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (end == str) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;没有有效数字\n&quot;</span>);</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (*end != <span class="string">&#x27;\0&#x27;</span>) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;部分解析: %ld，剩余: %s\n&quot;</span>, val, end);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;完整解析: %ld\n&quot;</span>, val);   <span class="comment">/* 31 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="字符串-浮点型">字符串 → 浮点型</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败/无法解析</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>atof()</code></td>
+<td style="text-align: left;">字符串转 double（简单版）</td>
+<td style="text-align: left;">转换结果</td>
+<td style="text-align: left;">返回 0.0（<strong>无法区分</strong>）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>strtod()</code> /
+<code>strtof()</code> / <code>strtold()</code></td>
+<td style="text-align: left;">字符串转 double / float / long
+double（增强版，✅ 推荐）</td>
+<td style="text-align: left;">转换结果</td>
+<td style="text-align: left;">溢出返回 ±<code>HUGE_VAL</code> 并设置
+<code>errno</code>；无有效数字返回 0</td>
+</tr>
+</tbody>
+</table>
+<h4 id="atof-字符串转-double简单版">atof() — 字符串转
+double（简单版）</h4>
+<p><strong>作用</strong>:: 将数字字符串转换为一个 <code>double</code>
+类型的浮点数据，支持小数点和指数表示（如
+<code>3.14</code>、<code>1.5e-3</code>）。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">double</span> <span class="title function_">atof</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *nptr)</span>;</span><br><span class="line"><span class="comment">// 返回：转换后的浮点数值</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>nptr</code>：数字字符串，如 "3.14"、"2.5e3"</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>与 <code>atoi()</code>
+一样<strong>没有错误检测</strong>：无法解析时返回
+0.0，无法区分「输入就是 0.0」还是「解析失败」</li>
+<li>生产代码建议用 <code>strtod()</code> 替代</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">double</span> d = atof(<span class="string">&quot;3.14159&quot;</span>);   <span class="comment">/* 3.14159 */</span></span><br><span class="line"><span class="type">double</span> e = atof(<span class="string">&quot;1e3&quot;</span>);       <span class="comment">/* 1000.0 */</span></span><br></pre></td></tr></table></figure>
+<h4 id="strtod-家族-字符串转浮点增强版推荐">strtod() 家族 —
+字符串转浮点（增强版，推荐）</h4>
+<p><strong>作用</strong>:: 将字符串转换为
+<code>double</code>（<code>strtod</code>）、<code>float</code>（<code>strtof</code>）、<code>long double</code>（<code>strtold</code>）类型数据，带有完整的错误检测，支持小数、指数、<code>inf</code>/<code>nan</code>
+等。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">double</span> <span class="title function_">strtod</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *nptr, <span class="type">char</span> **endptr)</span>;</span><br><span class="line"><span class="type">float</span> <span class="title function_">strtof</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *nptr, <span class="type">char</span> **endptr)</span>;</span><br><span class="line"><span class="type">long</span> <span class="type">double</span> <span class="title function_">strtold</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *nptr, <span class="type">char</span> **endptr)</span>;</span><br><span class="line"><span class="comment">// 成功：返回转换结果</span></span><br><span class="line"><span class="comment">// 溢出：返回 ±HUGE_VAL，并设置 errno = ERANGE</span></span><br><span class="line"><span class="comment">// 无有效数字：返回 0</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>nptr</code>：数字字符串</li>
+<li><code>endptr</code>：输出参数，保存停止解析的位置，用法同
+<code>strtol()</code></li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>错误检测方法与 <code>strtol()</code>
+相同：<code>errno == ERANGE</code> 判断溢出、<code>endptr == nptr</code>
+判断无有效数字、<code>*endptr != '\0'</code> 判断未完整解析</li>
+<li>支持十六进制浮点数（如
+<code>0x1.8p3</code>）、<code>inf</code>/<code>infinity</code>/<code>nan</code>
+等特殊值</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">char</span> *str = <span class="string">&quot;3.14 abc&quot;</span>;</span><br><span class="line"><span class="type">char</span> *end = <span class="literal">NULL</span>;</span><br><span class="line"><span class="type">double</span> d = strtod(str, &amp;end);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;d = %f, 剩余: %s\n&quot;</span>, d, end);   <span class="comment">/* d = 3.140000, 剩余:  abc */</span></span><br></pre></td></tr></table></figure>
+<h3 id="数字-字符串">数字 → 字符串</h3>
+<p>标准 C 语言<strong>没有</strong> <code>itoa()</code> 函数（它不是 C
+标准，glibc 也没有），数字转字符串的标准做法是用格式化函数
+<code>sprintf()</code> /
+<code>snprintf()</code>（详细格式见《标准文件IO》笔记）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">snprintf</span><span class="params">(<span class="type">char</span> *str, <span class="type">size_t</span> size, <span class="type">const</span> <span class="type">char</span> *format, ...)</span>;</span><br><span class="line"><span class="comment">// 成功：返回「应写入」的字符数（不含 &#x27;\0&#x27;）</span></span><br><span class="line"><span class="comment">// 失败：返回负数</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>str</code>：目标缓冲区</li>
+<li><code>size</code>：缓冲区大小（含 <code>'\0'</code> 位置）</li>
+<li><code>format</code>：格式控制字符串</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> buf[<span class="number">32</span>];</span><br><span class="line"><span class="type">int</span> num = <span class="number">12345</span>;</span><br><span class="line"><span class="type">double</span> pi = <span class="number">3.14159</span>;</span><br><span class="line"></span><br><span class="line"><span class="built_in">snprintf</span>(buf, <span class="keyword">sizeof</span>(buf), <span class="string">&quot;%d&quot;</span>, num);       <span class="comment">/* &quot;12345&quot; */</span></span><br><span class="line"><span class="built_in">snprintf</span>(buf, <span class="keyword">sizeof</span>(buf), <span class="string">&quot;%.2f&quot;</span>, pi);      <span class="comment">/* &quot;3.14&quot; */</span></span><br><span class="line"><span class="built_in">snprintf</span>(buf, <span class="keyword">sizeof</span>(buf), <span class="string">&quot;0x%X&quot;</span>, num);     <span class="comment">/* &quot;0x3039&quot; */</span></span><br></pre></td></tr></table></figure>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>永远用 <code>snprintf()</code> 而<strong>不要</strong>用
+<code>sprintf()</code>——后者不限制写入长度，缓冲区溢出风险高</li>
+<li>返回值是「应写入的字符数」，如果 &gt;=
+<code>size</code>，说明输出被截断了</li>
+</ol>
+<hr>
+<h2 id="正则表达式posix-正则">正则表达式（POSIX 正则）</h2>
+<p>C 语言本身没有正则语法，Linux 下使用 POSIX 标准正则库
+<code>&lt;regex.h&gt;</code>，核心是
+<code>regcomp()</code>、<code>regexec()</code>、<code>regerror()</code>、<code>regfree()</code>
+四个函数。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>regcomp()</code></td>
+<td style="text-align: left;">编译正则表达式</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;">非 0 错误码</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>regexec()</code></td>
+<td style="text-align: left;">用编译好的正则匹配字符串</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;"><code>REG_NOMATCH</code> 等</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>regerror()</code></td>
+<td style="text-align: left;">把错误码转成可读的错误信息</td>
+<td style="text-align: left;">所需缓冲区大小</td>
+<td style="text-align: left;">N/A</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>regfree()</code></td>
+<td style="text-align: left;">释放编译时分配的资源</td>
+<td style="text-align: left;">无返回值</td>
+<td style="text-align: left;">N/A</td>
+</tr>
+</tbody>
+</table>
+<h3 id="基本概念bre-与-ere">基本概念：BRE 与 ERE</h3>
+<p>POSIX 正则分为两种模式，通过 <code>regcomp()</code> 的
+<code>cflags</code> 选择：</p>
+<ul>
+<li><strong>基本正则（BRE）</strong>：默认模式。<code>+</code>、<code>?</code>、<code>|</code>、<code>()</code>、<code>&#123;&#125;</code>
+需要<strong>反斜杠转义</strong>才能生效（如
+<code>\+</code>、<code>\|</code>）</li>
+<li><strong>扩展正则（ERE）</strong>：指定 <code>REG_EXTENDED</code>
+标志。<code>+</code>、<code>?</code>、<code>|</code>、<code>()</code>、<code>&#123;&#125;</code>
+直接使用，书写更直观，<strong>推荐使用</strong></li>
+</ul>
+<p>常用元字符速查：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">元字符</th>
+<th style="text-align: left;">含义</th>
+<th style="text-align: left;">示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>.</code></td>
+<td style="text-align: left;">匹配任意单个字符</td>
+<td style="text-align: left;"><code>a.c</code> 匹配 "abc"、"a1c"</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>*</code></td>
+<td style="text-align: left;">前一个字符重复 0 次或多次</td>
+<td style="text-align: left;"><code>ab*c</code> 匹配
+"ac"、"abc"、"abbc"</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>+</code></td>
+<td style="text-align: left;">前一个字符重复 1 次或多次（ERE）</td>
+<td style="text-align: left;"><code>ab+c</code> 匹配 "abc" 但不匹配
+"ac"</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>?</code></td>
+<td style="text-align: left;">前一个字符出现 0 次或 1 次（ERE）</td>
+<td style="text-align: left;"><code>colou?r</code> 匹配
+"color"、"colour"</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>^</code></td>
+<td style="text-align: left;">匹配行首</td>
+<td style="text-align: left;"><code>^abc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>$</code></td>
+<td style="text-align: left;">匹配行尾</td>
+<td style="text-align: left;"><code>abc$</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>[abc]</code></td>
+<td style="text-align: left;">字符集，匹配其中任意一个</td>
+<td style="text-align: left;"><code>[0-9]</code> 匹配数字</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>[^abc]</code></td>
+<td style="text-align: left;">否定字符集</td>
+<td style="text-align: left;"><code>[^0-9]</code> 匹配非数字</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>(ab)</code></td>
+<td style="text-align: left;">分组（ERE）</td>
+<td style="text-align: left;"><code>(ab)+</code> 匹配 "abab"</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>a|b</code></td>
+<td style="text-align: left;">或（ERE）</td>
+<td style="text-align: left;"><code>cat|dog</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>&#123;m,n&#125;</code></td>
+<td style="text-align: left;">重复 m 到 n 次（ERE）</td>
+<td style="text-align: left;"><code>[0-9]&#123;3&#125;</code> 匹配 3 位数字</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>[[:digit:]]</code></td>
+<td style="text-align: left;">POSIX 字符类</td>
+<td style="text-align: left;"><code>[[:alpha:]]</code>
+字母、<code>[[:space:]]</code> 空白</td>
+</tr>
+</tbody>
+</table>
+<h3 id="regcomp-编译正则表达式">regcomp() — 编译正则表达式</h3>
+<p><strong>作用</strong>::
+把正则表达式字符串编译成内部格式（<code>regex_t</code> 结构），供
+<code>regexec()</code> 使用。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;regex.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">regcomp</span><span class="params">(<span class="type">regex_t</span> *preg, <span class="type">const</span> <span class="type">char</span> *regex, <span class="type">int</span> cflags)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：返回非 0 错误码（可用 regerror() 获取错误信息）</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>preg</code>：输出参数，保存编译结果</li>
+<li><code>regex</code>：正则表达式字符串</li>
+<li><code>cflags</code>：编译标志，常用：
+<ul>
+<li><code>REG_EXTENDED</code>：使用扩展正则（ERE），推荐</li>
+<li><code>REG_ICASE</code>：匹配时忽略大小写</li>
+<li><code>REG_NOSUB</code>：不需要记录匹配位置（<code>regexec()</code>
+可传 0 个匹配项），性能更好</li>
+<li><code>REG_NEWLINE</code>：把 <code>^</code>/<code>$</code>
+按行处理</li>
+</ul></li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>编译一次、匹配多次：<code>regcomp()</code>
+开销较大，循环匹配时放在循环外面</li>
+<li>编译失败时 <code>preg</code> 内容无效，不要调用
+<code>regfree()</code></li>
+<li>编译成功后，用完必须调用 <code>regfree()</code> 释放资源</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">regex_t</span> regex;</span><br><span class="line"><span class="keyword">if</span> (regcomp(&amp;regex, <span class="string">&quot;[0-9]+&quot;</span>, REG_EXTENDED) != <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;正则编译失败\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* ... 使用 regex 匹配 ... */</span></span><br><span class="line">regfree(&amp;regex);</span><br></pre></td></tr></table></figure>
+<h3 id="regexec-执行正则匹配">regexec() — 执行正则匹配</h3>
+<p><strong>作用</strong>::
+用编译好的正则表达式在字符串中执行匹配，查找符合模式的内容。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;regex.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">regexec</span><span class="params">(<span class="type">const</span> <span class="type">regex_t</span> *preg, <span class="type">const</span> <span class="type">char</span> *<span class="built_in">string</span>,</span></span><br><span class="line"><span class="params">            <span class="type">size_t</span> nmatch, <span class="type">regmatch_t</span> pmatch[], <span class="type">int</span> eflags)</span>;</span><br><span class="line"><span class="comment">// 匹配成功：返回 0</span></span><br><span class="line"><span class="comment">// 匹配失败：返回 REG_NOMATCH</span></span><br><span class="line"><span class="comment">// 其他错误：返回对应错误码</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>preg</code>：<code>regcomp()</code> 编译好的正则</li>
+<li><code>string</code>：待匹配的字符串</li>
+<li><code>nmatch</code>：<code>pmatch</code> 数组的元素个数</li>
+<li><code>pmatch</code>：输出参数，保存每个分组（含整个模式）的匹配位置：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="type">regoff_t</span> rm_so;   <span class="comment">/* 匹配起始偏移（相对 string 起始位置） */</span></span><br><span class="line">    <span class="type">regoff_t</span> rm_eo;   <span class="comment">/* 匹配结束偏移（不含） */</span></span><br><span class="line">&#125; <span class="type">regmatch_t</span>;</span><br></pre></td></tr></table></figure>
+<p><code>pmatch[0]</code> 是整个模式，<code>pmatch[1]</code> 起是第
+1、2... 个括号分组</p>
+<ul>
+<li><code>eflags</code>：匹配标志，常用 <code>REG_NOTBOL</code>（string
+中间位置，不是行首）、<code>REG_NOTEOL</code></li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><code>pmatch[i].rm_so == -1</code> 表示该分组没有参与匹配</li>
+<li>匹配到的是<strong>第一个</strong>满足条件的位置；要找出所有匹配，需要循环调用并移动起始指针（见完整示例）</li>
+<li>如果 <code>regcomp()</code> 指定了
+<code>REG_NOSUB</code>，<code>regexec()</code> 应传
+<code>nmatch = 0</code>、<code>pmatch = NULL</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">regmatch_t</span> match[<span class="number">1</span>];</span><br><span class="line"><span class="keyword">if</span> (regexec(&amp;regex, <span class="string">&quot;价格: 12元&quot;</span>, <span class="number">1</span>, match, <span class="number">0</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">/* 打印匹配到的子串 */</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%.*s\n&quot;</span>, (<span class="type">int</span>)(match[<span class="number">0</span>].rm_eo - match[<span class="number">0</span>].rm_so),</span><br><span class="line">           <span class="string">&quot;价格: 12元&quot;</span> + match[<span class="number">0</span>].rm_so);   <span class="comment">/* 12 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="regerror-获取错误信息">regerror() — 获取错误信息</h3>
+<p><strong>作用</strong>:: 将 <code>regcomp()</code> /
+<code>regexec()</code> 返回的错误码转换为可读的错误信息字符串。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;regex.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">size_t</span> <span class="title function_">regerror</span><span class="params">(<span class="type">int</span> errcode, <span class="type">const</span> <span class="type">regex_t</span> *preg,</span></span><br><span class="line"><span class="params">                <span class="type">char</span> *errbuf, <span class="type">size_t</span> errbuf_size)</span>;</span><br><span class="line"><span class="comment">// 返回：完整错误信息所需的缓冲区大小（不含 &#x27;\0&#x27;）</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>errcode</code>：错误码（如 <code>regcomp()</code>
+的返回值）</li>
+<li><code>preg</code>：出错的正则（可为 NULL）</li>
+<li><code>errbuf</code>：输出缓冲区</li>
+<li><code>errbuf_size</code>：缓冲区大小</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>如果 <code>errbuf_size</code> 不够，错误信息会被截断；返回值大于
+<code>errbuf_size</code> 说明被截断了</li>
+<li>建议用足够大的定长数组，或先根据返回值分配缓冲区</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> errbuf[<span class="number">256</span>];</span><br><span class="line"><span class="type">int</span> ret = regcomp(&amp;regex, <span class="string">&quot;[0-9+&quot;</span>, REG_EXTENDED);   <span class="comment">/* 故意写错 */</span></span><br><span class="line"><span class="keyword">if</span> (ret != <span class="number">0</span>) &#123;</span><br><span class="line">    regerror(ret, &amp;regex, errbuf, <span class="keyword">sizeof</span>(errbuf));</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;正则错误: %s\n&quot;</span>, errbuf);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="regfree-释放正则资源">regfree() — 释放正则资源</h3>
+<p><strong>作用</strong>:: 释放 <code>regcomp()</code>
+编译时分配的内存资源。只释放 <code>regex_t</code> 内部资源，不释放
+<code>regex_t</code> 结构体本身（它通常在栈上）。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;regex.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">regfree</span><span class="params">(<span class="type">regex_t</span> *preg)</span>;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>preg</code>：<code>regcomp()</code> 编译成功的正则</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>只对<strong>编译成功</strong>的正则调用；编译失败不要调用</li>
+<li>不释放 <code>preg</code>
+指向的结构体本身（栈上变量无需释放，堆上分配的需要调用者自己
+<code>free()</code>）</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">regex_t</span> regex;</span><br><span class="line">regcomp(&amp;regex, <span class="string">&quot;[0-9]+&quot;</span>, REG_EXTENDED);</span><br><span class="line"><span class="comment">/* ... 匹配 ... */</span></span><br><span class="line">regfree(&amp;regex);   <span class="comment">/* 用完后释放 */</span></span><br></pre></td></tr></table></figure>
+<h3
+id="完整示例提取字符串中所有数字">完整示例：提取字符串中所有数字</h3>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;regex.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">regex_t</span> regex;</span><br><span class="line">    <span class="type">regmatch_t</span> match[<span class="number">1</span>];</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *pattern = <span class="string">&quot;[0-9]+&quot;</span>;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *text = <span class="string">&quot;价格: 12元, 数量: 345 个, 折扣: 0.5&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 1. 编译正则（放在循环外面，只编译一次） */</span></span><br><span class="line">    <span class="keyword">if</span> (regcomp(&amp;regex, pattern, REG_EXTENDED) != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;正则编译失败\n&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 2. 循环匹配，找出所有数字 */</span></span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *p = text;</span><br><span class="line">    <span class="keyword">while</span> (regexec(&amp;regex, p, <span class="number">1</span>, match, <span class="number">0</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;匹配: %.*s\n&quot;</span>,</span><br><span class="line">               (<span class="type">int</span>)(match[<span class="number">0</span>].rm_eo - match[<span class="number">0</span>].rm_so),</span><br><span class="line">               p + match[<span class="number">0</span>].rm_so);</span><br><span class="line">        p += match[<span class="number">0</span>].rm_eo;   <span class="comment">/* 跳过本次匹配，继续往后找 */</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 3. 释放资源 */</span></span><br><span class="line">    regfree(&amp;regex);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 输出:</span></span><br><span class="line"><span class="comment">   匹配: 12</span></span><br><span class="line"><span class="comment">   匹配: 345</span></span><br><span class="line"><span class="comment">   匹配: 0</span></span><br><span class="line"><span class="comment">   匹配: 5</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>📌 上面的循环是「找出所有匹配」的标准套路：每次匹配后把指针移到
+<code>rm_eo</code> 处继续匹配。注意 <code>0.5</code> 会被拆成
+<code>0</code> 和 <code>5</code>
+两个匹配，如果需要匹配小数，要用更复杂的模式（如
+<code>[0-9]+(\.[0-9]+)?</code>）。</p>
+</blockquote>
+<hr>
+<hr />
+<h2 id="本系列文章">📚 本系列文章</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">#</th>
+<th style="text-align: left;">文章</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: left;"><a href="/posts/linux-stdio.html">Linux
+应用编程：标准文件 IO</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: left;"><a
+href="/posts/linux-file-attr.html">Linux
+应用编程：文件属性与目录</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: left;"><a href="/posts/linux-string.html">Linux
+应用编程：字符串处理函数全解</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td style="text-align: left;"><a href="/posts/linux-sysinfo.html">Linux
+应用编程：系统信息与资源</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td style="text-align: left;"><a href="/posts/linux-signal.html">Linux
+应用编程：信号</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">6</td>
+<td style="text-align: left;"><a href="/posts/linux-process.html">Linux
+应用编程：进程基础</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">7</td>
+<td style="text-align: left;"><a href="/posts/linux-thread.html">Linux
+应用编程：线程基本概念</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">8</td>
+<td style="text-align: left;"><a
+href="/posts/linux-thread-sync.html">Linux 应用编程：线程同步</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">9</td>
+<td style="text-align: left;"><a
+href="/posts/linux-advanced-io.html">Linux 应用编程：高级 IO</a></td>
+</tr>
+</tbody>
+</table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xxh123.online">Kikyo</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xxh123.online/posts/linux-string.html">https://xxh123.online/posts/linux-string.html</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://xxh123.online" target="_blank">Kikyo</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Linux/">Linux</a><a class="post-meta__tags" href="/tags/%E5%AD%97%E7%AC%A6%E4%B8%B2/">字符串</a><a class="post-meta__tags" href="/tags/C%E8%AF%AD%E8%A8%80/">C语言</a><a class="post-meta__tags" href="/tags/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/">正则表达式</a></div><div class="post_share"><div class="social-share" data-image="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/05_photo_2026-11-15_15-33-27.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/posts/linux-sysinfo.html" title="Linux 应用编程：系统信息与资源"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/06_photo_2026-11-15_15-33-25.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Linux 应用编程：系统信息与资源</div></div></a></div><div class="next-post pull-right"><a href="/posts/linux-file-attr.html" title="Linux 应用编程：文件属性与目录"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/02_photo_2026-11-15_15-30-57.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Linux 应用编程：文件属性与目录</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/posts/linux-stdio.html" title="Linux 应用编程：标准文件 IO"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/01_photo_2026-11-15_15-33-44.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-15</div><div class="title">Linux 应用编程：标准文件 IO</div></div></a></div><div><a href="/posts/af-unix-ipc.html" title="Unix域套接字（AF_UNIX）实现进程间双向通信"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260828001706915.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-28</div><div class="title">Unix域套接字（AF_UNIX）实现进程间双向通信</div></div></a></div><div><a href="/posts/jsoncpp-guide.html" title="JSONcpp 完整使用指南"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260716232238119.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-16</div><div class="title">JSONcpp 完整使用指南</div></div></a></div><div><a href="/posts/79494db.html" title="Docker 使用手册"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260705232331789.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-05</div><div class="title">Docker 使用手册</div></div></a></div><div><a href="/posts/86a23c4b.html" title="CMake 的使用方法"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260705235814295.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-07</div><div class="title">CMake 的使用方法</div></div></a></div><div><a href="/posts/697f8e4b.html" title="shell 语法"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260707000813836.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-07</div><div class="title">shell 语法</div></div></a></div></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/202405192117137.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Kikyo</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">51</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">58</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ywj77"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon faa-parent animated-hover" href="https://github.com/ywj77" target="_blank" title="Github"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-github"></use></svg></a><a class="social-icon faa-parent animated-hover" href="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&amp;email=3442237157@qq.com" target="_blank" title="Email"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-youjian1"></use></svg></a><a class="social-icon faa-parent animated-hover" href="/atom.xml" target="_blank" title="RSS"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-rss"></use></svg></a><a class="social-icon faa-parent animated-hover" href="https://space.bilibili.com/3546385680959950" target="_blank" title="BiliBili"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-wf_Bzhan"></use></svg></a><a class="social-icon faa-parent animated-hover" href="tencent://Message/?Uin=3442237157&amp;amp;websiteName=local.edu.com:8888=&amp;amp;Menu=yes" target="_blank" title="QQ"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-qq"></use></svg></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%A4%84%E7%90%86"><span class="toc-number">1.</span> <span class="toc-text">字符串处理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%BE%93%E5%87%BA"><span class="toc-number">1.1.</span> <span class="toc-text">字符串输出</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#puts-%E8%BE%93%E5%87%BA%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%88%B0%E6%A0%87%E5%87%86%E8%BE%93%E5%87%BA"><span class="toc-number">1.1.1.</span> <span class="toc-text">puts() — 输出字符串到标准输出</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#putchar-%E8%BE%93%E5%87%BA%E5%8D%95%E4%B8%AA%E5%AD%97%E7%AC%A6%E5%88%B0%E6%A0%87%E5%87%86%E8%BE%93%E5%87%BA"><span class="toc-number">1.1.2.</span> <span class="toc-text">putchar() —
+输出单个字符到标准输出</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fputs-%E8%BE%93%E5%87%BA%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%88%B0%E6%8C%87%E5%AE%9A%E6%B5%81"><span class="toc-number">1.1.3.</span> <span class="toc-text">fputs() — 输出字符串到指定流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fputc-%E8%BE%93%E5%87%BA%E5%8D%95%E4%B8%AA%E5%AD%97%E7%AC%A6%E5%88%B0%E6%8C%87%E5%AE%9A%E6%B5%81"><span class="toc-number">1.1.4.</span> <span class="toc-text">fputc() — 输出单个字符到指定流</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%BE%93%E5%85%A5"><span class="toc-number">1.2.</span> <span class="toc-text">字符串输入</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#gets-%E4%BB%8E%E6%A0%87%E5%87%86%E8%BE%93%E5%85%A5%E8%AF%BB%E5%8F%96%E5%AD%97%E7%AC%A6%E4%B8%B2-%E5%B7%B2%E5%BA%9F%E5%BC%83"><span class="toc-number">1.2.1.</span> <span class="toc-text">gets() —
+从标准输入读取字符串（⚠️ 已废弃）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fgets-%E4%BB%8E%E6%8C%87%E5%AE%9A%E6%B5%81%E8%AF%BB%E5%8F%96%E5%AD%97%E7%AC%A6%E4%B8%B2-%E6%8E%A8%E8%8D%90"><span class="toc-number">1.2.2.</span> <span class="toc-text">fgets() — 从指定流读取字符串（✅
+推荐）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#getchar-%E4%BB%8E%E6%A0%87%E5%87%86%E8%BE%93%E5%85%A5%E8%AF%BB%E5%8F%96%E4%B8%80%E4%B8%AA%E5%AD%97%E7%AC%A6"><span class="toc-number">1.2.3.</span> <span class="toc-text">getchar() —
+从标准输入读取一个字符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fgetc-%E4%BB%8E%E6%8C%87%E5%AE%9A%E6%B5%81%E8%AF%BB%E5%8F%96%E4%B8%80%E4%B8%AA%E5%AD%97%E7%AC%A6"><span class="toc-number">1.2.4.</span> <span class="toc-text">fgetc() — 从指定流读取一个字符</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%95%BF%E5%BA%A6"><span class="toc-number">1.3.</span> <span class="toc-text">字符串长度</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#strlen-%E8%AE%A1%E7%AE%97%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%95%BF%E5%BA%A6"><span class="toc-number">1.3.1.</span> <span class="toc-text">strlen() — 计算字符串长度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sizeof-%E4%B8%8E-strlen-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">1.3.2.</span> <span class="toc-text">sizeof 与 strlen 的区别</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%8B%B7%E8%B4%9D"><span class="toc-number">1.4.</span> <span class="toc-text">字符串拷贝</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#strcpy-%E5%A4%8D%E5%88%B6%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">1.4.1.</span> <span class="toc-text">strcpy() — 复制字符串</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#strncpy-%E5%A4%8D%E5%88%B6%E6%8C%87%E5%AE%9A%E6%95%B0%E9%87%8F%E7%9A%84%E5%AD%97%E7%AC%A6"><span class="toc-number">1.4.2.</span> <span class="toc-text">strncpy() — 复制指定数量的字符</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%8B%BC%E6%8E%A5"><span class="toc-number">1.5.</span> <span class="toc-text">字符串拼接</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#strcat-%E6%8B%BC%E6%8E%A5%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">1.5.1.</span> <span class="toc-text">strcat() — 拼接字符串</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#strncat-%E6%8B%BC%E6%8E%A5%E6%8C%87%E5%AE%9A%E6%95%B0%E9%87%8F%E7%9A%84%E5%AD%97%E7%AC%A6"><span class="toc-number">1.5.2.</span> <span class="toc-text">strncat() — 拼接指定数量的字符</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%AF%94%E8%BE%83"><span class="toc-number">1.6.</span> <span class="toc-text">字符串比较</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#strcmp-%E6%AF%94%E8%BE%83%E4%B8%A4%E4%B8%AA%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">1.6.1.</span> <span class="toc-text">strcmp() — 比较两个字符串</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#strncmp-%E6%AF%94%E8%BE%83%E5%89%8D-n-%E4%B8%AA%E5%AD%97%E7%AC%A6"><span class="toc-number">1.6.2.</span> <span class="toc-text">strncmp() — 比较前 n 个字符</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%9F%A5%E6%89%BE"><span class="toc-number">1.7.</span> <span class="toc-text">字符串查找</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#strchr-%E6%9F%A5%E6%89%BE%E7%AC%AC%E4%B8%80%E4%B8%AA%E6%8C%87%E5%AE%9A%E5%AD%97%E7%AC%A6"><span class="toc-number">1.7.1.</span> <span class="toc-text">strchr() — 查找第一个指定字符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#strrchr-%E6%9F%A5%E6%89%BE%E6%9C%80%E5%90%8E%E4%B8%80%E4%B8%AA%E6%8C%87%E5%AE%9A%E5%AD%97%E7%AC%A6"><span class="toc-number">1.7.2.</span> <span class="toc-text">strrchr() —
+查找最后一个指定字符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#strstr-%E6%9F%A5%E6%89%BE%E5%AD%90%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">1.7.3.</span> <span class="toc-text">strstr() — 查找子字符串</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B8%8E%E6%95%B0%E5%AD%97%E4%BA%92%E8%BD%AC"><span class="toc-number">1.8.</span> <span class="toc-text">字符串与数字互转</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2-%E6%95%B4%E5%9E%8B"><span class="toc-number">1.8.1.</span> <span class="toc-text">字符串 → 整型</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#atoi-atol-atoll-%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%BD%AC%E6%95%B4%E5%9E%8B%E7%AE%80%E5%8D%95%E7%89%88"><span class="toc-number">1.8.1.1.</span> <span class="toc-text">atoi() &#x2F; atol() &#x2F; atoll() —
+字符串转整型（简单版）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#strtol-%E5%AE%B6%E6%97%8F-%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%BD%AC%E6%95%B4%E5%9E%8B%E5%A2%9E%E5%BC%BA%E7%89%88%E6%8E%A8%E8%8D%90"><span class="toc-number">1.8.1.2.</span> <span class="toc-text">strtol() 家族 —
+字符串转整型（增强版，推荐）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2-%E6%B5%AE%E7%82%B9%E5%9E%8B"><span class="toc-number">1.8.2.</span> <span class="toc-text">字符串 → 浮点型</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#atof-%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%BD%AC-double%E7%AE%80%E5%8D%95%E7%89%88"><span class="toc-number">1.8.2.1.</span> <span class="toc-text">atof() — 字符串转
+double（简单版）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#strtod-%E5%AE%B6%E6%97%8F-%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%BD%AC%E6%B5%AE%E7%82%B9%E5%A2%9E%E5%BC%BA%E7%89%88%E6%8E%A8%E8%8D%90"><span class="toc-number">1.8.2.2.</span> <span class="toc-text">strtod() 家族 —
+字符串转浮点（增强版，推荐）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E5%AD%97-%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">1.8.3.</span> <span class="toc-text">数字 → 字符串</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8Fposix-%E6%AD%A3%E5%88%99"><span class="toc-number">1.9.</span> <span class="toc-text">正则表达式（POSIX 正则）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5bre-%E4%B8%8E-ere"><span class="toc-number">1.9.1.</span> <span class="toc-text">基本概念：BRE 与 ERE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#regcomp-%E7%BC%96%E8%AF%91%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">1.9.2.</span> <span class="toc-text">regcomp() — 编译正则表达式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#regexec-%E6%89%A7%E8%A1%8C%E6%AD%A3%E5%88%99%E5%8C%B9%E9%85%8D"><span class="toc-number">1.9.3.</span> <span class="toc-text">regexec() — 执行正则匹配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#regerror-%E8%8E%B7%E5%8F%96%E9%94%99%E8%AF%AF%E4%BF%A1%E6%81%AF"><span class="toc-number">1.9.4.</span> <span class="toc-text">regerror() — 获取错误信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#regfree-%E9%87%8A%E6%94%BE%E6%AD%A3%E5%88%99%E8%B5%84%E6%BA%90"><span class="toc-number">1.9.5.</span> <span class="toc-text">regfree() — 释放正则资源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B%E6%8F%90%E5%8F%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B8%AD%E6%89%80%E6%9C%89%E6%95%B0%E5%AD%97"><span class="toc-number">1.9.6.</span> <span class="toc-text">完整示例：提取字符串中所有数字</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AC%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0"><span class="toc-number">1.10.</span> <span class="toc-text">📚 本系列文章</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-advanced-io.html" title="Linux 应用编程：高级 IO"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/13_photo_2026-11-15_15-33-42.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：高级 IO"/></a><div class="content"><a class="title" href="/posts/linux-advanced-io.html" title="Linux 应用编程：高级 IO">Linux 应用编程：高级 IO</a><time datetime="2026-11-15T09:00:00.000Z" title="发表于 2026-11-15 17:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-thread-sync.html" title="Linux 应用编程：线程同步"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/12_photo_2026-11-15_15-33-39.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：线程同步"/></a><div class="content"><a class="title" href="/posts/linux-thread-sync.html" title="Linux 应用编程：线程同步">Linux 应用编程：线程同步</a><time datetime="2026-11-15T08:00:00.000Z" title="发表于 2026-11-15 16:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-thread.html" title="Linux 应用编程：线程基本概念"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/11_photo_2026-11-15_15-33-36.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：线程基本概念"/></a><div class="content"><a class="title" href="/posts/linux-thread.html" title="Linux 应用编程：线程基本概念">Linux 应用编程：线程基本概念</a><time datetime="2026-11-15T07:00:00.000Z" title="发表于 2026-11-15 15:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-process.html" title="Linux 应用编程：进程基础"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/08_photo_2026-11-15_15-33-19.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：进程基础"/></a><div class="content"><a class="title" href="/posts/linux-process.html" title="Linux 应用编程：进程基础">Linux 应用编程：进程基础</a><time datetime="2026-11-15T06:00:00.000Z" title="发表于 2026-11-15 14:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-signal.html" title="Linux 应用编程：信号"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/07_photo_2026-11-15_15-33-22.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：信号"/></a><div class="content"><a class="title" href="/posts/linux-signal.html" title="Linux 应用编程：信号">Linux 应用编程：信号</a><time datetime="2026-11-15T05:00:00.000Z" title="发表于 2026-11-15 13:00:00">2026-11-15</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2026 By Kikyo</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>if (!window.MathJax) {
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      tags: 'ams'
+    },
+    chtml: {
+      scale: 1.1
+    },
+    options: {
+      renderActions: {
+        findScript: [10, doc => {
+          for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+            const display = !!node.type.match(/; *mode=display/)
+            const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+            const text = document.createTextNode('')
+            node.parentNode.replaceChild(text, node)
+            math.start = {node: text, delim: '', n: 0}
+            math.end = {node: text, delim: '', n: 0}
+            doc.math.push(math)
+          }
+        }, '']
+      }
+    }
+  }
+  
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js'
+  script.id = 'MathJax-script'
+  script.async = true
+  document.head.appendChild(script)
+} else {
+  MathJax.startup.document.state(0)
+  MathJax.texReset()
+  MathJax.typesetPromise()
+}</script><script>(() => {
+  const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaid.length === 0) return
+  const runMermaid = () => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    Array.from($mermaid).forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+      const mermaidID = 'mermaid-' + index
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+
+      const renderV10 = () => {
+        renderFn.then(({svg}) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svg)
+        })
+      }
+
+      const renderV9 = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      typeof renderFn === 'string' ? renderV9(renderFn) : renderV10()
+    })
+  }
+
+  const loadMermaid = () => {
+    window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js').then(runMermaid)
+  }
+
+  btf.addGlobalFn('themeChange', runMermaid, 'mermaid')
+
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://twikoo.xxh123.online/',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = () => {
+    twikoo.init(Object.assign({
+      el: '#twikoo-wrap',
+      envId: 'https://twikoo.xxh123.online/',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      }
+    }, null))
+
+    
+  }
+
+  const loadTwikoo = () => {
+    if (typeof twikoo === 'object') setTimeout(init,0)
+    else getScript('https://cdn.jsdelivr.net/npm/twikoo@1.6.31/dist/twikoo.all.min.js').then(init)
+  }
+
+  if ('Twikoo' === 'Twikoo' || !true) {
+    if (true) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script></div><div class="aplayer no-destroy" data-id="10081861680" data-server="netease" data-type="playlist"   data-order="list" data-fixed="true" data-preload="auto" data-autoplay="false" data-mutex="true" ></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener
+  btf.removeGlobalFnEvent('pjax')
+  btf.removeGlobalFnEvent('themeChange')
+
+  document.getElementById('rightside').classList.remove('rightside-show')
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', e => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><div class="app-refresh" id="app-refresh" style="position: fixed;top: -2.2rem;left: 0;right: 0;z-index: 99999;padding: 0 1rem;font-size: 15px;height: 2.2rem;transition: all 0.3s ease;"><div class="app-refresh-wrap" style=" display: flex;color: #fff;height: 100%;align-items: center;justify-content: center;"><label>✨ 有新文章啦！ 👉</label><a href="javascript:void(0)" onclick="location.reload()"><span style="color: #fff;text-decoration: underline;cursor: pointer;">🍗点击食用🍔</span></a></div></div><script>if ('serviceWorker' in navigator) {
+if (navigator.serviceWorker.controller) {
+navigator.serviceWorker.addEventListener('controllerchange', function() {
+showNotification()
+})
+}
+window.addEventListener('load', function() {
+navigator.serviceWorker.register('/sw.js')
+})
+}
+function showNotification() {
+if (GLOBAL_CONFIG.Snackbar) {
+var snackbarBg =
+document.documentElement.getAttribute('data-theme') === 'light' ?
+GLOBAL_CONFIG.Snackbar.bgLight :
+GLOBAL_CONFIG.Snackbar.bgDark
+var snackbarPos = GLOBAL_CONFIG.Snackbar.position
+Snackbar.show({
+text: '✨ 有新文章啦！ 👉',
+backgroundColor: snackbarBg,
+duration: 500000,
+pos: snackbarPos,
+actionText: '🍗点击食用🍔',
+actionTextColor: '#fff',
+onActionClick: function(e) {
+location.reload()
+},
+})
+} else {
+var showBg =
+document.documentElement.getAttribute('data-theme') === 'light' ?
+'#3b70fc' :
+'#1f1f1f'
+var cssText = `top: 0; background: ${showBg};`
+document.getElementById('app-refresh').style.cssText = cssText
+}
+}</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_footer_beautify_injector_config(){
+    var parent_div_git = document.getElementById('footer-wrap');
+    var item_html = '<div id="workboard"></div><p id="ghbdages"><a class="github-badge" target="_blank" href="https://hexo.io/" style="margin-inline:5px" data-title="博客框架为Hexo_v5.4.0" title=""><img src="https://img.shields.io/badge/Frame-Hexo-blue?style=flat&amp;logo=hexo" alt=""/></a><a class="github-badge" target="_blank" href="https://butterfly.js.org/" style="margin-inline:5px" data-title="主题版本Butterfly_v4.2.2" title=""><img src="https://img.shields.io/badge/Theme-Butterfly-6513df?style=flat&amp;logo=bitdefender" alt=""/></a><a class="github-badge" target="_blank" href="https://www.jsdelivr.com/" style="margin-inline:5px" data-title="本站使用JsDelivr为静态资源提供CDN加速" title=""><img src="https://img.shields.io/badge/CDN-jsDelivr-orange?style=flat&amp;logo=jsDelivr" alt=""/></a><a class="github-badge" target="_blank" href="https://beian.miit.gov.cn/#/Integrated/index" style="margin-inline:5px" data-title="本站已在湘进行备案" title=""><img src="https://img.shields.io/badge/湘ICP备-2022004213号-e1d492?style=flat&amp;logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAdCAYAAAC9pNwMAAABS2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDIgNzkuMTYwOTI0LCAyMDE3LzA3LzEzLTAxOjA2OjM5ICAgICAgICAiPgogPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIi8+CiA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgo8P3hwYWNrZXQgZW5kPSJyIj8+nhxg7wAACNlJREFUSInF1mmMVeUdx/Hv2e+5+519mJWBYQZkGxZZxLKJqBXGoLS1iXWrmihotFXaJiTWWlsbl6q1aetWd5u0VkKjNG4YEJSlOCibDLMwM8x679z9nnPP1jcVJUxf+7z6J8+LT37/Z4VvaQhfFS8+sBXbctCDGrVTKlBUH4mxAbI9Hfj0IJLsp6paJ5/tmn20N/D0wKDRMq9F/c3M2U1/V0vDfWMFh+tv/Ig1zYPMabDImPJ52OaXO87W580KggCiiOsJOJ6I3wcNFaaeNKxrt72f2fLGu4FpJ/sDQABRzD22fH7/Yze069vGc6mrDLNIJCDik10sxz2by3VdPM87xzkP9jwPTZFRVI1YUJKH+oy7n3tbvv/P2wW/UQxRWe6w4ZJRptYLHDoCuz8v5cP92XbI762O+h6UVWHnUFbPpU0fEb2A60mMJ7MUi9b/b7UgKhiZMaIxm8YLplLMDPz8hl/EH+rs8TNlUpFf32uyZJGLPDwCiTGUyTWodTN49eUCdz2YwXb9NNcObp1X98WDoufynzMVCEKGn27ayPTWBi5ad8P5iQUkJEnFLjqM9Z+hrVX0vfDe6K2dPRWsW2bwyp9EUifSJB84gdxrkR0eRgv1o/3I4fbbprJ6scqamzVO9pffec1S5ZWY2Nfz5qEy/FqOC2Y3s3j53HMSi18VRjFPwSwg+1RfVbl115vvJrsfej7UGIsYPPGgQ7JXoO+Xx5B3dHEomyJ9x1qiQozkr95h5937aFnVyouPlgJK+Ss7Fxz64OTSxSX+LHYxT2IsRW5kbGI4oHcR0jqoqTjV9se3I7/f8rS/ClS23GxSXhph6L5d9Akm7qqZhHWBQGUJ+CWGFzcg7e7m6D3/ZuW1Ea5YKdA3EojuONi813TqNi+YPYOKUhXDtCeGL26/hakLLiEcdsaHRkRAoLRc4fJrmhnekyF0apgZowWSwwkaa+rw3f8WA1GZZsPP5JEChX8dhZTN6iU6kAcs5s+dHd183SJ0VVKL57pfw6YdRQw23aeWTns47DPTALWlRTR7kMLew6hGgYqUhWXYFFUdPZ6lUBahLA8hVcOftckfi7No7VRAAQqsX1dybfvG1qwriM9mM5mJ4e4jO5Cc01dPqixbr8tWGBQUL4vjGigEEShi+xUmZ2RiR/sJ1pbS8NkgZrKAGw0TsgQsQyFaF/nfYTGprAlMFysbA1pI3mhkR6snhGsaymYGvPyFEb9IdbUE2AzFFTwpRqCtBY0wmdER+hZW4j63gcJj38V+/ErSUZXsYBfjIZHIRW0c2Z8BskCAqN+CbBJBFnyyKjR+Ez57nBxLqpfMUeSISElMBFz6x2Q6OxzWrYjyxWVzEewioU3LCS5vQY6nMUrLwNaxXvoQ59IloFSx54PPAZtQLExVZZDxsVE8J4dn6v4JYatgbSjk0owPw7RGH2ADMo88Z7L20ip8f7gC7fAo0q4+0rt7kEQDvaghVZbiPHUHcyeXcfLjT3jmpR7AYsnSScya3UR8bARVMck7Y/cB75/X6rDf3Fg2dw2jKZm5dXGm1LuAzO5DCo9v6aT0ibco5kzOvLOP+NGTFJtDpPYeZKijk/Rn3QxsfZV7txwhX7ABiZUXBsGvIvguQApNQQva9RMmTvZ2dpVUls+tX/UD7GN/Y8Ws05w6rQF+9vyzg1vZjbvMRJhXiRSU8DpTFFe0QE8S6SfPkOkZoktrB2oAhZWrwljxOPmchiSMYOWNoxNuruFU5vWeXdsojiUon345113dBBQBmTYlTimgdB8nfPo4WjaNFgN9OMEkJ02dnadVt5ki54Esqy+bzKJltVhSPbI3iN2zCyMTeXNCuG7Omm2Zok7PR2+R7jvD8ouruHhmCrB5jVZeYxLdrTP4sr4Vtd9g4MA4qc4c+6cu5NPamfw4P59t2WrA4YdXKkASf7SFivo6PDdEPmf1fRM++zp1bH/0r4I1dD1ODtOWaW4IsvPjL7nqXhloQiSPwjjgMYkMASyGEBkjhISCQwkwzve/18AbT+pk8pVY4UacQi9y+gyZ0eRAw4qHa89LXEx1LXMSPfhDJYRb59BtlLKg2WPT2l6qYl1svtGkrLYckyA1S+t5+2ATm37WCui0LSynsckDNH5zTxAchbQtkx08hDHYiW6NgC0enHBzEZ102UDH8QORdEckjEzZrNWkRydzyx17uGnDXqbUnGZ6dRPjSY91q2TqwjFuvTxLo5Zn5Qo/pumRSFcTLQtybEhGE0fQrDhhJ0VvH2lTnnHPhGtsmWan469apERjI2MH3qN7+7MEfH6ql29CbV7PvsMG32k6yU2XDhEKyZw66eJaRdrXR7CzCcqUNC3zwgymPJRCH4KRRLINimpL14A5Y4GDeOqbsPRVcfuN7Xj44pav/hFfrNT2kr2rsqf2Ibp5pEA14ZIImUyW3t5REkkTXRGQ/DGGhtLginhqCWknQDE5hKf5UFSF9Lj020Q2ul5V1AR2hr+8vuP8Vlc2zMPRxoSjnx7XBC14sDoydahSGq7KdO/HFyrBchxCVfX4fDKp4T7SCQejYODZLrYgIqgKFsNIgQqEYob8mW6yiUyb7Z64LVK/+B85xznnJ3AWzqTzuIX46mr5wLs+UUTyIriBCjRNxguHMJIFDLEEvXEOVRWnSJ0+jCd4CJoGjoedM1CLcXQziW3nMV2TSMBeOx7vWZvPt1r+cMPzE8KunaUkFn0vNrvtqXj34c1W6gzxlEQ6naIoBahtnkMwoFMwIVzSRNguMt53Aj2s4nkSlgPoGqLkICsRNF0gl8rYWuP8+11/w/OOJDEhHPKLCIpOXmi+M9AgP+maiesLifF2T1Rn5ZNj5Lo/Qc/GcPMmhdoqlEgIGzCK4PiCmJKK68p4KfF3qYGuF0qCRUkJTzleUbvQyWRTuE5xYthxQbBs7EISAbkzUFG3VfXXbK2YFi3X/eryfKKnqVBItNjJxDzH8erddC4SqWwcN5WyTtlyO1RP/Lh3eHD76MB40swmiDVJyDLYRhpc5+ub6tse/wWKbvSQEAw1awAAAABJRU5ErkJggg==" alt=""/></a><a class="github-badge" target="_blank" href="https://github.com/" style="margin-inline:5px" data-title="本站项目由Github托管" title=""><img src="https://img.shields.io/badge/Source-Github-d021d6?style=flat&amp;logo=GitHub" alt=""/></a><a class="github-badge" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" style="margin-inline:5px" data-title="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可" title=""><img src="https://img.shields.io/badge/Copyright-BY--NC--SA%204.0-d42328?style=flat&amp;logo=Claris" alt=""/></a></p>';
+    console.log('已挂载butterfly_footer_beautify')
+    parent_div_git.insertAdjacentHTML("beforeend",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_footer_beautify_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_footer_beautify_injector_config();
+  }
+  </script><script async src="/js/runtime/runtime.js"></script><script async src="/js/ali_font.js"></script><div class="js-pjax"><script async="async">var arr = document.getElementsByClassName('recent-post-item');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__zoomIn');
+    arr[i].setAttribute('data-wow-duration', '1.5s');
+    arr[i].setAttribute('data-wow-delay', '200ms');
+    arr[i].setAttribute('data-wow-offset', '30');
+    arr[i].setAttribute('data-wow-iteration', '1');
+  }</script><script async="async">var arr = document.getElementsByClassName('card-widget');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__zoomIn');
+    arr[i].setAttribute('data-wow-duration', '');
+    arr[i].setAttribute('data-wow-delay', '200ms');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('flink-list-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__flipInY');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('flink-list-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__animated');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('article-sort-item');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__slideInRight');
+    arr[i].setAttribute('data-wow-duration', '1.5s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('site-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__flipInY');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('site-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__animated');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script></div><script defer src="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/wow.min.js"></script><script defer src="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/wow_init.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"position":"left","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script></body></html>

@@ -1,0 +1,1853 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Linux 应用编程：标准文件 IO | Kikyo</title><meta name="author" content="Kikyo"><meta name="copyright" content="Kikyo"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="标准文件 IO 标准 I&#x2F;O 库是标准 C 库中用于文件 I&#x2F;O 操作的接口，标准 I&#x2F;O 和文件 I&#x2F;O 的区别如下：    对比项 标准 I&#x2F;O（stdio） 文件 I&#x2F;O（系统调用）     本质 标准 C 库函数 Linux 系统调用   来源 由文件 I&#x2F;O 封装而来 内核直接提供   可移植性 不同操作系统之间可移植性好 依赖操作系统   缓冲 用户空间维护 stdio 缓冲区，带缓存">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux 应用编程：标准文件 IO">
+<meta property="og:url" content="https://xxh123.online/posts/linux-stdio.html">
+<meta property="og:site_name" content="Kikyo">
+<meta property="og:description" content="标准文件 IO 标准 I&#x2F;O 库是标准 C 库中用于文件 I&#x2F;O 操作的接口，标准 I&#x2F;O 和文件 I&#x2F;O 的区别如下：    对比项 标准 I&#x2F;O（stdio） 文件 I&#x2F;O（系统调用）     本质 标准 C 库函数 Linux 系统调用   来源 由文件 I&#x2F;O 封装而来 内核直接提供   可移植性 不同操作系统之间可移植性好 依赖操作系统   缓冲 用户空间维护 stdio 缓冲区，带缓存">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/01_photo_2026-11-15_15-33-44.jpg">
+<meta property="article:published_time" content="2026-11-15T01:00:00.000Z">
+<meta property="article:modified_time" content="2026-11-15T07:47:09.259Z">
+<meta property="article:author" content="Kikyo">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="C语言">
+<meta property="article:tag" content="文件IO">
+<meta property="article:tag" content="stdio">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/01_photo_2026-11-15_15-33-44.jpg"><link rel="shortcut icon" href="/img/Rocket.png"><link rel="canonical" href="https://xxh123.online/posts/linux-stdio.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="manifest" href="/manifest.json"/><meta name="msapplication-TileColor" content="#40B2E6"/><link rel="apple-touch-icon" sizes="180x180" href="/img/siteicon/128.png"/><link rel="icon" type="image/png" sizes="32x32" href="/img/siteicon/32.png"/><link rel="icon" type="image/png" sizes="16x16" href="/img/siteicon/16.png"/><link rel="mask-icon" href="/img/siteicon/128.png" color="#5bbad5"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Linux 应用编程：标准文件 IO',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-11-15 15:47:09'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css" media="defer" onload="this.media='all'"><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/runtime/runtime.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/assets/font-awesome-animation.min.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/tag_plugins.css" media="defer" onload="this.media='all'"><script src="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/assets/carousel-touch.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/animate.min.css" media="print" onload="this.media='screen'"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.2.0"><link rel="alternate" href="/atom.xml" title="Kikyo" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/202405192117137.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">51</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">58</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/"><i class="fa-fw fas fa-home faa-tada"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/archives/"><i class="fa-fw fas fa-archive faa-tada"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/artitalk/"><i class="fa-fw fas fa-comment-dots faa-tada"></i><span> 闲言碎语</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/music/"><i class="fa-fw fas fa-music faa-tada"></i><span> 音乐馆</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/categories/"><i class="fa-fw fas fa-folder-open faa-tada"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/wallpapers/"><i class="fa-fw fab fa-artstation faa-tada"></i><span> 壁纸</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/comments/"><i class="fa-fw fas fa-envelope faa-tada"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/link/"><i class="fa-fw fas fa-link faa-tada"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/bangumis/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-hecha"></use></svg><span> 追番</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/about/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-zhifeiji"></use></svg><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/01_photo_2026-11-15_15-33-44.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Kikyo"><span class="site-name">Kikyo</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/"><i class="fa-fw fas fa-home faa-tada"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/archives/"><i class="fa-fw fas fa-archive faa-tada"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/artitalk/"><i class="fa-fw fas fa-comment-dots faa-tada"></i><span> 闲言碎语</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/music/"><i class="fa-fw fas fa-music faa-tada"></i><span> 音乐馆</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/categories/"><i class="fa-fw fas fa-folder-open faa-tada"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/wallpapers/"><i class="fa-fw fab fa-artstation faa-tada"></i><span> 壁纸</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/comments/"><i class="fa-fw fas fa-envelope faa-tada"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/link/"><i class="fa-fw fas fa-link faa-tada"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/bangumis/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-hecha"></use></svg><span> 追番</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/about/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-zhifeiji"></use></svg><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Linux 应用编程：标准文件 IO</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-11-15T01:00:00.000Z" title="发表于 2026-11-15 09:00:00">2026-11-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-11-15T07:47:09.259Z" title="更新于 2026-11-15 15:47:09">2026-11-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Linux/">Linux</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Linux/%E5%BA%94%E7%94%A8%E7%BC%96%E7%A8%8B/">应用编程</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">8.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>32分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Linux 应用编程：标准文件 IO"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="标准文件-io">标准文件 IO</h2>
+<p>标准 I/O 库是标准 C 库中用于文件 I/O 操作的接口，标准 I/O 和文件 I/O
+的区别如下：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">对比项</th>
+<th style="text-align: left;">标准 I/O（stdio）</th>
+<th style="text-align: left;">文件 I/O（系统调用）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">本质</td>
+<td style="text-align: left;">标准 C 库函数</td>
+<td style="text-align: left;">Linux 系统调用</td>
+</tr>
+<tr>
+<td style="text-align: left;">来源</td>
+<td style="text-align: left;">由文件 I/O 封装而来</td>
+<td style="text-align: left;">内核直接提供</td>
+</tr>
+<tr>
+<td style="text-align: left;">可移植性</td>
+<td style="text-align: left;">不同操作系统之间可移植性好</td>
+<td style="text-align: left;">依赖操作系统</td>
+</tr>
+<tr>
+<td style="text-align: left;">缓冲</td>
+<td style="text-align: left;">用户空间维护 stdio 缓冲区，带缓存</td>
+<td style="text-align: left;">用户空间无缓存</td>
+</tr>
+<tr>
+<td style="text-align: left;">性能/效率</td>
+<td style="text-align: left;">更优（减少系统调用次数）</td>
+<td style="text-align: left;">每次读写都陷入内核</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 标准 I/O 底层依然是文件 I/O：<code>fopen()</code> 内部会调用
+<code>open()</code>，<code>fread()</code>/<code>fwrite()</code>
+内部会调用
+<code>read()</code>/<code>write()</code>，只是额外加了一层用户空间的
+stdio 缓冲。</p>
+</blockquote>
+<hr>
+<h2 id="file-指针">FILE 指针</h2>
+<p>对于标准 I/O 库函数的操作是围绕 FILE 指针进行的。</p>
+<ul>
+<li>FILE 是一个<strong>结构体类型</strong>，定义在标准 I/O 库头文件
+<code>stdio.h</code> 中，用于描述一个打开的文件流（stream）</li>
+<li>FILE 结构体内部维护了：文件描述符、stdio
+缓冲区（缓冲模式、缓冲指针、读写位置）、错误指示符、EOF
+指示符等信息</li>
+<li>标准 I/O 库函数都以 <code>FILE *</code> 作为操作句柄，类似于文件 I/O
+中的 fd</li>
+<li>由于 FILE
+内部的成员是实现相关的，<strong>不要直接访问其成员</strong>，只能通过标准
+I/O 库函数间接操作</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line">FILE *fp = fopen(<span class="string">&quot;test.txt&quot;</span>, <span class="string">&quot;r&quot;</span>);   <span class="comment">// 返回一个 FILE 指针</span></span><br><span class="line"><span class="keyword">if</span> (fp == <span class="literal">NULL</span>) &#123;</span><br><span class="line">    perror(<span class="string">&quot;fopen&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="标准输入标准输出和标准错误">标准输入、标准输出和标准错误</h2>
+<p>每个进程启动之后都会默认打开标准输入、标准输出以及标准错误，对应三个文件描述符
+0、1、2：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">名称</th>
+<th style="text-align: left;">文件描述符</th>
+<th style="text-align: left;">FILE 指针</th>
+<th style="text-align: left;">默认设备</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">标准输入 stdin</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;"><code>stdin</code></td>
+<td style="text-align: left;">键盘</td>
+</tr>
+<tr>
+<td style="text-align: left;">标准输出 stdout</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;"><code>stdout</code></td>
+<td style="text-align: left;">终端</td>
+</tr>
+<tr>
+<td style="text-align: left;">标准错误 stderr</td>
+<td style="text-align: left;">2</td>
+<td style="text-align: left;"><code>stderr</code></td>
+<td style="text-align: left;">终端</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Standard file descriptors. */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> STDIN_FILENO 0   <span class="comment">/* Standard input.  */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> STDOUT_FILENO 1  <span class="comment">/* Standard output. */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> STDERR_FILENO 2  <span class="comment">/* Standard error output. */</span></span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>📌 文件 I/O 中用 <code>STDIN_FILENO</code> 等宏（定义于
+<code>&lt;unistd.h&gt;</code>）操作这 3 个 fd；标准 I/O 中则直接使用
+<code>stdin</code>、<code>stdout</code>、<code>stderr</code> 这 3 个
+FILE 指针，无需 open。stderr 默认<strong>无缓冲</strong>，stdout
+在终端下默认<strong>行缓冲</strong>。</p>
+</blockquote>
+<hr>
+<h2 id="io-操作函数">I/O 操作函数</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>fopen()</code></td>
+<td style="text-align: left;">打开/创建文件</td>
+<td style="text-align: left;"><code>FILE *</code></td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fclose()</code></td>
+<td style="text-align: left;">关闭文件（自动刷新缓冲）</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;"><code>EOF</code>(-1)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fread()</code></td>
+<td style="text-align: left;">从文件读取数据</td>
+<td style="text-align: left;">读取的元素个数</td>
+<td style="text-align: left;">0 或 &lt;nmemb</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fwrite()</code></td>
+<td style="text-align: left;">向文件写入数据</td>
+<td style="text-align: left;">写入的元素个数</td>
+<td style="text-align: left;">&lt;nmemb</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fgetc()</code></td>
+<td style="text-align: left;">读一个字符</td>
+<td style="text-align: left;">字符的 ASCII 码</td>
+<td style="text-align: left;"><code>EOF</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fputc()</code></td>
+<td style="text-align: left;">写一个字符</td>
+<td style="text-align: left;">写入的字符</td>
+<td style="text-align: left;"><code>EOF</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fgets()</code></td>
+<td style="text-align: left;">读一行字符串</td>
+<td style="text-align: left;"><code>buf</code> 指针</td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fputs()</code></td>
+<td style="text-align: left;">写一行字符串</td>
+<td style="text-align: left;">非负值</td>
+<td style="text-align: left;"><code>EOF</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fseek()</code></td>
+<td style="text-align: left;">移动文件读写位置</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;"><code>-1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ftell()</code></td>
+<td style="text-align: left;">获取当前读写位置</td>
+<td style="text-align: left;">位置偏移量</td>
+<td style="text-align: left;"><code>-1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rewind()</code></td>
+<td style="text-align: left;">回到文件开头</td>
+<td style="text-align: left;">无（void）</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>feof()</code></td>
+<td style="text-align: left;">检测是否到达文件末尾</td>
+<td style="text-align: left;">非 0（已到末尾）</td>
+<td style="text-align: left;">0（未到末尾）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ferror()</code></td>
+<td style="text-align: left;">检测是否发生错误</td>
+<td style="text-align: left;">非 0（有错误）</td>
+<td style="text-align: left;">0（无错误）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>clearerr()</code></td>
+<td style="text-align: left;">清除 EOF 和错误指示符</td>
+<td style="text-align: left;">无（void）</td>
+<td style="text-align: left;">—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fopen-打开文件">fopen() — 打开文件</h3>
+<p><strong>作用</strong>:: 打开或创建指定的文件，并返回指向 FILE
+类型对象的指针</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line">FILE *<span class="title function_">fopen</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *path, <span class="type">const</span> <span class="type">char</span> *mode)</span>;</span><br><span class="line"><span class="comment">// 成功：返回指向 FILE 类型对象的指针（FILE *）</span></span><br><span class="line"><span class="comment">// 失败：返回 NULL，并设置 errno 以指示错误原因</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>path</code>：要打开的文件路径（绝对路径或相对路径）</li>
+<li><code>mode</code>：文件打开模式（见下表）</li>
+</ul>
+<p><strong>mode 常用值：</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">mode</th>
+<th style="text-align: left;">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>"r"</code></td>
+<td style="text-align: left;">只读打开，文件必须存在</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>"w"</code></td>
+<td style="text-align: left;">只写打开，文件不存在则创建，存在则截断为
+0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>"a"</code></td>
+<td
+style="text-align: left;">追加写，文件不存在则创建，每次写都从末尾开始</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>"r+"</code></td>
+<td style="text-align: left;">读写打开，文件必须存在</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>"w+"</code></td>
+<td style="text-align: left;">读写打开，不存在则创建，存在则截断</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>"a+"</code></td>
+<td style="text-align: left;">读 + 追加写，不存在则创建</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>"rb"</code> / <code>"wb"</code>
+等</td>
+<td style="text-align: left;">二进制模式（Linux
+下与文本模式无区别，Windows 下有区别）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><code>fopen()</code> 是库函数，内部会调用 <code>open()</code>
+系统调用，并额外创建 stdio 缓冲区</li>
+<li>打开成功必须调用 <code>fclose()</code>
+关闭，否则会泄漏文件描述符和缓冲区内存</li>
+<li>与 <code>open()</code>
+的对应关系：<code>"r"</code>≈<code>O_RDONLY</code>，<code>"w"</code>≈<code>O_WRONLY|O_CREAT|O_TRUNC</code>，<code>"a"</code>≈<code>O_WRONLY|O_CREAT|O_APPEND</code></li>
+<li>判断失败时用 <code>perror()</code> 或 <code>strerror(errno)</code>
+打印具体原因</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">FILE *fp = fopen(<span class="string">&quot;data.txt&quot;</span>, <span class="string">&quot;w+&quot;</span>);</span><br><span class="line"><span class="keyword">if</span> (fp == <span class="literal">NULL</span>) &#123;</span><br><span class="line">    perror(<span class="string">&quot;fopen&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="fclose-关闭文件">fclose() — 关闭文件</h3>
+<p><strong>作用</strong>:: 关闭指定的文件流，释放 FILE
+指针占用的资源</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">fclose</span><span class="params">(FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：返回 EOF(-1)，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>stream</code>：fopen() 返回的 FILE 指针</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>调用 <code>fclose()</code> 时会<strong>自动刷新 stdio
+缓冲区</strong>，把缓冲中未写出的数据写入文件</li>
+<li>关闭之后 FILE 指针不能再使用（成为野指针），建议置 NULL</li>
+<li>程序正常退出时会自动关闭所有打开的文件流，但显式 fclose
+是好习惯</li>
+<li>重复 fclose 同一个流是未定义行为，不要这样做</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (fclose(fp) == EOF) &#123;</span><br><span class="line">    perror(<span class="string">&quot;fclose&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="fread-读数据">fread() — 读数据</h3>
+<p><strong>作用</strong>:: 从文件流中读取数据到缓冲区</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">size_t</span> <span class="title function_">fread</span><span class="params">(<span class="type">void</span> *ptr, <span class="type">size_t</span> size, <span class="type">size_t</span> nmemb, FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 成功：返回实际读取的完整元素个数（可能小于 nmemb）</span></span><br><span class="line"><span class="comment">// 失败或到达文件末尾：返回 0 或小于 nmemb 的值（需用 feof/ferror 区分）</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>ptr</code>：存放读取数据的缓冲区</li>
+<li><code>size</code>：每个数据元素的大小（字节数）</li>
+<li><code>nmemb</code>：要读取的元素个数</li>
+<li><code>stream</code>：FILE 指针</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>返回值是<strong>元素个数</strong>而不是字节数！实际读取的字节数 =
+返回值 × size</li>
+<li>返回值 &lt; nmemb 时，可能是到达文件末尾，也可能是出错，用
+<code>feof()</code> / <code>ferror()</code> 区分</li>
+<li>读取二进制数据（结构体、数组）时特别方便，一次可以读写多个元素</li>
+<li>常用的整文件读取技巧：先 <code>fseek</code> 到末尾
+<code>ftell</code> 拿大小，再 <code>rewind</code> 回来一次性读完</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">student</span> <span class="title">stu</span>[10];</span></span><br><span class="line"><span class="type">size_t</span> n = fread(stu, <span class="keyword">sizeof</span>(<span class="keyword">struct</span> student), <span class="number">10</span>, fp);</span><br><span class="line"><span class="keyword">if</span> (n &lt; <span class="number">10</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (feof(fp))</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;读到文件末尾，实际读取 %zu 个元素\n&quot;</span>, n);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (ferror(fp))</span><br><span class="line">        perror(<span class="string">&quot;fread&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="fwrite-写数据">fwrite() — 写数据</h3>
+<p><strong>作用</strong>:: 将缓冲区中的数据写入到文件流</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">size_t</span> <span class="title function_">fwrite</span><span class="params">(<span class="type">const</span> <span class="type">void</span> *ptr, <span class="type">size_t</span> size, <span class="type">size_t</span> nmemb, FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 成功：返回实际写入的完整元素个数</span></span><br><span class="line"><span class="comment">// 失败：返回小于 nmemb 的值（通常是 0）</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>ptr</code>：要写入的数据缓冲区</li>
+<li><code>size</code>：每个数据元素的大小（字节数）</li>
+<li><code>nmemb</code>：要写入的元素个数</li>
+<li><code>stream</code>：FILE 指针</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>返回值 &lt; nmemb 表示写入出错（如磁盘空间不足），需要检查
+errno</li>
+<li>fwrite
+写入的是<strong>用户缓冲区中的数据</strong>，数据真正落盘还依赖刷新内核缓冲（fsync
+等），见下文「I/O 缓冲」</li>
+<li>与 fread 配合可实现结构体等二进制数据的持久化</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">student</span> <span class="title">stu</span>[10];</span></span><br><span class="line"><span class="comment">/* ...填充数据... */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (fwrite(stu, <span class="keyword">sizeof</span>(<span class="keyword">struct</span> student), <span class="number">10</span>, fp) != <span class="number">10</span>) &#123;</span><br><span class="line">    perror(<span class="string">&quot;fwrite&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="fgetc-fputc-字符读写">fgetc() &amp; fputc() — 字符读写</h3>
+<p><strong>作用</strong>:: fgetc() 从文件流读取一个字符；fputc()
+向文件流写入一个字符</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">fgetc</span><span class="params">(FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 成功：返回读取字符的 ASCII 码（int 类型）</span></span><br><span class="line"><span class="comment">// 失败或到达文件末尾：返回 EOF(-1)</span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">fputc</span><span class="params">(<span class="type">int</span> c, FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 成功：返回写入的字符</span></span><br><span class="line"><span class="comment">// 失败：返回 EOF(-1)</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>c</code>：要写入的字符（int 类型，实际取低 8 位）</li>
+<li><code>stream</code>：FILE 指针</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>接收 fgetc 的返回值<strong>必须用 int 类型</strong>，不能用
+char——因为 EOF(-1) 无法用 char 表示，用 char 会导致无法区分「字符
+0xFF」和「文件末尾」</li>
+<li>fgetc 读到文件末尾返回 EOF，可用 feof() 确认</li>
+<li>fputc 返回的也是 int，判断是否等于 EOF 即可知道是否写失败</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> ch;</span><br><span class="line"><span class="keyword">while</span> ((ch = fgetc(fp)) != EOF) &#123;   <span class="comment">// 逐字符拷贝文件</span></span><br><span class="line">    fputc(ch, <span class="built_in">stdout</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="fgets-fputs-行读写">fgets() &amp; fputs() — 行读写</h3>
+<p><strong>作用</strong>:: fgets() 从文件流读取一行字符串；fputs()
+向文件流写入一行字符串</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *<span class="title function_">fgets</span><span class="params">(<span class="type">char</span> *s, <span class="type">int</span> size, FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 s（缓冲区指针）</span></span><br><span class="line"><span class="comment">// 失败或到达文件末尾：返回 NULL</span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">fputs</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *s, FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 成功：返回非负值</span></span><br><span class="line"><span class="comment">// 失败：返回 EOF(-1)</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>s</code>：存放/输出字符串的缓冲区</li>
+<li><code>size</code>：缓冲区大小，最多读取 size-1 个字符，末尾自动补
+<code>'\0'</code></li>
+<li><code>stream</code>：FILE 指针</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>fgets 读到换行符就停止，<strong>会把 ''
+也存入缓冲区</strong>（如果缓冲区装得下），并在末尾补 '\0'</li>
+<li>缓冲区大小要足够，否则一行会被拆成多次读取</li>
+<li>fputs
+只输出字符串内容，<strong>不会自动添加换行符</strong>，需要换行时自己加
+<code>"\n"</code></li>
+<li>常用组合：<code>fgets(buf, sizeof(buf), fp)</code>
+循环读取，直到返回 NULL（读完全部行）</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> buf[<span class="number">256</span>];</span><br><span class="line"><span class="keyword">while</span> (fgets(buf, <span class="keyword">sizeof</span>(buf), fp) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">    <span class="built_in">fputs</span>(buf, <span class="built_in">stdout</span>);   <span class="comment">// 逐行打印文件内容</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="fseek-移动读写位置">fseek() — 移动读写位置</h3>
+<p><strong>作用</strong>:: 设置文件流的读写位置偏移量（相当于文件 I/O
+中的 lseek()）</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">fseek</span><span class="params">(FILE *stream, <span class="type">long</span> offset, <span class="type">int</span> whence)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>stream</code>：FILE 指针</li>
+<li><code>offset</code>：偏移量，可正可负</li>
+<li><code>whence</code>：基准位置</li>
+</ul>
+<p><strong>whence 常用值：</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">宏</th>
+<th style="text-align: left;">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>SEEK_SET</code></td>
+<td style="text-align: left;">从文件开头算起（offset &gt;= 0）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SEEK_CUR</code></td>
+<td style="text-align: left;">从当前位置算起</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SEEK_END</code></td>
+<td style="text-align: left;">从文件末尾算起（offset
+可为负，表示向前）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>fseek 只<strong>移动读写位置，不读写数据</strong></li>
+<li>如果偏移量超过文件末尾，之后再写入会形成<strong>空洞文件</strong>（中间补
+'\0'）</li>
+<li>fseek 会清除文件的 EOF 指示符，方便重新读取</li>
+<li>以追加模式（"a"/"a+"）打开的文件，写入位置始终在末尾，fseek
+定位无效</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 跳到文件开头</span></span><br><span class="line">fseek(fp, <span class="number">0</span>, SEEK_SET);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 跳到距离文件末尾 10 字节处</span></span><br><span class="line">fseek(fp, <span class="number">-10</span>, SEEK_END);</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="ftell-rewind">ftell() &amp; rewind()</h3>
+<p><strong>作用</strong>:: ftell() 获取文件当前读写位置偏移量；rewind()
+将读写位置重置到文件开头</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">long</span> <span class="title function_">ftell</span><span class="params">(FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 成功：返回当前读写位置偏移量（距文件开头的字节数）</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">rewind</span><span class="params">(FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 无返回值</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>stream</code>：FILE 指针</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><code>rewind()</code> 等价于
+<code>(void)fseek(stream, 0L, SEEK_SET)</code>，同时<strong>清除错误指示符和
+EOF 指示符</strong></li>
+<li>常用技巧：<code>fseek(fp, 0, SEEK_END)</code> +
+<code>ftell(fp)</code> 获取文件大小</li>
+<li>对于以文本模式打开的文件，ftell 的返回值可能不是精确的字节数（Linux
+下无此问题）</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">fseek(fp, <span class="number">0</span>, SEEK_END);</span><br><span class="line"><span class="type">long</span> size = ftell(fp);      <span class="comment">// 得到文件大小</span></span><br><span class="line">rewind(fp);                 <span class="comment">// 回到开头再读取</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;文件大小: %ld 字节\n&quot;</span>, size);</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="feof-检测文件末尾">feof() — 检测文件末尾</h3>
+<p><strong>作用</strong>:: 检测文件流是否已经到达文件末尾</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">feof</span><span class="params">(FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 返回非 0：已经到达文件末尾（EOF 指示符被置位）</span></span><br><span class="line"><span class="comment">// 返回 0：尚未到达文件末尾</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>stream</code>：FILE 指针</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>EOF
+指示符是<strong>在一次读取操作遇到文件末尾之后</strong>才被置位的——feof()
+本身不读取数据，所以在读取之前调用它没有意义</li>
+<li>典型用法：读取函数返回 0/EOF 后，用 feof()
+判断是「正常读完」还是「出错」</li>
+<li>清除 EOF 指示符需要使用 <code>clearerr()</code> 或
+<code>rewind()</code>/<code>fseek()</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> buf[<span class="number">128</span>];</span><br><span class="line"><span class="keyword">while</span> (fgets(buf, <span class="keyword">sizeof</span>(buf), fp) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%s&quot;</span>, buf);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (feof(fp))</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;正常读到文件末尾\n&quot;</span>);</span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (ferror(fp))</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;读取过程中出错\n&quot;</span>);</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="ferror-检测错误">ferror() — 检测错误</h3>
+<p><strong>作用</strong>:: 检测文件流是否发生了读写错误</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">ferror</span><span class="params">(FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 返回非 0：发生了错误（错误指示符被置位）</span></span><br><span class="line"><span class="comment">// 返回 0：没有错误</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>stream</code>：FILE 指针</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>错误指示符一旦被置位会<strong>一直保持</strong>，直到调用
+<code>clearerr()</code> 或 <code>rewind()</code> 清除</li>
+<li>与 feof() 一样，它本身不触发任何操作，只是查询状态</li>
+<li>想了解具体错误原因，用 <code>errno</code> +
+<code>perror()</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (fread(buf, <span class="number">1</span>, <span class="keyword">sizeof</span>(buf), fp) &lt; <span class="keyword">sizeof</span>(buf) &amp;&amp; ferror(fp)) &#123;</span><br><span class="line">    perror(<span class="string">&quot;fread&quot;</span>);   <span class="comment">// 打印具体的错误信息</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="clearerr-清除指示符">clearerr() — 清除指示符</h3>
+<p><strong>作用</strong>:: 清除文件流的 EOF 指示符和错误指示符</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">clearerr</span><span class="params">(FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 无返回值</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>stream</code>：FILE 指针</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>清除之后，feof() 和 ferror() 都会重新返回 0</li>
+<li>常见场景：对同一个文件流做多轮读取，每轮之间需要 clearerr
+重置状态</li>
+<li>rewind() 和 fseek() 也会顺带清除指示符</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">clearerr(fp);   <span class="comment">// 重置 EOF/错误状态，继续新一轮读取</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="格式化-io">格式化 I/O</h2>
+<h3 id="格式化输出">格式化输出</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">输出目标</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>printf()</code></td>
+<td style="text-align: left;">标准输出 stdout</td>
+<td style="text-align: left;">输出的字符数</td>
+<td style="text-align: left;">负数</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fprintf()</code></td>
+<td style="text-align: left;">FILE 指针指定的文件</td>
+<td style="text-align: left;">输出的字符数</td>
+<td style="text-align: left;">负数</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>dprintf()</code></td>
+<td style="text-align: left;">文件描述符 fd 指定的文件</td>
+<td style="text-align: left;">输出的字符数</td>
+<td style="text-align: left;">-1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sprintf()</code></td>
+<td style="text-align: left;">用户缓冲区（可能溢出！）</td>
+<td style="text-align: left;">应写入的字符数</td>
+<td style="text-align: left;">负数</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>snprintf()</code></td>
+<td style="text-align: left;">用户缓冲区（限 size）</td>
+<td style="text-align: left;">应写入的字符数（不含 '\0'）</td>
+<td style="text-align: left;">负数</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>printf()</code> 函数用于将格式化数据写入到标准输出；</li>
+<li><code>dprintf()</code> 和 <code>fprintf()</code>
+函数用于将格式化数据写入到指定的文件中，两者不同之处在于：<code>fprintf()</code>
+使用 FILE 指针指定对应的文件，而 <code>dprintf()</code> 则使用文件描述符
+fd 指定对应的文件；</li>
+<li><code>sprintf()</code>、<code>snprintf()</code>
+函数可将格式化的数据存储在用户指定的缓冲区 buf
+中。需要注意的是，<code>sprintf()</code> 函数可能会造成由参数 buf
+指定的缓冲区溢出，为了解决这个问题，引入了 <code>snprintf()</code>
+函数：在该函数中，使用参数 size
+显式地指定缓冲区的大小，如果写入到缓冲区的字节数大于参数 size
+指定的大小，超出的部分将会被丢弃，并且会在末尾自动添加终止字符
+<code>'\0'</code>。</li>
+</ul>
+<h4 id="printf">printf()</h4>
+<p><strong>作用</strong>:: 将格式化数据写入到标准输出</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">printf</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *format, ...)</span>;</span><br><span class="line"><span class="comment">// 成功：返回输出的字符数</span></span><br><span class="line"><span class="comment">// 失败：返回负数</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>format</code>：格式控制字符串</li>
+<li><code>...</code>：可变参数，与 format 中的格式符一一对应</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>输出到 stdout，stdout 在终端下默认行缓冲，遇到 '' 才会刷新</li>
+<li>返回值是实际输出的字符数，一般用不到</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;num = %d, name = %s\n&quot;</span>, <span class="number">10</span>, <span class="string">&quot;coco&quot;</span>);</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="fprintf">fprintf()</h4>
+<p><strong>作用</strong>:: 将格式化数据写入到 FILE 指针指定的文件中</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">fprintf</span><span class="params">(FILE *stream, <span class="type">const</span> <span class="type">char</span> *format, ...)</span>;</span><br><span class="line"><span class="comment">// 成功：返回输出的字符数</span></span><br><span class="line"><span class="comment">// 失败：返回负数</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>stream</code>：目标文件的 FILE 指针</li>
+<li><code>format</code>：格式控制字符串</li>
+<li><code>...</code>：可变参数</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>与 printf 的唯一区别就是多了一个 stream
+参数，可以输出到任意文件</li>
+<li>常用于日志输出：<code>fprintf(stderr, ...)</code>
+输出到标准错误，不经过行缓冲，立即显示</li>
+<li>输出到文件时数据先进入 stdio 缓冲区，注意调用 fflush 或 fclose
+才会真正写入</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">FILE *fp = fopen(<span class="string">&quot;log.txt&quot;</span>, <span class="string">&quot;a&quot;</span>);</span><br><span class="line"><span class="built_in">fprintf</span>(fp, <span class="string">&quot;[%s] error code: %d\n&quot;</span>, <span class="string">&quot;2026-08-10&quot;</span>, <span class="number">404</span>);</span><br><span class="line">fclose(fp);</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="dprintf">dprintf()</h4>
+<p><strong>作用</strong>:: 将格式化数据写入到文件描述符 fd
+指定的文件中</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _GNU_SOURCE</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">dprintf</span><span class="params">(<span class="type">int</span> fd, <span class="type">const</span> <span class="type">char</span> *format, ...)</span>;</span><br><span class="line"><span class="comment">// 成功：返回输出的字符数</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>fd</code>：目标文件的文件描述符（如 open()
+的返回值、STDOUT_FILENO 等）</li>
+<li><code>format</code>：格式控制字符串</li>
+<li><code>...</code>：可变参数</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>与 fprintf 的区别：dprintf 使用文件描述符 fd，fprintf 使用 FILE
+指针——常用于配合 open()/socket() 直接输出</li>
+<li>它是 POSIX 扩展函数，glibc 下需要定义 <code>_GNU_SOURCE</code> 或
+<code>_POSIX_C_SOURCE &gt;= 200809L</code> 才能使用</li>
+<li>dprintf 不经过 stdio 缓冲，直接写内核缓冲区</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _GNU_SOURCE</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> fd = open(<span class="string">&quot;log.txt&quot;</span>, O_WRONLY | O_CREAT | O_APPEND, <span class="number">0644</span>);</span><br><span class="line">dprintf(fd, <span class="string">&quot;pid = %d\n&quot;</span>, getpid());</span><br><span class="line">close(fd);</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="sprintf-snprintf">sprintf() &amp; snprintf()</h4>
+<p><strong>作用</strong>:: 将格式化数据写入到用户指定的缓冲区 buf 中</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">sprintf</span><span class="params">(<span class="type">char</span> *str, <span class="type">const</span> <span class="type">char</span> *format, ...)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">snprintf</span><span class="params">(<span class="type">char</span> *str, <span class="type">size_t</span> size, <span class="type">const</span> <span class="type">char</span> *format, ...)</span>;</span><br><span class="line"><span class="comment">// 成功：返回应该写入的字符数（不含 &#x27;\0&#x27;）</span></span><br><span class="line"><span class="comment">// 失败：返回负数</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>str</code>：目标缓冲区</li>
+<li><code>size</code>：缓冲区大小（snprintf 才有）</li>
+<li><code>format</code>：格式控制字符串</li>
+<li><code>...</code>：可变参数</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><code>sprintf()</code>
+<strong>不检查缓冲区大小，极易造成缓冲区溢出</strong>（安全隐患，可能导致程序崩溃或被攻击），应尽量使用
+<code>snprintf()</code></li>
+<li><code>snprintf()</code> 最多写入 size-1 个字符，并自动在末尾补
+<code>'\0'</code>，超出的部分被丢弃</li>
+<li>返回值是「本应写入的字符数」（不含 '\0'）：如果返回值 &gt;=
+size，说明发生了截断</li>
+<li>判断截断后可以重新分配更大的缓冲区再格式化</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> buf[<span class="number">32</span>];</span><br><span class="line"><span class="type">int</span> n = <span class="built_in">snprintf</span>(buf, <span class="keyword">sizeof</span>(buf), <span class="string">&quot;value = %d&quot;</span>, <span class="number">12345</span>);</span><br><span class="line"><span class="keyword">if</span> (n &gt;= <span class="keyword">sizeof</span>(buf)) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;缓冲区太小，需要 %d 字节\n&quot;</span>, n + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="格式控制字符串-format">格式控制字符串 format</h4>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">字符</th>
+<th style="text-align: left;">对应的数据类型</th>
+<th style="text-align: left;">含义</th>
+<th style="text-align: left;">示例说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>%d</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">十进制有符号整数</td>
+<td style="text-align: left;"><code>printf("%d", 123)</code> → 123</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%o</code></td>
+<td style="text-align: left;"><code>unsigned int</code></td>
+<td style="text-align: left;">八进制无符号整数</td>
+<td style="text-align: left;"><code>printf("%o", 8)</code> → 10</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%u</code></td>
+<td style="text-align: left;"><code>unsigned int</code></td>
+<td style="text-align: left;">十进制无符号整数</td>
+<td style="text-align: left;"><code>printf("%u", -1)</code> →
+4294967295</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%x</code> / <code>%X</code></td>
+<td style="text-align: left;"><code>unsigned int</code></td>
+<td style="text-align: left;">十六进制无符号整数（小写/大写字母）</td>
+<td style="text-align: left;"><code>printf("%x", 255)</code> → ff</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%f</code></td>
+<td style="text-align: left;"><code>double</code></td>
+<td style="text-align: left;">十进制浮点数（默认 6 位小数）</td>
+<td style="text-align: left;"><code>printf("%f", 3.14)</code> →
+3.140000</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%e</code></td>
+<td style="text-align: left;"><code>double</code></td>
+<td style="text-align: left;">科学计数法</td>
+<td style="text-align: left;"><code>printf("%e", 314.0)</code> →
+3.140000e+02</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%g</code></td>
+<td style="text-align: left;"><code>double</code></td>
+<td style="text-align: left;">自动选择 %f 或 %e（取更短的形式）</td>
+<td style="text-align: left;"><code>printf("%g", 0.0000314)</code> →
+3.14e-05</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%s</code></td>
+<td style="text-align: left;"><code>char *</code></td>
+<td style="text-align: left;">字符串</td>
+<td style="text-align: left;"><code>printf("%s", "hi")</code> → hi</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%c</code></td>
+<td style="text-align: left;"><code>int</code>（char）</td>
+<td style="text-align: left;">单个字符</td>
+<td style="text-align: left;"><code>printf("%c", 65)</code> → A</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%p</code></td>
+<td style="text-align: left;"><code>void *</code></td>
+<td style="text-align: left;">指针地址</td>
+<td style="text-align: left;"><code>printf("%p", &amp;x)</code> →
+0x7ffc...</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%%</code></td>
+<td style="text-align: left;">—</td>
+<td style="text-align: left;">输出一个 %</td>
+<td style="text-align: left;"><code>printf("%%")</code> → %</td>
+</tr>
+</tbody>
+</table>
+<p><strong>宽度/精度修饰符：</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">写法</th>
+<th style="text-align: left;">含义</th>
+<th style="text-align: left;">示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>%5d</code></td>
+<td style="text-align: left;">右对齐，宽度 5</td>
+<td style="text-align: left;"><code>printf("%5d", 12)</code> →
+<code>12</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%-5d</code></td>
+<td style="text-align: left;">左对齐，宽度 5</td>
+<td style="text-align: left;"><code>printf("%-5d", 12)</code> →
+<code>12</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%05d</code></td>
+<td style="text-align: left;">宽度 5，前导补 0</td>
+<td style="text-align: left;"><code>printf("%05d", 12)</code> →
+<code>00012</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%.2f</code></td>
+<td style="text-align: left;">保留 2 位小数</td>
+<td style="text-align: left;"><code>printf("%.2f", 3.14159)</code> →
+3.14</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%8.2f</code></td>
+<td style="text-align: left;">宽度 8，保留 2 位小数</td>
+<td style="text-align: left;"><code>printf("%8.2f", 3.14)</code> →
+<code>3.14</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="格式化输入">格式化输入</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">输入来源</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>scanf()</code></td>
+<td style="text-align: left;">标准输入 stdin</td>
+<td style="text-align: left;">成功匹配并赋值的参数个数</td>
+<td style="text-align: left;"><code>EOF</code>（输入结束/出错）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fscanf()</code></td>
+<td style="text-align: left;">FILE 指针指定的文件</td>
+<td style="text-align: left;">成功匹配并赋值的参数个数</td>
+<td style="text-align: left;"><code>EOF</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sscanf()</code></td>
+<td style="text-align: left;">字符串 str</td>
+<td style="text-align: left;">成功匹配并赋值的参数个数</td>
+<td style="text-align: left;">0 / <code>EOF</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>scanf()</code>
+函数可将用户输入（标准输入）的数据进行格式化转换；</li>
+<li><code>fscanf()</code> 函数从 FILE
+指针指定文件中读取数据，并将数据进行格式化转换；</li>
+<li><code>sscanf()</code> 函数从参数 str
+所指向的字符串中读取数据，并将数据进行格式化转换。</li>
+</ul>
+<h4 id="scanf">scanf()</h4>
+<p><strong>作用</strong>:: 从标准输入读取数据并进行格式化转换</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">scanf</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *format, ...)</span>;</span><br><span class="line"><span class="comment">// 成功：返回成功转换并赋值的参数个数</span></span><br><span class="line"><span class="comment">// 失败：返回 0（第一个转换就失败）或 EOF（输入结束/出错）</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>format</code>：格式控制字符串</li>
+<li><code>...</code>：<strong>必须传入变量的地址</strong>（&amp;x），不能直接传变量</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>参数必须取地址</strong>：<code>scanf("%d", &amp;num)</code>，漏掉
+<code>&amp;</code> 会导致段错误</li>
+<li>返回值表示成功匹配的个数，可以用来判断输入是否合法</li>
+<li>用 <code>%s</code>
+读取字符串时<strong>没有边界检查</strong>，输入过长会缓冲区溢出——建议用宽度限制
+<code>%19s</code> 或改用 <code>fgets()</code></li>
+<li>输入流在遇到空白字符（空格、Tab、换行）时会跳过，<code>%c</code>
+除外（%c 会读取包括空格在内的任何字符）</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> num;</span><br><span class="line"><span class="type">char</span> name[<span class="number">20</span>];</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>, &amp;num) != <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;输入格式错误\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">scanf</span>(<span class="string">&quot;%19s&quot;</span>, name);   <span class="comment">// 限制最多读 19 个字符，防止溢出</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="fscanf">fscanf()</h4>
+<p><strong>作用</strong>:: 从 FILE
+指针指定的文件中读取数据并进行格式化转换</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">fscanf</span><span class="params">(FILE *stream, <span class="type">const</span> <span class="type">char</span> *format, ...)</span>;</span><br><span class="line"><span class="comment">// 成功：返回成功转换并赋值的参数个数</span></span><br><span class="line"><span class="comment">// 失败：返回 EOF（读到文件末尾或出错）</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>stream</code>：源文件的 FILE 指针</li>
+<li><code>format</code>：格式控制字符串</li>
+<li><code>...</code>：变量的地址</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>常用于解析格式化文本文件（如配置文件、CSV）</li>
+<li>读取到文件末尾返回 EOF，可用 feof() 确认</li>
+<li>与 fgets 搭配：先用 fgets 读一行，再用 sscanf
+解析该行，更安全可控</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> id;</span><br><span class="line"><span class="type">char</span> name[<span class="number">32</span>];</span><br><span class="line"></span><br><span class="line">FILE *fp = fopen(<span class="string">&quot;students.txt&quot;</span>, <span class="string">&quot;r&quot;</span>);</span><br><span class="line"><span class="keyword">while</span> (<span class="built_in">fscanf</span>(fp, <span class="string">&quot;%d %s&quot;</span>, &amp;id, name) == <span class="number">2</span>) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;id=%d name=%s\n&quot;</span>, id, name);</span><br><span class="line">&#125;</span><br><span class="line">fclose(fp);</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="sscanf">sscanf()</h4>
+<p><strong>作用</strong>:: 从字符串中读取数据并进行格式化转换</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">sscanf</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *str, <span class="type">const</span> <span class="type">char</span> *format, ...)</span>;</span><br><span class="line"><span class="comment">// 成功：返回成功转换并赋值的参数个数</span></span><br><span class="line"><span class="comment">// 失败：返回 0 或 EOF</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>str</code>：源字符串</li>
+<li><code>format</code>：格式控制字符串</li>
+<li><code>...</code>：变量的地址</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>sscanf 不会产生任何
+I/O，是纯内存操作，常用于<strong>字符串解析</strong></li>
+<li>经典用法：从"2026-08-10"这样的字符串中提取年、月、日</li>
+<li>解析失败时返回值小于期望个数，务必检查返回值</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">char</span> *date = <span class="string">&quot;2026-08-10&quot;</span>;</span><br><span class="line"><span class="type">int</span> year, month, day;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">sscanf</span>(date, <span class="string">&quot;%d-%d-%d&quot;</span>, &amp;year, &amp;month, &amp;day) == <span class="number">3</span>) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%d 年 %d 月 %d 日\n&quot;</span>, year, month, day);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="格式控制字符串-format输入">格式控制字符串 format（输入）</h4>
+<p>输入格式符与输出基本一致（%d、%x、%f、%s、%c 等），但有几点不同：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">注意点</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">参数传地址</td>
+<td style="text-align: left;">必须传变量的地址（&amp;x），scanf
+需要把结果写回变量</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%s</code> 有风险</td>
+<td style="text-align: left;">输入无宽度限制，容易缓冲区溢出，建议
+<code>%19s</code> 限宽</td>
+</tr>
+<tr>
+<td style="text-align: left;">空白字符</td>
+<td
+style="text-align: left;">输入时空白（空格/Tab/换行）默认被跳过，<code>%c</code>
+除外</td>
+</tr>
+<tr>
+<td style="text-align: left;">正负号</td>
+<td style="text-align: left;"><code>%d</code>
+支持正负号，<code>%u</code> 不支持负号</td>
+</tr>
+<tr>
+<td style="text-align: left;">返回值</td>
+<td style="text-align: left;">返回成功匹配的个数，务必检查</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 输入: 2026 8 10</span></span><br><span class="line"><span class="type">int</span> y, m, d;</span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">scanf</span>(<span class="string">&quot;%d %d %d&quot;</span>, &amp;y, &amp;m, &amp;d) != <span class="number">3</span>) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;解析失败\n&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="io-缓冲">I/O 缓冲</h2>
+<p>对于写文件系统调用 <code>write()</code>
+与磁盘操作并不是同步的，<code>write()</code>
+函数并不会等待数据真正写入到磁盘之后再返回。如果在此期间，其它进程调用
+<code>read()</code>
+函数读取该文件的这几个字节数据，那么内核将自动从缓冲区中读取这几个字节数据返回给应用程序。</p>
+<p>对于读文件而言亦是如此：内核会从磁盘设备中读取文件的数据并存储到内核的缓冲区中，当调用
+<code>read()</code> 函数读取数据时，<code>read()</code>
+调用将从内核缓冲区中读取数据，直至把缓冲区中的数据读完，这时，内核会将文件的下一段内容读入到内核缓冲区中进行缓存。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">应用程序 ──read/write──&gt; [内核缓冲区(page cache)] ──同步──&gt; 磁盘设备</span><br><span class="line">                          ↑ 数据先在这里缓存，不立即落盘</span><br></pre></td></tr></table></figure>
+<h3 id="刷新文件-io-的内核缓冲区">刷新文件 I/O 的内核缓冲区</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">刷新范围</th>
+<th style="text-align: left;">刷新内容</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>sync()</code></td>
+<td style="text-align: left;">整个系统</td>
+<td style="text-align: left;">所有文件的数据 + 元数据</td>
+<td style="text-align: left;">无（void）</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>syncfs()</code></td>
+<td style="text-align: left;">单个文件系统</td>
+<td style="text-align: left;">fd 所属文件系统的数据 + 元数据</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">-1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fsync()</code></td>
+<td style="text-align: left;">单个文件</td>
+<td style="text-align: left;">fd 所指文件的数据 + 元数据</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">-1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fdatasync()</code></td>
+<td style="text-align: left;">单个文件</td>
+<td style="text-align: left;">fd 所指文件的数据（不含元数据）</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">-1</td>
+</tr>
+</tbody>
+</table>
+<h4 id="sync">sync()</h4>
+<p><strong>作用</strong>:: 将所有文件 I/O
+内核缓冲区中的文件内容数据和元数据全部更新到磁盘设备中</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">sync</span><span class="params">(<span class="type">void</span>)</span>;</span><br><span class="line"><span class="comment">// 无返回值，永远成功</span></span><br></pre></td></tr></table></figure>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>Linux 系统中调用 <code>sync()</code>
+函数仅在所有数据已经写入到磁盘设备之后才会返回</li>
+<li>影响范围是整个系统所有文件，开销大，一般在关机前或定期执行</li>
+<li>应用层程序中很少直接调用，多由系统工具（如 <code>sync</code>
+命令）使用</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sync();   <span class="comment">// 全系统数据落盘（相当于 shell 里的 sync 命令）</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="syncfs">syncfs()</h4>
+<p><strong>作用</strong>:: 将参数 fd
+所指文件所属文件系统的所有内核缓冲数据（数据和元数据）刷新到磁盘</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">syncfs</span><span class="params">(<span class="type">int</span> fd)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>fd</code>：属于目标文件系统的任意一个打开文件的文件描述符</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>与 sync() 的区别：只同步 fd
+所在的<strong>一个文件系统</strong>，而不是整个系统</li>
+<li>Linux 2.6.39 之后提供，glibc 2.14 之后可用</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> fd = open(<span class="string">&quot;/data&quot;</span>, O_RDONLY);   <span class="comment">// 打开文件系统上任意文件</span></span><br><span class="line"><span class="keyword">if</span> (syncfs(fd) == <span class="number">-1</span>) &#123;</span><br><span class="line">    perror(<span class="string">&quot;syncfs&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line">close(fd);</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="fsync">fsync()</h4>
+<p><strong>作用</strong>:: 将参数 fd
+所指文件的内容数据和元数据写入磁盘</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">fsync</span><span class="params">(<span class="type">int</span> fd)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>fd</code>：目标文件的文件描述符</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>只有在对磁盘设备的写入操作完成之后，<code>fsync()</code>
+函数才会返回——确保数据真正落盘</li>
+<li>同时刷新<strong>内容数据 +
+元数据</strong>（元数据如文件大小、修改时间、权限等）</li>
+<li>典型场景：数据库、日志系统在关键写入后调用
+fsync，防止断电丢数据</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> fd = open(<span class="string">&quot;data.db&quot;</span>, O_WRONLY);</span><br><span class="line">write(fd, buf, <span class="keyword">sizeof</span>(buf));</span><br><span class="line">fsync(fd);          <span class="comment">// 确保数据落盘后再继续</span></span><br><span class="line">close(fd);</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="fdatasync">fdatasync()</h4>
+<p><strong>作用</strong>:: 仅将参数 fd
+所指文件的内容数据写入磁盘，并不包括文件的元数据</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">fdatasync</span><span class="params">(<span class="type">int</span> fd)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>fd</code>：目标文件的文件描述符</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>与 fsync
+相比<strong>少刷元数据</strong>，性能更好（元数据刷盘也是磁盘 I/O）</li>
+<li>如果后续写操作没有修改文件大小等元数据，用 fdatasync 就足够了</li>
+<li>需要元数据也落盘（如刚创建文件、修改了文件大小）时，应使用
+fsync</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">write(fd, buf, <span class="keyword">sizeof</span>(buf));</span><br><span class="line">fdatasync(fd);      <span class="comment">// 只刷数据，不刷元数据，更快</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="o_dsync-与-o_sync-标志">O_DSYNC 与 O_SYNC 标志</h3>
+<p>调用 <code>open()</code> 函数时指定一些标志也可以影响到文件 I/O
+内核缓冲：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">标志</th>
+<th style="text-align: left;">效果</th>
+<th style="text-align: left;">等价操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>O_DSYNC</code></td>
+<td style="text-align: left;">每个 write()
+调用后自动同步文件<strong>内容数据</strong></td>
+<td style="text-align: left;">相当于每次 write 后调用
+<code>fdatasync()</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>O_SYNC</code></td>
+<td style="text-align: left;">每个 write()
+调用后自动同步文件<strong>内容数据和元数据</strong></td>
+<td style="text-align: left;">相当于每次 write 后调用
+<code>fsync()</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>O_DSYNC</code> 标志：其效果类似于在每个 <code>write()</code>
+调用之后调用 <code>fdatasync()</code> 函数进行数据同步</li>
+<li><code>O_SYNC</code> 标志：使得每个 <code>write()</code>
+调用都会自动将文件内容数据和元数据刷新到磁盘设备中，其效果类似于在每个
+<code>write()</code> 调用之后调用 <code>fsync()</code>
+函数进行数据同步</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> fd = open(<span class="string">&quot;data.txt&quot;</span>, O_WRONLY | O_CREAT | O_SYNC, <span class="number">0644</span>);</span><br><span class="line"><span class="comment">// 之后每次 write 都自动同步到磁盘（数据 + 元数据）</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>💡 与手动 fsync 的区别：O_SYNC 是「每次 write
+都同步」，适合小数据量高频写入；手动 fsync
+是「攒一批再同步」，性能更好，适合批量写入。</p>
+</blockquote>
+<hr>
+<h3 id="直接-ioo_direct">直接 I/O（O_DIRECT）</h3>
+<p>在执行文件 I/O
+操作时<strong>绕过内核缓冲区</strong>，从用户空间直接将数据传递到文件或磁盘设备，把这种操作也称为<strong>直接
+I/O</strong>。</p>
+<p>例如，某应用程序的作用是测试磁盘设备的读写速率，那么在这种应用场景下，就需要保证
+read/write 操作是直接访问磁盘设备，而不经过内核缓冲。使用直接 I/O 可以在
+<code>open()</code> 函数打开文件时指定 <code>O_DIRECT</code> 标志：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _GNU_SOURCE</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> fd = open(<span class="string">&quot;/dev/sda1&quot;</span>, O_RDONLY | O_DIRECT);</span><br></pre></td></tr></table></figure>
+<p>在执行直接 I/O 时，必须要遵守以下三个对齐限制要求：</p>
+<ol type="1">
+<li>应用程序中用于存放数据的缓冲区，其<strong>内存起始地址</strong>必须以块大小的整数倍进行对齐</li>
+<li>写文件时，文件的<strong>位置偏移量</strong>必须是块大小的整数倍</li>
+<li>写入到文件的<strong>数据大小</strong>必须是块大小的整数倍</li>
+</ol>
+<p><strong>注意事项：</strong></p>
+<ol type="1">
+<li>需要进行宏定义 <code>_GNU_SOURCE</code> 才能在 <code>open()</code>
+函数中使用 <code>O_DIRECT</code> 标志</li>
+<li>存放数据的缓冲区需要使其起始地址以 4096 字节进行对齐，使用
+<code>__attribute__((aligned(4096)))</code> 声明</li>
+<li>块大小通常为 4096 字节（可通过 <code>fdisk -l</code> 或
+<code>stat</code> 查看实际块大小）</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _GNU_SOURCE</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 缓冲区起始地址按 4096 字节对齐</span></span><br><span class="line"><span class="type">static</span> <span class="type">char</span> buf[<span class="number">4096</span>] __attribute__((aligned(<span class="number">4096</span>)));</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> fd = open(<span class="string">&quot;/dev/sda1&quot;</span>, O_RDONLY | O_DIRECT);</span><br><span class="line"><span class="keyword">if</span> (fd == <span class="number">-1</span>) &#123;</span><br><span class="line">    perror(<span class="string">&quot;open&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 偏移量 0、大小 4096 都是块大小的整数倍 ✓</span></span><br><span class="line"><span class="type">ssize_t</span> n = read(fd, buf, <span class="keyword">sizeof</span>(buf));</span><br><span class="line">close(fd);</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>⚠️ 直接 I/O
+一般只用于磁盘测试、数据库等特殊场景，普通应用不要使用——它失去了 page
+cache 的缓存加速，性能反而可能更差。</p>
+</blockquote>
+<hr>
+<h3 id="stdio-缓冲">stdio 缓冲</h3>
+<p>标准 I/O 的 stdio
+缓冲是<strong>用户空间</strong>的缓冲区。当应用程序中通过标准 I/O
+操作磁盘文件时，为了减少调用系统调用的次数，标准 I/O
+函数会将用户写入或读取文件的数据缓存在 stdio 缓冲区，然后再一次性将
+stdio 缓冲区中缓存的数据通过调用系统调用 I/O（文件 I/O）写入到文件 I/O
+内核缓冲区或者拷贝到应用程序的 buf 中。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户空间:   printf/fread → [stdio 缓冲区] ──系统调用──&gt; [内核缓冲区] ──&gt; 磁盘</span><br></pre></td></tr></table></figure>
+<p>C 语言标准 I/O 提供了三种缓冲模式：</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">模式</th>
+<th style="text-align: left;">宏</th>
+<th style="text-align: left;">说明</th>
+<th style="text-align: left;">默认使用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">全缓冲</td>
+<td style="text-align: left;"><code>_IOFBF</code></td>
+<td style="text-align: left;">缓冲区满时才刷新</td>
+<td style="text-align: left;">磁盘文件</td>
+</tr>
+<tr>
+<td style="text-align: left;">行缓冲</td>
+<td style="text-align: left;"><code>_IOLBF</code></td>
+<td style="text-align: left;">遇到换行符 '' 时刷新</td>
+<td style="text-align: left;">终端设备（stdin/stdout）</td>
+</tr>
+<tr>
+<td style="text-align: left;">无缓冲</td>
+<td style="text-align: left;"><code>_IONBF</code></td>
+<td style="text-align: left;">每次读写直接系统调用</td>
+<td style="text-align: left;">stderr</td>
+</tr>
+</tbody>
+</table>
+<p>对于终端设备默认采用的就是行缓冲模式，譬如标准输入和标准输出：<code>printf()</code>
+输出的字符串写入到了标准输出的 stdio
+缓冲区中，只有输出换行符时才会将这一行数据刷入到内核缓冲区。调用
+<code>scanf()</code>
+函数进行阻塞时，用户通过键盘输入数据，只有在按下回车键（换行符键）时程序才会接着往下执行。</p>
+<p>关于刷新时机：</p>
+<ul>
+<li>调用 <code>fflush()</code> 库函数可强制刷新指定文件的 stdio
+缓冲区</li>
+<li>调用 <code>fclose()</code> 关闭文件时会自动刷新文件的 stdio
+缓冲区</li>
+<li>程序退出时会自动刷新 stdio 缓冲区</li>
+</ul>
+<h4 id="setbufsetbuffersetvbuf">setbuf()、setbuffer()、setvbuf()</h4>
+<p><strong>作用</strong>:: 设置文件流的 stdio 缓冲区及其模式</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">setbuf</span><span class="params">(FILE *stream, <span class="type">char</span> *buf)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">setbuffer</span><span class="params">(FILE *stream, <span class="type">char</span> *buf, <span class="type">size_t</span> size)</span>;</span><br><span class="line"><span class="type">int</span>  <span class="title function_">setvbuf</span><span class="params">(FILE *stream, <span class="type">char</span> *buf, <span class="type">int</span> mode, <span class="type">size_t</span> size)</span>;</span><br><span class="line"><span class="comment">// setvbuf 成功：返回 0</span></span><br><span class="line"><span class="comment">// setvbuf 失败：返回非 0</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>stream</code>：目标文件流</li>
+<li><code>buf</code>：用户提供的缓冲区（传 NULL 则让 stdio
+自动分配）</li>
+<li><code>size</code>：缓冲区大小（setbuffer、setvbuf 使用）</li>
+<li><code>mode</code>：缓冲模式，取 <code>_IOFBF</code>（全缓冲）/
+<code>_IOLBF</code>（行缓冲）/ <code>_IONBF</code>（无缓冲）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>必须在打开文件之后、任何读写操作之前</strong>设置，否则无效</li>
+<li>三种设置方式的关系：<code>setbuf(fp, buf)</code> 等价于
+<code>setvbuf(fp, buf, buf ? _IOFBF : _IONBF, BUFSIZ)</code>；<code>setbuffer(fp, buf, size)</code>
+是 BSD 扩展，等价于指定大小的 setbuf</li>
+<li>如果自己提供 buf，<strong>必须保证 buf 在 fclose
+之前一直有效</strong>——不能用栈上的局部数组然后在函数返回后继续使用</li>
+<li>一旦对文件流执行过读写操作，再设置缓冲区将导致未定义行为</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">char</span> mybuf[<span class="number">4096</span>];</span><br><span class="line"></span><br><span class="line">FILE *fp = fopen(<span class="string">&quot;data.txt&quot;</span>, <span class="string">&quot;w&quot;</span>);</span><br><span class="line">setvbuf(fp, mybuf, _IOFBF, <span class="keyword">sizeof</span>(mybuf));   <span class="comment">// 设为全缓冲，自定义 4K 缓冲区</span></span><br><span class="line"><span class="built_in">fprintf</span>(fp, <span class="string">&quot;hello\n&quot;</span>);   <span class="comment">// 此时还没有真正写入文件</span></span><br><span class="line">fflush(fp);               <span class="comment">// 手动刷新</span></span><br><span class="line">fclose(fp);</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="fflush">fflush()</h4>
+<p><strong>作用</strong>:: 强制刷新指定文件的 stdio 输出缓冲区</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">fflush</span><span class="params">(FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：返回 EOF(-1)，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>stream</code>：目标文件流；传 <code>NULL</code>
+表示刷新<strong>所有</strong>打开的输出流</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><code>fflush()</code> 只是把 stdio
+用户空间缓冲区中的数据交给内核（write
+系统调用），<strong>并不保证数据落盘</strong>——真正落盘需要
+fsync()/fdatasync()</li>
+<li>对输入流调用 fflush 是未定义行为（个别实现用于丢弃缓冲）</li>
+<li>常见场景：调试信息想立即看到、程序马上要
+sleep/等待输入、日志需要及时输出时</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;进度: %d%%&quot;</span>, <span class="number">50</span>);</span><br><span class="line">fflush(<span class="built_in">stdout</span>);       <span class="comment">// 没有换行符，强制刷出行缓冲，让内容立即显示</span></span><br><span class="line">sleep(<span class="number">1</span>);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;\n完成\n&quot;</span>);</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="文件描述符与-file-指针互转">文件描述符与 FILE 指针互转</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">转换方向</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>fileno()</code></td>
+<td style="text-align: left;">FILE 指针 → 文件描述符</td>
+<td style="text-align: left;">文件描述符 fd</td>
+<td style="text-align: left;">-1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fdopen()</code></td>
+<td style="text-align: left;">文件描述符 → FILE 指针</td>
+<td style="text-align: left;"><code>FILE *</code></td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="fileno-file-转-fd">fileno() — FILE * 转 fd</h3>
+<p><strong>作用</strong>:: 将标准 I/O 中使用的 FILE 指针转换为文件 I/O
+中所使用的文件描述符</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">fileno</span><span class="params">(FILE *stream)</span>;</span><br><span class="line"><span class="comment">// 成功：返回文件描述符</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>stream</code>：FILE 指针</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>转换之后两种方式可以混用，但注意<strong>不要绕过 stdio
+缓冲</strong>直接 read/write，否则可能读到旧数据或丢数据</li>
+<li>获取到 fd 后就可以使用 fsync()、fstat() 等只能操作 fd
+的系统调用</li>
+<li>典型场景：<code>fileno(stdout)</code> 得到 1，用于 dprintf 输出</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">FILE *fp = fopen(<span class="string">&quot;data.txt&quot;</span>, <span class="string">&quot;r&quot;</span>);</span><br><span class="line"><span class="type">int</span> fd = fileno(fp);          <span class="comment">// FILE* → fd</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">stat</span> <span class="title">st</span>;</span></span><br><span class="line">fstat(fd, &amp;st);               <span class="comment">// 用 fd 做文件 I/O 才能做的事</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;size = %lld\n&quot;</span>, (<span class="type">long</span> <span class="type">long</span>)st.st_size);</span><br><span class="line"></span><br><span class="line">fclose(fp);                   <span class="comment">// 注意：fclose 会同时关闭 fd</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="fdopen-fd-转-file">fdopen() — fd 转 FILE *</h3>
+<p><strong>作用</strong>:: 将文件描述符转换为 FILE
+指针，从而可以使用标准 I/O 库函数操作它</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line">FILE *<span class="title function_">fdopen</span><span class="params">(<span class="type">int</span> fd, <span class="type">const</span> <span class="type">char</span> *mode)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 FILE 指针</span></span><br><span class="line"><span class="comment">// 失败：返回 NULL，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>fd</code>：文件描述符（open/socket/pipe 的返回值）</li>
+<li><code>mode</code>：打开模式，<strong>必须与 fd
+原本的打开方式兼容</strong>（如 fd 是 O_RDONLY 打开的，mode 只能用
+"r"）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><code>fdopen()</code> 并<strong>不会复制</strong>
+fd，转换后二者指向同一个文件表项——调用 <code>fclose()</code> 关闭 FILE
+流时，底层的 fd 也会被关闭</li>
+<li>如果还想继续使用 fd，先用 <code>dup()</code> 复制一份再 fdopen</li>
+<li>典型场景：把 socket/管道 的 fd 包装成 FILE*，就能用 fprintf/fscanf
+等标准 I/O 函数读写</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> sockfd = socket(AF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">FILE *fp = fdopen(sockfd, <span class="string">&quot;r+&quot;</span>);   <span class="comment">// fd → FILE*</span></span><br><span class="line"><span class="built_in">fprintf</span>(fp, <span class="string">&quot;GET / HTTP/1.1\r\nHost: example.com\r\n\r\n&quot;</span>);</span><br><span class="line">fflush(fp);                        <span class="comment">// 发送请求</span></span><br><span class="line"></span><br><span class="line">fclose(fp);   <span class="comment">// 注意：这里会把 sockfd 也关闭</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="本章总结">本章总结 🎯</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">核心概念</th>
+<th style="text-align: left;">要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">标准 I/O vs 文件 I/O</td>
+<td style="text-align: left;">库函数 vs 系统调用；带用户空间 stdio
+缓冲；可移植性好</td>
+</tr>
+<tr>
+<td style="text-align: left;">FILE 指针</td>
+<td style="text-align: left;">stdio 操作句柄，封装 fd + 缓冲区 +
+状态指示符</td>
+</tr>
+<tr>
+<td style="text-align: left;">三个标准流</td>
+<td style="text-align: left;">stdin(0)、stdout(1)、stderr(2)</td>
+</tr>
+<tr>
+<td style="text-align: left;">常用 I/O 函数</td>
+<td
+style="text-align: left;">fopen/fclose、fread/fwrite、fgetc/fputc、fgets/fputs、fseek/ftell/rewind、feof/ferror/clearerr</td>
+</tr>
+<tr>
+<td style="text-align: left;">格式化输出</td>
+<td style="text-align: left;">printf/fprintf/dprintf →
+sprintf/snprintf（snprintf 防溢出）</td>
+</tr>
+<tr>
+<td style="text-align: left;">格式化输入</td>
+<td style="text-align: left;">scanf/fscanf/sscanf（参数必须传地址）</td>
+</tr>
+<tr>
+<td style="text-align: left;">内核缓冲</td>
+<td style="text-align: left;">write
+不立即落盘；sync/syncfs/fsync/fdatasync 刷盘；O_SYNC/O_DSYNC；O_DIRECT
+绕过缓冲</td>
+</tr>
+<tr>
+<td style="text-align: left;">stdio 缓冲</td>
+<td
+style="text-align: left;">全缓冲/行缓冲/无缓冲；setbuf/setbuffer/setvbuf
+设置；fflush 强制刷新</td>
+</tr>
+<tr>
+<td style="text-align: left;">互转</td>
+<td
+style="text-align: left;">fileno（FILE<em>→fd）、fdopen（fd→FILE</em>）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="本系列文章">📚 本系列文章</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">#</th>
+<th style="text-align: left;">文章</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: left;"><a href="/posts/linux-stdio.html">Linux
+应用编程：标准文件 IO</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: left;"><a
+href="/posts/linux-file-attr.html">Linux
+应用编程：文件属性与目录</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: left;"><a href="/posts/linux-string.html">Linux
+应用编程：字符串处理函数全解</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td style="text-align: left;"><a href="/posts/linux-sysinfo.html">Linux
+应用编程：系统信息与资源</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td style="text-align: left;"><a href="/posts/linux-signal.html">Linux
+应用编程：信号</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">6</td>
+<td style="text-align: left;"><a href="/posts/linux-process.html">Linux
+应用编程：进程基础</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">7</td>
+<td style="text-align: left;"><a href="/posts/linux-thread.html">Linux
+应用编程：线程基本概念</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">8</td>
+<td style="text-align: left;"><a
+href="/posts/linux-thread-sync.html">Linux 应用编程：线程同步</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">9</td>
+<td style="text-align: left;"><a
+href="/posts/linux-advanced-io.html">Linux 应用编程：高级 IO</a></td>
+</tr>
+</tbody>
+</table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xxh123.online">Kikyo</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xxh123.online/posts/linux-stdio.html">https://xxh123.online/posts/linux-stdio.html</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://xxh123.online" target="_blank">Kikyo</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Linux/">Linux</a><a class="post-meta__tags" href="/tags/C%E8%AF%AD%E8%A8%80/">C语言</a><a class="post-meta__tags" href="/tags/%E6%96%87%E4%BB%B6IO/">文件IO</a><a class="post-meta__tags" href="/tags/stdio/">stdio</a></div><div class="post_share"><div class="social-share" data-image="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/01_photo_2026-11-15_15-33-44.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/posts/linux-file-attr.html" title="Linux 应用编程：文件属性与目录"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/02_photo_2026-11-15_15-30-57.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Linux 应用编程：文件属性与目录</div></div></a></div><div class="next-post pull-right"><a href="/posts/af-unix-ipc.html" title="Unix域套接字（AF_UNIX）实现进程间双向通信"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260828001706915.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Unix域套接字（AF_UNIX）实现进程间双向通信</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/posts/linux-string.html" title="Linux 应用编程：字符串处理函数全解"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/05_photo_2026-11-15_15-33-27.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-15</div><div class="title">Linux 应用编程：字符串处理函数全解</div></div></a></div><div><a href="/posts/af-unix-ipc.html" title="Unix域套接字（AF_UNIX）实现进程间双向通信"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260828001706915.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-28</div><div class="title">Unix域套接字（AF_UNIX）实现进程间双向通信</div></div></a></div><div><a href="/posts/jsoncpp-guide.html" title="JSONcpp 完整使用指南"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260716232238119.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-16</div><div class="title">JSONcpp 完整使用指南</div></div></a></div><div><a href="/posts/79494db.html" title="Docker 使用手册"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260705232331789.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-05</div><div class="title">Docker 使用手册</div></div></a></div><div><a href="/posts/86a23c4b.html" title="CMake 的使用方法"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260705235814295.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-07</div><div class="title">CMake 的使用方法</div></div></a></div><div><a href="/posts/697f8e4b.html" title="shell 语法"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260707000813836.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-07</div><div class="title">shell 语法</div></div></a></div></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/202405192117137.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Kikyo</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">51</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">58</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ywj77"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon faa-parent animated-hover" href="https://github.com/ywj77" target="_blank" title="Github"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-github"></use></svg></a><a class="social-icon faa-parent animated-hover" href="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&amp;email=3442237157@qq.com" target="_blank" title="Email"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-youjian1"></use></svg></a><a class="social-icon faa-parent animated-hover" href="/atom.xml" target="_blank" title="RSS"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-rss"></use></svg></a><a class="social-icon faa-parent animated-hover" href="https://space.bilibili.com/3546385680959950" target="_blank" title="BiliBili"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-wf_Bzhan"></use></svg></a><a class="social-icon faa-parent animated-hover" href="tencent://Message/?Uin=3442237157&amp;amp;websiteName=local.edu.com:8888=&amp;amp;Menu=yes" target="_blank" title="QQ"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-qq"></use></svg></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%87%E5%87%86%E6%96%87%E4%BB%B6-io"><span class="toc-number">1.</span> <span class="toc-text">标准文件 IO</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#file-%E6%8C%87%E9%92%88"><span class="toc-number">2.</span> <span class="toc-text">FILE 指针</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%87%E5%87%86%E8%BE%93%E5%85%A5%E6%A0%87%E5%87%86%E8%BE%93%E5%87%BA%E5%92%8C%E6%A0%87%E5%87%86%E9%94%99%E8%AF%AF"><span class="toc-number">3.</span> <span class="toc-text">标准输入、标准输出和标准错误</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#io-%E6%93%8D%E4%BD%9C%E5%87%BD%E6%95%B0"><span class="toc-number">4.</span> <span class="toc-text">I&#x2F;O 操作函数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#fopen-%E6%89%93%E5%BC%80%E6%96%87%E4%BB%B6"><span class="toc-number">4.1.</span> <span class="toc-text">fopen() — 打开文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fclose-%E5%85%B3%E9%97%AD%E6%96%87%E4%BB%B6"><span class="toc-number">4.2.</span> <span class="toc-text">fclose() — 关闭文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fread-%E8%AF%BB%E6%95%B0%E6%8D%AE"><span class="toc-number">4.3.</span> <span class="toc-text">fread() — 读数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fwrite-%E5%86%99%E6%95%B0%E6%8D%AE"><span class="toc-number">4.4.</span> <span class="toc-text">fwrite() — 写数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fgetc-fputc-%E5%AD%97%E7%AC%A6%E8%AF%BB%E5%86%99"><span class="toc-number">4.5.</span> <span class="toc-text">fgetc() &amp; fputc() — 字符读写</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fgets-fputs-%E8%A1%8C%E8%AF%BB%E5%86%99"><span class="toc-number">4.6.</span> <span class="toc-text">fgets() &amp; fputs() — 行读写</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fseek-%E7%A7%BB%E5%8A%A8%E8%AF%BB%E5%86%99%E4%BD%8D%E7%BD%AE"><span class="toc-number">4.7.</span> <span class="toc-text">fseek() — 移动读写位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ftell-rewind"><span class="toc-number">4.8.</span> <span class="toc-text">ftell() &amp; rewind()</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#feof-%E6%A3%80%E6%B5%8B%E6%96%87%E4%BB%B6%E6%9C%AB%E5%B0%BE"><span class="toc-number">4.9.</span> <span class="toc-text">feof() — 检测文件末尾</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ferror-%E6%A3%80%E6%B5%8B%E9%94%99%E8%AF%AF"><span class="toc-number">4.10.</span> <span class="toc-text">ferror() — 检测错误</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#clearerr-%E6%B8%85%E9%99%A4%E6%8C%87%E7%A4%BA%E7%AC%A6"><span class="toc-number">4.11.</span> <span class="toc-text">clearerr() — 清除指示符</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%BC%E5%BC%8F%E5%8C%96-io"><span class="toc-number">5.</span> <span class="toc-text">格式化 I&#x2F;O</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%BC%E5%BC%8F%E5%8C%96%E8%BE%93%E5%87%BA"><span class="toc-number">5.1.</span> <span class="toc-text">格式化输出</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#printf"><span class="toc-number">5.1.1.</span> <span class="toc-text">printf()</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#fprintf"><span class="toc-number">5.1.2.</span> <span class="toc-text">fprintf()</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#dprintf"><span class="toc-number">5.1.3.</span> <span class="toc-text">dprintf()</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#sprintf-snprintf"><span class="toc-number">5.1.4.</span> <span class="toc-text">sprintf() &amp; snprintf()</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%BC%E5%BC%8F%E6%8E%A7%E5%88%B6%E5%AD%97%E7%AC%A6%E4%B8%B2-format"><span class="toc-number">5.1.5.</span> <span class="toc-text">格式控制字符串 format</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%BC%E5%BC%8F%E5%8C%96%E8%BE%93%E5%85%A5"><span class="toc-number">5.2.</span> <span class="toc-text">格式化输入</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#scanf"><span class="toc-number">5.2.1.</span> <span class="toc-text">scanf()</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#fscanf"><span class="toc-number">5.2.2.</span> <span class="toc-text">fscanf()</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#sscanf"><span class="toc-number">5.2.3.</span> <span class="toc-text">sscanf()</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%BC%E5%BC%8F%E6%8E%A7%E5%88%B6%E5%AD%97%E7%AC%A6%E4%B8%B2-format%E8%BE%93%E5%85%A5"><span class="toc-number">5.2.4.</span> <span class="toc-text">格式控制字符串 format（输入）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#io-%E7%BC%93%E5%86%B2"><span class="toc-number">6.</span> <span class="toc-text">I&#x2F;O 缓冲</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%B7%E6%96%B0%E6%96%87%E4%BB%B6-io-%E7%9A%84%E5%86%85%E6%A0%B8%E7%BC%93%E5%86%B2%E5%8C%BA"><span class="toc-number">6.1.</span> <span class="toc-text">刷新文件 I&#x2F;O 的内核缓冲区</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#sync"><span class="toc-number">6.1.1.</span> <span class="toc-text">sync()</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#syncfs"><span class="toc-number">6.1.2.</span> <span class="toc-text">syncfs()</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#fsync"><span class="toc-number">6.1.3.</span> <span class="toc-text">fsync()</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#fdatasync"><span class="toc-number">6.1.4.</span> <span class="toc-text">fdatasync()</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#o_dsync-%E4%B8%8E-o_sync-%E6%A0%87%E5%BF%97"><span class="toc-number">6.2.</span> <span class="toc-text">O_DSYNC 与 O_SYNC 标志</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%B4%E6%8E%A5-ioo_direct"><span class="toc-number">6.3.</span> <span class="toc-text">直接 I&#x2F;O（O_DIRECT）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#stdio-%E7%BC%93%E5%86%B2"><span class="toc-number">6.4.</span> <span class="toc-text">stdio 缓冲</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#setbufsetbuffersetvbuf"><span class="toc-number">6.4.1.</span> <span class="toc-text">setbuf()、setbuffer()、setvbuf()</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#fflush"><span class="toc-number">6.4.2.</span> <span class="toc-text">fflush()</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6%E4%B8%8E-file-%E6%8C%87%E9%92%88%E4%BA%92%E8%BD%AC"><span class="toc-number">7.</span> <span class="toc-text">文件描述符与 FILE 指针互转</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#fileno-file-%E8%BD%AC-fd"><span class="toc-number">7.1.</span> <span class="toc-text">fileno() — FILE * 转 fd</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fdopen-fd-%E8%BD%AC-file"><span class="toc-number">7.2.</span> <span class="toc-text">fdopen() — fd 转 FILE *</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">本章总结 🎯</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AC%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0"><span class="toc-number">9.</span> <span class="toc-text">📚 本系列文章</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-advanced-io.html" title="Linux 应用编程：高级 IO"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/13_photo_2026-11-15_15-33-42.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：高级 IO"/></a><div class="content"><a class="title" href="/posts/linux-advanced-io.html" title="Linux 应用编程：高级 IO">Linux 应用编程：高级 IO</a><time datetime="2026-11-15T09:00:00.000Z" title="发表于 2026-11-15 17:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-thread-sync.html" title="Linux 应用编程：线程同步"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/12_photo_2026-11-15_15-33-39.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：线程同步"/></a><div class="content"><a class="title" href="/posts/linux-thread-sync.html" title="Linux 应用编程：线程同步">Linux 应用编程：线程同步</a><time datetime="2026-11-15T08:00:00.000Z" title="发表于 2026-11-15 16:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-thread.html" title="Linux 应用编程：线程基本概念"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/11_photo_2026-11-15_15-33-36.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：线程基本概念"/></a><div class="content"><a class="title" href="/posts/linux-thread.html" title="Linux 应用编程：线程基本概念">Linux 应用编程：线程基本概念</a><time datetime="2026-11-15T07:00:00.000Z" title="发表于 2026-11-15 15:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-process.html" title="Linux 应用编程：进程基础"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/08_photo_2026-11-15_15-33-19.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：进程基础"/></a><div class="content"><a class="title" href="/posts/linux-process.html" title="Linux 应用编程：进程基础">Linux 应用编程：进程基础</a><time datetime="2026-11-15T06:00:00.000Z" title="发表于 2026-11-15 14:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-signal.html" title="Linux 应用编程：信号"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/07_photo_2026-11-15_15-33-22.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：信号"/></a><div class="content"><a class="title" href="/posts/linux-signal.html" title="Linux 应用编程：信号">Linux 应用编程：信号</a><time datetime="2026-11-15T05:00:00.000Z" title="发表于 2026-11-15 13:00:00">2026-11-15</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2026 By Kikyo</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>if (!window.MathJax) {
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      tags: 'ams'
+    },
+    chtml: {
+      scale: 1.1
+    },
+    options: {
+      renderActions: {
+        findScript: [10, doc => {
+          for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+            const display = !!node.type.match(/; *mode=display/)
+            const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+            const text = document.createTextNode('')
+            node.parentNode.replaceChild(text, node)
+            math.start = {node: text, delim: '', n: 0}
+            math.end = {node: text, delim: '', n: 0}
+            doc.math.push(math)
+          }
+        }, '']
+      }
+    }
+  }
+  
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js'
+  script.id = 'MathJax-script'
+  script.async = true
+  document.head.appendChild(script)
+} else {
+  MathJax.startup.document.state(0)
+  MathJax.texReset()
+  MathJax.typesetPromise()
+}</script><script>(() => {
+  const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaid.length === 0) return
+  const runMermaid = () => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    Array.from($mermaid).forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+      const mermaidID = 'mermaid-' + index
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+
+      const renderV10 = () => {
+        renderFn.then(({svg}) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svg)
+        })
+      }
+
+      const renderV9 = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      typeof renderFn === 'string' ? renderV9(renderFn) : renderV10()
+    })
+  }
+
+  const loadMermaid = () => {
+    window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js').then(runMermaid)
+  }
+
+  btf.addGlobalFn('themeChange', runMermaid, 'mermaid')
+
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://twikoo.xxh123.online/',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = () => {
+    twikoo.init(Object.assign({
+      el: '#twikoo-wrap',
+      envId: 'https://twikoo.xxh123.online/',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      }
+    }, null))
+
+    
+  }
+
+  const loadTwikoo = () => {
+    if (typeof twikoo === 'object') setTimeout(init,0)
+    else getScript('https://cdn.jsdelivr.net/npm/twikoo@1.6.31/dist/twikoo.all.min.js').then(init)
+  }
+
+  if ('Twikoo' === 'Twikoo' || !true) {
+    if (true) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script></div><div class="aplayer no-destroy" data-id="10081861680" data-server="netease" data-type="playlist"   data-order="list" data-fixed="true" data-preload="auto" data-autoplay="false" data-mutex="true" ></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener
+  btf.removeGlobalFnEvent('pjax')
+  btf.removeGlobalFnEvent('themeChange')
+
+  document.getElementById('rightside').classList.remove('rightside-show')
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', e => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><div class="app-refresh" id="app-refresh" style="position: fixed;top: -2.2rem;left: 0;right: 0;z-index: 99999;padding: 0 1rem;font-size: 15px;height: 2.2rem;transition: all 0.3s ease;"><div class="app-refresh-wrap" style=" display: flex;color: #fff;height: 100%;align-items: center;justify-content: center;"><label>✨ 有新文章啦！ 👉</label><a href="javascript:void(0)" onclick="location.reload()"><span style="color: #fff;text-decoration: underline;cursor: pointer;">🍗点击食用🍔</span></a></div></div><script>if ('serviceWorker' in navigator) {
+if (navigator.serviceWorker.controller) {
+navigator.serviceWorker.addEventListener('controllerchange', function() {
+showNotification()
+})
+}
+window.addEventListener('load', function() {
+navigator.serviceWorker.register('/sw.js')
+})
+}
+function showNotification() {
+if (GLOBAL_CONFIG.Snackbar) {
+var snackbarBg =
+document.documentElement.getAttribute('data-theme') === 'light' ?
+GLOBAL_CONFIG.Snackbar.bgLight :
+GLOBAL_CONFIG.Snackbar.bgDark
+var snackbarPos = GLOBAL_CONFIG.Snackbar.position
+Snackbar.show({
+text: '✨ 有新文章啦！ 👉',
+backgroundColor: snackbarBg,
+duration: 500000,
+pos: snackbarPos,
+actionText: '🍗点击食用🍔',
+actionTextColor: '#fff',
+onActionClick: function(e) {
+location.reload()
+},
+})
+} else {
+var showBg =
+document.documentElement.getAttribute('data-theme') === 'light' ?
+'#3b70fc' :
+'#1f1f1f'
+var cssText = `top: 0; background: ${showBg};`
+document.getElementById('app-refresh').style.cssText = cssText
+}
+}</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_footer_beautify_injector_config(){
+    var parent_div_git = document.getElementById('footer-wrap');
+    var item_html = '<div id="workboard"></div><p id="ghbdages"><a class="github-badge" target="_blank" href="https://hexo.io/" style="margin-inline:5px" data-title="博客框架为Hexo_v5.4.0" title=""><img src="https://img.shields.io/badge/Frame-Hexo-blue?style=flat&amp;logo=hexo" alt=""/></a><a class="github-badge" target="_blank" href="https://butterfly.js.org/" style="margin-inline:5px" data-title="主题版本Butterfly_v4.2.2" title=""><img src="https://img.shields.io/badge/Theme-Butterfly-6513df?style=flat&amp;logo=bitdefender" alt=""/></a><a class="github-badge" target="_blank" href="https://www.jsdelivr.com/" style="margin-inline:5px" data-title="本站使用JsDelivr为静态资源提供CDN加速" title=""><img src="https://img.shields.io/badge/CDN-jsDelivr-orange?style=flat&amp;logo=jsDelivr" alt=""/></a><a class="github-badge" target="_blank" href="https://beian.miit.gov.cn/#/Integrated/index" style="margin-inline:5px" data-title="本站已在湘进行备案" title=""><img src="https://img.shields.io/badge/湘ICP备-2022004213号-e1d492?style=flat&amp;logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAdCAYAAAC9pNwMAAABS2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDIgNzkuMTYwOTI0LCAyMDE3LzA3LzEzLTAxOjA2OjM5ICAgICAgICAiPgogPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIi8+CiA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgo8P3hwYWNrZXQgZW5kPSJyIj8+nhxg7wAACNlJREFUSInF1mmMVeUdx/Hv2e+5+519mJWBYQZkGxZZxLKJqBXGoLS1iXWrmihotFXaJiTWWlsbl6q1aetWd5u0VkKjNG4YEJSlOCibDLMwM8x679z9nnPP1jcVJUxf+7z6J8+LT37/Z4VvaQhfFS8+sBXbctCDGrVTKlBUH4mxAbI9Hfj0IJLsp6paJ5/tmn20N/D0wKDRMq9F/c3M2U1/V0vDfWMFh+tv/Ig1zYPMabDImPJ52OaXO87W580KggCiiOsJOJ6I3wcNFaaeNKxrt72f2fLGu4FpJ/sDQABRzD22fH7/Yze069vGc6mrDLNIJCDik10sxz2by3VdPM87xzkP9jwPTZFRVI1YUJKH+oy7n3tbvv/P2wW/UQxRWe6w4ZJRptYLHDoCuz8v5cP92XbI762O+h6UVWHnUFbPpU0fEb2A60mMJ7MUi9b/b7UgKhiZMaIxm8YLplLMDPz8hl/EH+rs8TNlUpFf32uyZJGLPDwCiTGUyTWodTN49eUCdz2YwXb9NNcObp1X98WDoufynzMVCEKGn27ayPTWBi5ad8P5iQUkJEnFLjqM9Z+hrVX0vfDe6K2dPRWsW2bwyp9EUifSJB84gdxrkR0eRgv1o/3I4fbbprJ6scqamzVO9pffec1S5ZWY2Nfz5qEy/FqOC2Y3s3j53HMSi18VRjFPwSwg+1RfVbl115vvJrsfej7UGIsYPPGgQ7JXoO+Xx5B3dHEomyJ9x1qiQozkr95h5937aFnVyouPlgJK+Ss7Fxz64OTSxSX+LHYxT2IsRW5kbGI4oHcR0jqoqTjV9se3I7/f8rS/ClS23GxSXhph6L5d9Akm7qqZhHWBQGUJ+CWGFzcg7e7m6D3/ZuW1Ea5YKdA3EojuONi813TqNi+YPYOKUhXDtCeGL26/hakLLiEcdsaHRkRAoLRc4fJrmhnekyF0apgZowWSwwkaa+rw3f8WA1GZZsPP5JEChX8dhZTN6iU6kAcs5s+dHd183SJ0VVKL57pfw6YdRQw23aeWTns47DPTALWlRTR7kMLew6hGgYqUhWXYFFUdPZ6lUBahLA8hVcOftckfi7No7VRAAQqsX1dybfvG1qwriM9mM5mJ4e4jO5Cc01dPqixbr8tWGBQUL4vjGigEEShi+xUmZ2RiR/sJ1pbS8NkgZrKAGw0TsgQsQyFaF/nfYTGprAlMFysbA1pI3mhkR6snhGsaymYGvPyFEb9IdbUE2AzFFTwpRqCtBY0wmdER+hZW4j63gcJj38V+/ErSUZXsYBfjIZHIRW0c2Z8BskCAqN+CbBJBFnyyKjR+Ez57nBxLqpfMUeSISElMBFz6x2Q6OxzWrYjyxWVzEewioU3LCS5vQY6nMUrLwNaxXvoQ59IloFSx54PPAZtQLExVZZDxsVE8J4dn6v4JYatgbSjk0owPw7RGH2ADMo88Z7L20ip8f7gC7fAo0q4+0rt7kEQDvaghVZbiPHUHcyeXcfLjT3jmpR7AYsnSScya3UR8bARVMck7Y/cB75/X6rDf3Fg2dw2jKZm5dXGm1LuAzO5DCo9v6aT0ibco5kzOvLOP+NGTFJtDpPYeZKijk/Rn3QxsfZV7txwhX7ABiZUXBsGvIvguQApNQQva9RMmTvZ2dpVUls+tX/UD7GN/Y8Ws05w6rQF+9vyzg1vZjbvMRJhXiRSU8DpTFFe0QE8S6SfPkOkZoktrB2oAhZWrwljxOPmchiSMYOWNoxNuruFU5vWeXdsojiUon345113dBBQBmTYlTimgdB8nfPo4WjaNFgN9OMEkJ02dnadVt5ki54Esqy+bzKJltVhSPbI3iN2zCyMTeXNCuG7Omm2Zok7PR2+R7jvD8ouruHhmCrB5jVZeYxLdrTP4sr4Vtd9g4MA4qc4c+6cu5NPamfw4P59t2WrA4YdXKkASf7SFivo6PDdEPmf1fRM++zp1bH/0r4I1dD1ODtOWaW4IsvPjL7nqXhloQiSPwjjgMYkMASyGEBkjhISCQwkwzve/18AbT+pk8pVY4UacQi9y+gyZ0eRAw4qHa89LXEx1LXMSPfhDJYRb59BtlLKg2WPT2l6qYl1svtGkrLYckyA1S+t5+2ATm37WCui0LSynsckDNH5zTxAchbQtkx08hDHYiW6NgC0enHBzEZ102UDH8QORdEckjEzZrNWkRydzyx17uGnDXqbUnGZ6dRPjSY91q2TqwjFuvTxLo5Zn5Qo/pumRSFcTLQtybEhGE0fQrDhhJ0VvH2lTnnHPhGtsmWan469apERjI2MH3qN7+7MEfH6ql29CbV7PvsMG32k6yU2XDhEKyZw66eJaRdrXR7CzCcqUNC3zwgymPJRCH4KRRLINimpL14A5Y4GDeOqbsPRVcfuN7Xj44pav/hFfrNT2kr2rsqf2Ibp5pEA14ZIImUyW3t5REkkTXRGQ/DGGhtLginhqCWknQDE5hKf5UFSF9Lj020Q2ul5V1AR2hr+8vuP8Vlc2zMPRxoSjnx7XBC14sDoydahSGq7KdO/HFyrBchxCVfX4fDKp4T7SCQejYODZLrYgIqgKFsNIgQqEYob8mW6yiUyb7Z64LVK/+B85xznnJ3AWzqTzuIX46mr5wLs+UUTyIriBCjRNxguHMJIFDLEEvXEOVRWnSJ0+jCd4CJoGjoedM1CLcXQziW3nMV2TSMBeOx7vWZvPt1r+cMPzE8KunaUkFn0vNrvtqXj34c1W6gzxlEQ6naIoBahtnkMwoFMwIVzSRNguMt53Aj2s4nkSlgPoGqLkICsRNF0gl8rYWuP8+11/w/OOJDEhHPKLCIpOXmi+M9AgP+maiesLifF2T1Rn5ZNj5Lo/Qc/GcPMmhdoqlEgIGzCK4PiCmJKK68p4KfF3qYGuF0qCRUkJTzleUbvQyWRTuE5xYthxQbBs7EISAbkzUFG3VfXXbK2YFi3X/eryfKKnqVBItNjJxDzH8erddC4SqWwcN5WyTtlyO1RP/Lh3eHD76MB40swmiDVJyDLYRhpc5+ub6tse/wWKbvSQEAw1awAAAABJRU5ErkJggg==" alt=""/></a><a class="github-badge" target="_blank" href="https://github.com/" style="margin-inline:5px" data-title="本站项目由Github托管" title=""><img src="https://img.shields.io/badge/Source-Github-d021d6?style=flat&amp;logo=GitHub" alt=""/></a><a class="github-badge" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" style="margin-inline:5px" data-title="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可" title=""><img src="https://img.shields.io/badge/Copyright-BY--NC--SA%204.0-d42328?style=flat&amp;logo=Claris" alt=""/></a></p>';
+    console.log('已挂载butterfly_footer_beautify')
+    parent_div_git.insertAdjacentHTML("beforeend",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_footer_beautify_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_footer_beautify_injector_config();
+  }
+  </script><script async src="/js/runtime/runtime.js"></script><script async src="/js/ali_font.js"></script><div class="js-pjax"><script async="async">var arr = document.getElementsByClassName('recent-post-item');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__zoomIn');
+    arr[i].setAttribute('data-wow-duration', '1.5s');
+    arr[i].setAttribute('data-wow-delay', '200ms');
+    arr[i].setAttribute('data-wow-offset', '30');
+    arr[i].setAttribute('data-wow-iteration', '1');
+  }</script><script async="async">var arr = document.getElementsByClassName('card-widget');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__zoomIn');
+    arr[i].setAttribute('data-wow-duration', '');
+    arr[i].setAttribute('data-wow-delay', '200ms');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('flink-list-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__flipInY');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('flink-list-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__animated');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('article-sort-item');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__slideInRight');
+    arr[i].setAttribute('data-wow-duration', '1.5s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('site-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__flipInY');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('site-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__animated');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script></div><script defer src="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/wow.min.js"></script><script defer src="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/wow_init.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"position":"left","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script></body></html>

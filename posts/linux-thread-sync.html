@@ -1,0 +1,2950 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Linux 应用编程：线程同步 | Kikyo</title><meta name="author" content="Kikyo"><meta name="copyright" content="Kikyo"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="线程同步（Thread Synchronization）  本文是 Linux 应用编程学习笔记（线程同步篇），配套示例代码位于宿主机： &#x2F;data&#x2F;build&#x2F;ubuntu-22.04-gcc&#x2F;root&#x2F;linux&#x2F;Thread-Sync&#x2F;src&#x2F;（下文以 Thread-Sync&#x2F;src&#x2F;xxx.cc 简写引用） 代码在容器 ubuntu-22.04-gcc 中编译运行（容器内路径 &#x2F;root&#x2F;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux 应用编程：线程同步">
+<meta property="og:url" content="https://xxh123.online/posts/linux-thread-sync.html">
+<meta property="og:site_name" content="Kikyo">
+<meta property="og:description" content="线程同步（Thread Synchronization）  本文是 Linux 应用编程学习笔记（线程同步篇），配套示例代码位于宿主机： &#x2F;data&#x2F;build&#x2F;ubuntu-22.04-gcc&#x2F;root&#x2F;linux&#x2F;Thread-Sync&#x2F;src&#x2F;（下文以 Thread-Sync&#x2F;src&#x2F;xxx.cc 简写引用） 代码在容器 ubuntu-22.04-gcc 中编译运行（容器内路径 &#x2F;root&#x2F;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/12_photo_2026-11-15_15-33-39.jpg">
+<meta property="article:published_time" content="2026-11-15T08:00:00.000Z">
+<meta property="article:modified_time" content="2026-11-15T07:47:23.071Z">
+<meta property="article:author" content="Kikyo">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="线程">
+<meta property="article:tag" content="pthread">
+<meta property="article:tag" content="互斥锁">
+<meta property="article:tag" content="条件变量">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/12_photo_2026-11-15_15-33-39.jpg"><link rel="shortcut icon" href="/img/Rocket.png"><link rel="canonical" href="https://xxh123.online/posts/linux-thread-sync.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="manifest" href="/manifest.json"/><meta name="msapplication-TileColor" content="#40B2E6"/><link rel="apple-touch-icon" sizes="180x180" href="/img/siteicon/128.png"/><link rel="icon" type="image/png" sizes="32x32" href="/img/siteicon/32.png"/><link rel="icon" type="image/png" sizes="16x16" href="/img/siteicon/16.png"/><link rel="mask-icon" href="/img/siteicon/128.png" color="#5bbad5"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Linux 应用编程：线程同步',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-11-15 15:47:23'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css" media="defer" onload="this.media='all'"><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/runtime/runtime.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/assets/font-awesome-animation.min.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/tag_plugins.css" media="defer" onload="this.media='all'"><script src="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/assets/carousel-touch.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/animate.min.css" media="print" onload="this.media='screen'"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.2.0"><link rel="alternate" href="/atom.xml" title="Kikyo" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/202405192117137.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">51</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">58</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/"><i class="fa-fw fas fa-home faa-tada"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/archives/"><i class="fa-fw fas fa-archive faa-tada"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/artitalk/"><i class="fa-fw fas fa-comment-dots faa-tada"></i><span> 闲言碎语</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/music/"><i class="fa-fw fas fa-music faa-tada"></i><span> 音乐馆</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/categories/"><i class="fa-fw fas fa-folder-open faa-tada"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/wallpapers/"><i class="fa-fw fab fa-artstation faa-tada"></i><span> 壁纸</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/comments/"><i class="fa-fw fas fa-envelope faa-tada"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/link/"><i class="fa-fw fas fa-link faa-tada"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/bangumis/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-hecha"></use></svg><span> 追番</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/about/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-zhifeiji"></use></svg><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/12_photo_2026-11-15_15-33-39.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Kikyo"><span class="site-name">Kikyo</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/"><i class="fa-fw fas fa-home faa-tada"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/archives/"><i class="fa-fw fas fa-archive faa-tada"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/artitalk/"><i class="fa-fw fas fa-comment-dots faa-tada"></i><span> 闲言碎语</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/music/"><i class="fa-fw fas fa-music faa-tada"></i><span> 音乐馆</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/categories/"><i class="fa-fw fas fa-folder-open faa-tada"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/wallpapers/"><i class="fa-fw fab fa-artstation faa-tada"></i><span> 壁纸</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/comments/"><i class="fa-fw fas fa-envelope faa-tada"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/link/"><i class="fa-fw fas fa-link faa-tada"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/bangumis/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-hecha"></use></svg><span> 追番</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/about/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-zhifeiji"></use></svg><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Linux 应用编程：线程同步</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-11-15T08:00:00.000Z" title="发表于 2026-11-15 16:00:00">2026-11-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-11-15T07:47:23.071Z" title="更新于 2026-11-15 15:47:23">2026-11-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Linux/">Linux</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Linux/%E5%BA%94%E7%94%A8%E7%BC%96%E7%A8%8B/">应用编程</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">17.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>58分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Linux 应用编程：线程同步"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="线程同步thread-synchronization">线程同步（Thread
+Synchronization）</h1>
+<blockquote>
+<p>本文是 Linux 应用编程学习笔记（线程同步篇），配套示例代码位于宿主机：
+<code>/data/build/ubuntu-22.04-gcc/root/linux/Thread-Sync/src/</code>（下文以
+<code>Thread-Sync/src/xxx.cc</code> 简写引用） 代码在容器
+<code>ubuntu-22.04-gcc</code> 中编译运行（容器内路径
+<code>/root/linux/</code> 与宿主机该目录是同一份），编译产物在
+<code>output/Thread-Sync/</code> 下。 同一份代码已同步到 GitHub：<a
+target="_blank" rel="noopener" href="https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux"
+class="uri">https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux</a>，仓库根目录就等于宿主机上的
+<code>linux/</code> 目录。</p>
+</blockquote>
+<p><strong>阅读脉络</strong>：为什么需要同步（共享资源 / 临界区 /
+竞态条件）→ 互斥锁（最基础的利器，先讲透）→
+条件变量（和互斥锁搭班"等条件"）→ 读写锁（读多写少的优化）→
+自旋锁（极短临界区）→ 信号量（补充：计数型同步）→ 四种机制横向对比 →
+实战：生产者-消费者模型 → 常见坑清单 → 速查表。</p>
+<hr>
+<h2 id="配套示例代码索引github">配套示例代码索引（GitHub）</h2>
+<p>仓库根目录 = 宿主机 <code>linux/</code> 目录，所以本地
+<code>Thread-Sync/src/pthread_mutex.cc</code> 对应的网页地址就是：
+<code>https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux/blob/main/Thread-Sync/src/pthread_mutex.cc</code></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">示例文件</th>
+<th style="text-align: left;">主题 / 核心函数</th>
+<th style="text-align: left;">GitHub 链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td
+style="text-align: left;"><code>Thread-Sync/src/race_condition.cc</code></td>
+<td
+style="text-align: left;">竞态条件：不加锁时"读-改-写"如何丢更新</td>
+<td style="text-align: left;"><a
+target="_blank" rel="noopener" href="https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux/blob/main/Thread-Sync/src/race_condition.cc">打开</a></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_mutex.cc</code></td>
+<td style="text-align: left;">互斥锁保护共享计数：加锁 / 不加锁对照</td>
+<td style="text-align: left;"><a
+target="_blank" rel="noopener" href="https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux/blob/main/Thread-Sync/src/pthread_mutex.cc">打开</a></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_mutexattr.cc</code></td>
+<td style="text-align: left;">互斥锁 4 种类型：NORMAL / ERRORCHECK /
+RECURSIVE / DEFAULT</td>
+<td style="text-align: left;"><a
+target="_blank" rel="noopener" href="https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux/blob/main/Thread-Sync/src/pthread_mutexattr.cc">打开</a></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>Thread-Sync/src/deadlock.cc</code></td>
+<td style="text-align: left;">死锁的产生与两种破解（统一顺序 / trylock
+退避）</td>
+<td style="text-align: left;"><a
+target="_blank" rel="noopener" href="https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux/blob/main/Thread-Sync/src/deadlock.cc">打开</a></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_cond.cc</code></td>
+<td style="text-align: left;">条件变量：有界缓冲区 + signal vs
+broadcast</td>
+<td style="text-align: left;"><a
+target="_blank" rel="noopener" href="https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux/blob/main/Thread-Sync/src/pthread_cond.cc">打开</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Thread-Sync/src/mutex.cc</code></td>
+<td style="text-align: left;">C++11 写法：<code>std::mutex</code> +
+<code>std::condition_variable</code></td>
+<td style="text-align: left;"><a
+target="_blank" rel="noopener" href="https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux/blob/main/Thread-Sync/src/mutex.cc">打开</a></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>Thread-Sync/src/rwlock.cc</code></td>
+<td
+style="text-align: left;">读写锁：读共享、写独占，实测读者并发数</td>
+<td style="text-align: left;"><a
+target="_blank" rel="noopener" href="https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux/blob/main/Thread-Sync/src/rwlock.cc">打开</a></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>Thread-Sync/src/spin_lock.cc</code></td>
+<td style="text-align: left;">自旋锁：忙等型加锁</td>
+<td style="text-align: left;"><a
+target="_blank" rel="noopener" href="https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux/blob/main/Thread-Sync/src/spin_lock.cc">打开</a></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>Thread-Sync/src/semaphore.cc</code></td>
+<td style="text-align: left;">POSIX 信号量：计数信号量 + 当互斥锁用</td>
+<td style="text-align: left;"><a
+target="_blank" rel="noopener" href="https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux/blob/main/Thread-Sync/src/semaphore.cc">打开</a></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>Thread-Sync/CMakeLists.txt</code></td>
+<td style="text-align: left;">模块构建脚本（自动把 <code>src/*.cc</code>
+各编成一个可执行文件）</td>
+<td style="text-align: left;"><a
+target="_blank" rel="noopener" href="https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux/blob/main/Thread-Sync/CMakeLists.txt">打开</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">仓库根目录</td>
+<td style="text-align: left;">全部模块（Model / IPC / FileIo / System /
+Siganl / Processe / Thread / Thread-Sync）</td>
+<td style="text-align: left;"><a
+target="_blank" rel="noopener" href="https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux">打开</a></td>
+</tr>
+</tbody>
+</table>
+<p>编译与运行（宿主机 → 容器）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 编译全部模块</span></span><br><span class="line">docker <span class="built_in">exec</span> ubuntu-22.04-gcc bash -c <span class="string">&#x27;cd /root/linux &amp;&amp; bash build.sh&#x27;</span></span><br><span class="line"><span class="comment"># 运行某个示例（产物在 output/Thread-Sync/ 下）</span></span><br><span class="line">docker <span class="built_in">exec</span> ubuntu-22.04-gcc bash -c <span class="string">&#x27;cd /root/linux/output/Thread-Sync &amp;&amp; ./pthread_mutex&#x27;</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="为什么需要线程同步">为什么需要线程同步</h2>
+<h3 id="共享资源与临界区">共享资源与临界区</h3>
+<p>线程同步是为了<strong>对共享资源的访问进行保护，解决数据一致性的问题</strong>。</p>
+<p>同一进程内的多个线程共享<strong>全部系统资源</strong>（见 <a
+href="/posts/linux-thread.html">线程基本概念</a>：代码段、数据段、堆、文件描述符……），这意味着：</p>
+<ul>
+<li>只要多个线程会<strong>读</strong>同一份数据，就不会出问题</li>
+<li>只要<strong>有一个线程会写</strong>这份数据，同时还有别的线程在读或写，就必须同步</li>
+</ul>
+<p>所谓<strong>共享资源</strong>，可以是一块内存（全局变量、堆内存）、一个文件描述符、一个硬件寄存器、一段代码的执行权。多线程里最后一种最容易被忽略——<strong>"能不能进这段代码"本身就是一种资源</strong>。</p>
+<p>访问共享资源的那段代码，就是<strong>临界区（Critical
+Section）</strong>。临界区本身并不特殊，它的特殊之处在于：<strong>一个线程在临界区里时，别的线程不能同时进来</strong>（对于写操作）。</p>
+<h3 id="竞态条件race-condition">竞态条件（Race Condition）</h3>
+<p>竞态条件的根源是：<strong>C
+语言里一条语句，很可能对应多条机器指令，而指令之间随时可能被切走</strong>。</p>
+<p>以 <code>g_count++</code> 为例，它会被编译成三步：</p>
+<ol type="1">
+<li><strong>读</strong>：把 <code>g_count</code> 从内存读进寄存器</li>
+<li><strong>改</strong>：寄存器里加 1</li>
+<li><strong>写</strong>：把结果写回内存</li>
+</ol>
+<p>如果两个线程在这三步中间交错执行，就会出现这种结果：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">线程 A                    线程 B</span><br><span class="line">读 g_count = 100</span><br><span class="line">                          读 g_count = 100</span><br><span class="line">改 → 101</span><br><span class="line">                          改 → 101</span><br><span class="line">写 101</span><br><span class="line">                          写 101     ← B 把 A 的结果覆盖了，这一轮的 +1 白干</span><br></pre></td></tr></table></figure>
+<p>两次 <code>+1</code> 最后只加了 1，这就是<strong>丢更新（lost
+update）</strong>。这类"谁先谁后不定，结果就不定"的现象，就叫<strong>竞态条件</strong>。</p>
+<p><strong>示例代码</strong>：<code>Thread-Sync/src/race_condition.cc</code>（两个线程各
++1000000，期望 2000000）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> LOOPS 1000000</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 注意这个 volatile：-O2 下编译器会把 g_count 缓存进寄存器（数据竞争属于未定义</span></span><br><span class="line"><span class="comment">// 行为，编译器有权这么&quot;优化&quot;），结果反而是&quot;跑多少次都不丢&quot;，把问题藏起来了。</span></span><br><span class="line"><span class="comment">// 加 volatile 强制每次都真读真写内存，竞态才会显形。真实项目里要用原子变量或加锁。</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">volatile</span> <span class="type">long</span> g_count = <span class="number">0</span>;   <span class="comment">// 共享资源</span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> *<span class="title function_">thread_add</span><span class="params">(<span class="type">void</span> *arg)</span></span><br><span class="line">&#123;</span><br><span class="line">    (<span class="type">void</span>)arg;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; LOOPS; i++) &#123;</span><br><span class="line">        <span class="type">long</span> tmp = g_count;     <span class="comment">// ① 读：把 g_count 读进寄存器</span></span><br><span class="line">        tmp = tmp + <span class="number">1</span>;          <span class="comment">// ② 改：在寄存器里 +1（上面这句 g_count++ 被拆开写，</span></span><br><span class="line">                                <span class="comment">//      就是为了把&quot;读-改-写&quot;三步摆明；C++20 下对 volatile</span></span><br><span class="line">                                <span class="comment">//      用 ++ 也会报 -Wvolatile 警告）</span></span><br><span class="line">        g_count = tmp;          <span class="comment">// ③ 写：写回内存</span></span><br><span class="line">                                <span class="comment">// 三步之间随时可能被切走 → 另一个线程读到&quot;旧值&quot;再写回，</span></span><br><span class="line">                                <span class="comment">// 这次的 +1 就被覆盖掉了（丢更新）</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> nullptr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>实测输出</strong>（连续跑三次，<code>Thread-Sync/output/Thread-Sync/race_condition</code>）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">期望结果: 2000000</span><br><span class="line">实际结果: 1021406</span><br><span class="line">丢失的更新: 978594 次</span><br><span class="line">小于期望 → 发生了竞态，数据不一致</span><br></pre></td></tr></table></figure>
+<p>三次分别得到
+<strong>1021406</strong>、<strong>999975</strong>、<strong>1000000</strong>
+——
+结果每次都不一样，而且<strong>少了将近一半</strong>：这说明大部分的自增都互相覆盖掉了。</p>
+<blockquote>
+<p><strong>一个真实的坑（实测踩到）</strong>：<code>g_count</code> 不加
+<code>volatile</code> 时，改成
+Release（<code>-O2</code>）编译后连跑三次<strong>全部等于
+2000000</strong>，"竞态消失了"。原因不是没有竞态，而是<strong>数据竞争在
+C/C++
+里属于未定义行为，编译器有权假定"没有别的线程会动这个变量"</strong>，于是把
+<code>g_count</code>
+整个循环都缓存进寄存器，最后才写回一次内存。这提醒我们两件事：</p>
+<ol type="1">
+<li>不要靠"跑一遍看着没问题"来判断有没有竞态——优化等级、机器负载、核数一变，结果就变；</li>
+<li>真正要修不是加
+<code>volatile</code>（它只保证"每次都真的读写内存"，不保证原子性），而是<strong>加锁或改用
+<code>std::atomic</code></strong>。</li>
+</ol>
+</blockquote>
+<h3 id="同步要解决的三件事">同步要解决的三件事</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">目标</th>
+<th style="text-align: left;">含义</th>
+<th style="text-align: left;">典型手段</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>互斥（Mutual
+Exclusion）</strong></td>
+<td style="text-align: left;">同一时刻只允许一个线程进临界区</td>
+<td style="text-align: left;">互斥锁、自旋锁、信号量</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>同步 /
+顺序（Synchronization）</strong></td>
+<td style="text-align: left;">让线程按某个确定的先后关系执行（A
+完成后再做 B）</td>
+<td style="text-align: left;">条件变量、信号量</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>可见性（Visibility）</strong></td>
+<td
+style="text-align: left;">一个线程写的数据，另一个线程能立刻看到</td>
+<td style="text-align: left;">加锁 / 原子变量 /
+内存屏障（<code>volatile</code>
+<strong>不</strong>负责跨线程可见性保证）</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>记忆法：<strong>互斥</strong>是"不许一起进"，<strong>同步</strong>是"排队按次序"，<strong>可见性</strong>是"写了要算数"。生产者-消费者模型里三件事同时需要：缓冲区的读写要互斥、生产要在消费之前、生产出来的数据消费者要看得见。</p>
+</blockquote>
+<h3 id="同步工具一览导览">同步工具一览（导览）</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">工具</th>
+<th style="text-align: left;">类型</th>
+<th style="text-align: left;">一句话定位</th>
+<th style="text-align: left;">本笔记章节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>互斥锁</strong>
+<code>pthread_mutex_t</code></td>
+<td style="text-align: left;">睡眠等待</td>
+<td style="text-align: left;">最通用的互斥手段，拿不到锁就睡</td>
+<td style="text-align: left;">互斥锁</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>条件变量</strong>
+<code>pthread_cond_t</code></td>
+<td style="text-align: left;">唤醒机制</td>
+<td
+style="text-align: left;">不能单独用，专门配合互斥锁"等某个条件成立"</td>
+<td style="text-align: left;">条件变量</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>读写锁</strong>
+<code>pthread_rwlock_t</code></td>
+<td style="text-align: left;">睡眠等待</td>
+<td
+style="text-align: left;">读共享、写独占，适合<strong>读多写少</strong></td>
+<td style="text-align: left;">读写锁</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>自旋锁</strong>
+<code>pthread_spinlock_t</code></td>
+<td style="text-align: left;">忙等</td>
+<td
+style="text-align: left;">拿不到锁就原地空转，临界区极短时更划算</td>
+<td style="text-align: left;">自旋锁</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>信号量</strong>
+<code>sem_t</code></td>
+<td style="text-align: left;">计数</td>
+<td style="text-align: left;">既能当锁，也能当"资源计数"（补充）</td>
+<td style="text-align: left;">信号量</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>原子变量</strong>
+<code>std::atomic</code></td>
+<td style="text-align: left;">无锁</td>
+<td style="text-align: left;">单个变量的加减/交换，不进内核（补充）</td>
+<td style="text-align: left;">见 C++ 原子变量基础总结</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="互斥锁mutex">互斥锁（Mutex）</h2>
+<p>互斥锁是线程同步最基础、最通用的手段。</p>
+<p><strong>工作原理</strong>：在访问共享资源之前对互斥锁进行<strong>加锁</strong>，在访问完成后<strong>释放锁（解锁）</strong>。对互斥锁加锁之后，任何其它试图再次对互斥锁进行加锁的线程都会被<strong>阻塞</strong>，直到当前线程释放互斥锁。如果释放互斥锁时有一个以上的线程阻塞，那么这些阻塞的线程会被唤醒，它们都会尝试对互斥锁进行加锁，当有一个线程成功对互斥锁上锁之后，其它线程就不能再次上锁了，只能再次陷入阻塞，等待下一次解锁。</p>
+<p>互斥锁使用 <code>pthread_mutex_t</code> 数据类型表示。</p>
+<p>本小节函数总览：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">示例代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td
+style="text-align: left;"><code>PTHREAD_MUTEX_INITIALIZER</code></td>
+<td style="text-align: left;">静态初始化互斥锁（宏）</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_mutex.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_mutex_init()</code></td>
+<td style="text-align: left;">动态初始化互斥锁</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_mutexattr.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_mutex_lock()</code></td>
+<td style="text-align: left;">加锁（拿不到就阻塞）</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_mutex.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_mutex_unlock()</code></td>
+<td style="text-align: left;">解锁</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_mutex.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_mutex_trylock()</code></td>
+<td style="text-align: left;">尝试加锁（不阻塞，失败返回
+<code>EBUSY</code>）</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/deadlock.cc</code></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_mutex_timedlock()</code></td>
+<td style="text-align: left;">限时加锁（超时返回
+<code>ETIMEDOUT</code>）</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_mutex_destroy()</code></td>
+<td style="text-align: left;">销毁互斥锁</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_mutex.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_mutexattr_init()</code> /
+<code>pthread_mutexattr_destroy()</code></td>
+<td style="text-align: left;">初始化 / 销毁互斥锁属性对象</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_mutexattr.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_mutexattr_settype()</code> /
+<code>pthread_mutexattr_gettype()</code></td>
+<td style="text-align: left;">设置 / 获取互斥锁类型属性</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_mutexattr.cc</code></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_mutexattr_setpshared()</code> /
+<code>pthread_mutexattr_getpshared()</code></td>
+<td style="text-align: left;">设置 / 获取进程共享属性</td>
+<td style="text-align: left;">—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="互斥锁的初始化">互斥锁的初始化</h3>
+<p>有两种初始化方式：</p>
+<ol type="1">
+<li>使用 <code>PTHREAD_MUTEX_INITIALIZER</code>
+宏初始化互斥锁（<strong>静态初始化</strong>）</li>
+<li>使用 <code>pthread_mutex_init()</code>
+函数初始化互斥锁（<strong>动态初始化</strong>）</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">pthread_mutex_t</span> mutex = PTHREAD_MUTEX_INITIALIZER;   <span class="comment">// 静态</span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">pthread_mutex_init</span><span class="params">(<span class="type">pthread_mutex_t</span> *mutex, <span class="type">const</span> <span class="type">pthread_mutexattr_t</span> *attr)</span>;   <span class="comment">// 动态</span></span><br></pre></td></tr></table></figure>
+<p>两种方式的区别：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">对比项</th>
+<th
+style="text-align: left;"><code>PTHREAD_MUTEX_INITIALIZER</code></th>
+<th style="text-align: left;"><code>pthread_mutex_init()</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">使用场景</td>
+<td style="text-align: left;">静态 / 全局互斥锁</td>
+<td
+style="text-align: left;">动态分配（<code>malloc</code>）或需要自定义属性的锁</td>
+</tr>
+<tr>
+<td style="text-align: left;">能否指定属性</td>
+<td style="text-align: left;">不能，只能是
+<code>PTHREAD_MUTEX_DEFAULT</code></td>
+<td style="text-align: left;">能，通过 <code>attr</code>（传
+<code>NULL</code> 等于默认属性）</td>
+</tr>
+<tr>
+<td style="text-align: left;">是否需要 destroy</td>
+<td style="text-align: left;">不需要（也不该调）</td>
+<td style="text-align: left;">需要</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>互斥锁该定义在哪里？</strong> ——
+答案是<strong>和它要保护的数据放在一起，并且先定义锁</strong>。看到"锁 +
+数据"成对出现，才能一眼看出谁保护谁：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">pthread_mutex_t</span> g_mutex = PTHREAD_MUTEX_INITIALIZER;   <span class="comment">// 先定义锁</span></span><br><span class="line"><span class="type">static</span> <span class="type">long</span>     g_count = <span class="number">0</span>;                           <span class="comment">// 再定义它保护的数据</span></span><br></pre></td></tr></table></figure>
+<p>注意 <code>pthread_mutex_t</code>
+本身<strong>不能拷贝、不能赋值</strong>（<code>m2 = m1;</code>
+是未定义行为），也不要把它放在会被
+<code>realloc</code>/<code>memcpy</code> 搬家的结构里。</p>
+</blockquote>
+<h3 id="pthread_mutex_lock-加锁">pthread_mutex_lock() — 加锁</h3>
+<p><strong>作用</strong>::
+对互斥锁加锁。如果锁已经被其它线程持有，则<strong>阻塞</strong>等待，直到拿到锁为止。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">pthread_mutex_lock</span><span class="params">(<span class="type">pthread_mutex_t</span> *mutex)</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>mutex</code>：指向要加锁的互斥锁</li>
+</ul>
+<p><strong>返回值</strong>：成功返回
+<strong>0</strong>；失败返回<strong>错误码</strong>（<code>EINVAL</code>
+锁未初始化；<code>EDEADLK</code> 已持有该锁再次加锁，仅
+<code>ERRORCHECK</code> 型会返回）</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>pthread 系列函数<strong>用返回值判断成败，不看
+<code>errno</code></strong>（详见 <a
+href="/posts/linux-thread.html">线程基本概念</a>）</li>
+<li>加锁后的代码就是<strong>临界区</strong>，临界区应尽量<strong>短</strong>：只包住真正需要保护的那几行数据操作，不要包住
+<code>printf</code>、文件
+IO、网络请求这类慢操作，否则等于把并发退化成串行</li>
+<li>加了锁一定要配对解锁，<strong>每条可能的返回路径都要解锁</strong>——这是最容易漏的地方（<code>return</code>、<code>break</code>、<code>goto</code>、异常都会绕过
+<code>unlock</code>）。C++ 里请优先用 RAII 的
+<code>std::lock_guard</code> /
+<code>std::unique_lock</code>（见下文"现代 C++ 写法"）</li>
+<li>同一个线程对<strong>普通锁</strong>（<code>NORMAL</code>/<code>DEFAULT</code>）连续加锁两次，会<strong>死锁</strong></li>
+<li>参考示例：<code>Thread-Sync/src/pthread_mutex.cc</code></li>
+</ul>
+<p><strong>实测输出</strong>（<code>Thread-Sync/src/pthread_mutex.cc</code>）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">模式: 加锁，两个线程各 +1000000 次</span><br><span class="line">期望结果: 2000000</span><br><span class="line">实际结果: 2000000</span><br><span class="line">结果正确，锁起了作用</span><br></pre></td></tr></table></figure>
+<p>同一个程序加参数跑不加锁版本（<code>./pthread_mutex nolock</code>）作对照，结果立刻崩了：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">模式: 不加锁，两个线程各 +1000000 次</span><br><span class="line">期望结果: 2000000</span><br><span class="line">实际结果: 1083543</span><br><span class="line">结果偏小 → 丢更新</span><br></pre></td></tr></table></figure>
+<p><strong>结论</strong>：同一段代码，只是把
+<code>pthread_mutex_lock/unlock</code> 去掉，结果就少了近一半。</p>
+<h3 id="pthread_mutex_unlock-解锁">pthread_mutex_unlock() — 解锁</h3>
+<p><strong>作用</strong>::
+释放互斥锁。如果有其它线程正阻塞在这把锁上，其中一个会被唤醒并拿到锁。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">pthread_mutex_unlock</span><span class="params">(<span class="type">pthread_mutex_t</span> *mutex)</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>mutex</code>：指向要解锁的互斥锁</li>
+</ul>
+<p><strong>返回值</strong>：成功返回
+<strong>0</strong>；失败返回<strong>错误码</strong>（<code>EPERM</code>
+当前线程并未持有该锁，仅 <code>ERRORCHECK</code> 型会返回）</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li><strong>谁加锁谁解锁</strong>：互斥锁有"属主"概念，不允许 A
+线程加锁、B 线程解锁</li>
+<li>对<strong>未加锁</strong>的锁调用 <code>unlock()</code>
+是错误（<code>ERRORCHECK</code> 型返回
+<code>EPERM</code>，其它类型行为未定义）</li>
+<li>不能销毁还没有解锁的互斥锁</li>
+<li><strong>到底哪个线程会拿到锁，是不确定的</strong>：POSIX 不保证
+FIFO，"解锁后刚被唤醒的线程"和"刚跑过来加锁的新线程"谁先拿到锁都有可能，所以<strong>不要依赖唤醒顺序来写逻辑</strong>（这也是下面"条件变量必须用
+while"的根本原因之一）</li>
+</ul>
+<h3 id="pthread_mutex_trylock-尝试加锁">pthread_mutex_trylock() —
+尝试加锁</h3>
+<p><strong>作用</strong>::
+以<strong>不阻塞</strong>的方式尝试加锁：成功就锁上并立即返回，锁已被占用就立刻返回错误码，不进睡眠。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">pthread_mutex_trylock</span><span class="params">(<span class="type">pthread_mutex_t</span> *mutex)</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>mutex</code>：指向要尝试加锁的互斥锁</li>
+</ul>
+<p><strong>返回值</strong>：成功返回 <strong>0</strong>；锁已被占用返回
+<strong><code>EBUSY</code></strong>（16）</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>如果线程不希望被阻塞，就使用
+<code>pthread_mutex_trylock()</code>：调用后如果互斥锁处于未锁住状态，那么将会锁住互斥锁并<strong>立马返回</strong>；如果互斥锁已经被其它线程锁住，加锁失败，但<strong>不会阻塞</strong>，而是返回错误码
+<code>EBUSY</code></li>
+<li>典型用途有两个：
+<ol type="1">
+<li><strong>打破死锁</strong>：先 <code>lock()</code> 第一把锁，再用
+<code>trylock()</code>
+去拿其余的锁，失败就<strong>释放已持有的锁</strong>、稍后重试（见"互斥锁死锁"）</li>
+<li><strong>"有就用、没有就跳过"</strong>：比如日志线程想试试能不能拿到输出锁，拿不到就攒着待会儿再打，不拖着业务线程</li>
+</ol></li>
+<li><code>trylock()</code> 成功时<strong>一样要记得解锁</strong></li>
+<li>注意"尝试"不等于"无代价"：拿不到锁却反复循环
+<code>trylock</code>，本质上是自己手写的自旋锁，会白烧
+CPU（要重试请加退避 <code>usleep</code>）</li>
+<li>参考示例：<code>Thread-Sync/src/deadlock.cc</code>（场景 3 就是
+trylock 退避破解死锁）</li>
+</ul>
+<h3 id="pthread_mutex_timedlock-限时加锁补充">pthread_mutex_timedlock()
+— 限时加锁（补充）</h3>
+<p><strong>作用</strong>::
+加锁，但只等到指定时刻；超时就返回错误，不再无限期阻塞。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">pthread_mutex_timedlock</span><span class="params">(<span class="type">pthread_mutex_t</span> *<span class="keyword">restrict</span> mutex,</span></span><br><span class="line"><span class="params">                            <span class="type">const</span> <span class="keyword">struct</span> timespec *<span class="keyword">restrict</span> abstime)</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>mutex</code>：指向要加锁的互斥锁</li>
+<li><code>abstime</code>：<strong>绝对时间</strong>（不是"等多久"，而是"等到什么时候"），且必须是
+<code>CLOCK_REALTIME</code> 的墙上时间</li>
+</ul>
+<p><strong>返回值</strong>：成功返回 <strong>0</strong>；超时返回
+<strong><code>ETIMEDOUT</code></strong>；其它错误码见 man 手册</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li><p><code>abstime</code>
+是<strong>绝对时间戳</strong>，最常用的写法是
+<code>clock_gettime(CLOCK_REALTIME, &amp;ts)</code> 之后在
+<code>tv_sec</code> 上加秒数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timespec</span> <span class="title">ts</span>;</span></span><br><span class="line">clock_gettime(CLOCK_REALTIME, &amp;ts);</span><br><span class="line">ts.tv_sec += <span class="number">1</span>;                  <span class="comment">// 从现在起最多等 1 秒</span></span><br><span class="line"><span class="type">int</span> ret = pthread_mutex_timedlock(&amp;mutex, &amp;ts);</span><br><span class="line"><span class="keyword">if</span> (ret == ETIMEDOUT) &#123; <span class="comment">/* 超时，走降级逻辑 */</span> &#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>因为用的是 <code>CLOCK_REALTIME</code>，<strong>系统时间被
+<code>settimeofday</code>/NTP
+调整会影响超时</strong>——极端情况下改一次系统时间就能把超时变成"立刻返回"或"再等很久"</p></li>
+<li><p>适用场景：无法接受"业务线程被一把锁无限期拖死"时，用限时锁做<strong>降级/告警</strong>（拿到锁正常干活，拿不到就记录一条告警并放弃本次任务）</p></li>
+<li><p>相关：条件变量有 <code>pthread_cond_timedwait()</code>，信号量有
+<code>sem_timedwait()</code>，线程 ID 加锁……思路完全一致</p></li>
+</ul>
+<h3 id="pthread_mutex_destroy-销毁互斥锁">pthread_mutex_destroy() —
+销毁互斥锁</h3>
+<p><strong>作用</strong>:: 销毁一把互斥锁，释放它占用的资源。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">pthread_mutex_destroy</span><span class="params">(<span class="type">pthread_mutex_t</span> *mutex)</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>mutex</code>：指向要销毁的互斥锁</li>
+</ul>
+<p><strong>返回值</strong>：成功返回
+<strong>0</strong>；失败返回<strong>错误码</strong>（<code>EBUSY</code>
+锁正被持有或还有线程在等；<code>EINVAL</code> 锁未初始化）</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li><strong>不能销毁还没有解锁的互斥锁</strong>，否则将会出现错误（glibc
+会返回 <code>EBUSY</code>）</li>
+<li><strong>没有初始化的互斥锁也不能销毁</strong></li>
+<li>用 <code>PTHREAD_MUTEX_INITIALIZER</code>
+静态初始化的锁<strong>不需要</strong>（通常也不应该）调用
+<code>destroy()</code></li>
+<li>销毁前必须确保<strong>没有任何线程</strong>在使用或等待这把锁，否则是未定义行为</li>
+<li>参考示例：<code>Thread-Sync/src/pthread_mutex.cc</code>（结尾的
+<code>pthread_mutex_destroy(&amp;g_mutex)</code>）</li>
+</ul>
+<h3 id="互斥锁死锁">互斥锁死锁</h3>
+<p><strong>当多个线程对一组互斥锁操作时，总是应该按照相同的顺序对该组互斥锁进行锁定。</strong></p>
+<p>死锁最经典的形态是"<strong>互相等待对方的锁</strong>"：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">线程 A                              线程 B</span><br><span class="line">lock(m1)   ← 拿到 m1</span><br><span class="line">                                    lock(m2)   ← 拿到 m2</span><br><span class="line">lock(m2)   ← 等 B 放 m2，阻塞</span><br><span class="line">                                    lock(m1)   ← 等 A 放 m1，阻塞</span><br><span class="line">        ← 两边都不放手，永久卡死 →</span><br></pre></td></tr></table></figure>
+<p><strong>示例代码</strong>：<code>Thread-Sync/src/deadlock.cc</code>（三个场景一次跑完）</p>
+<p><strong>实测输出</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">【场景 1】A 按 m1→m2 加锁，B 按 m2→m1 加锁</span><br><span class="line">    [A] 拿到 m1，准备拿 m2</span><br><span class="line">    [B] 拿到 m2，准备拿 m1</span><br><span class="line">    → 【场景1 乱序加锁】阻塞超过 1000 ms，判定为死锁，kill 掉子进程</span><br><span class="line"></span><br><span class="line">【场景 2】两个线程都按 m1→m2 的顺序加锁</span><br><span class="line">    [A] 拿到 m1</span><br><span class="line">    [A] 拿到 m2，干活</span><br><span class="line">    [A] 释放完毕</span><br><span class="line">    [B] 拿到 m1</span><br><span class="line">    [B] 拿到 m2，干活</span><br><span class="line">    [B] 释放完毕</span><br><span class="line">    顺序统一后，后到的线程在 m1 上排队，不会再互相卡住</span><br><span class="line">    → 【场景2 统一顺序】300 ms 内正常结束，没有死锁</span><br><span class="line"></span><br><span class="line">【场景 3】A 先锁 m1，再用 trylock 试 m2，失败就放开 m1 重试</span><br><span class="line">    [B] 持有 m2 100ms</span><br><span class="line">    [A] 第 1 次尝试：m2 被占（EBUSY），放开 m1 退避重试</span><br><span class="line">    [A] 第 2 次尝试：m2 被占（EBUSY），放开 m1 退避重试</span><br><span class="line">    [B] 释放 m2</span><br><span class="line">    [A] 第 3 次尝试：m1 + m2 都到手，干活</span><br><span class="line">    谁都不会抱着锁死等 → 死锁被打破</span><br><span class="line">    → 【场景3 trylock退避】140 ms 内正常结束，没有死锁</span><br></pre></td></tr></table></figure>
+<p><strong>破解办法一：统一加锁顺序（首选）</strong></p>
+<p>给所有的锁规定一个<strong>全局顺序</strong>（比如按"锁的地址大小"或"业务层级"排：先锁账户再锁订单），所有线程都按这个顺序加锁，AB-BA
+根本无法构成。</p>
+<p><strong>破解办法二：<code>trylock</code> 退避重试</strong></p>
+<p>程序设计实在无法按照相同的顺序对一组互斥锁进行锁定，那么就必须采用另外的方法。譬如使用
+<code>pthread_mutex_trylock()</code>
+以不阻塞的方式尝试对互斥锁进行加锁：<strong>线程先使用
+<code>pthread_mutex_lock()</code> 锁定第一个互斥锁，然后使用
+<code>pthread_mutex_trylock()</code> 来锁定其余的互斥锁。如果任一
+<code>trylock()</code> 调用失败（返回
+<code>EBUSY</code>），那么该线程释放所有互斥锁，可以经过一段时间之后从头再试。</strong></p>
+<p>要点是"<strong>拿不到就全放开</strong>"——如果失败时还攥着 m1
+不放，退避重试只会把死锁换成活锁。</p>
+<blockquote>
+<p><strong>实测里的一个细节</strong>：为了让场景 3 的 <code>EBUSY</code>
+真的出现，示例里先让 B 线程起来占住 m2，再启动 A 线程——否则 A
+手速太快，第一次 <code>trylock</code>
+就成功了，反而看不到"退避"的过程。调试并发问题时<strong>特意构造时序</strong>（加
+<code>usleep</code>、调换线程启动顺序）是常用手段。</p>
+</blockquote>
+<h3 id="互斥锁的属性">互斥锁的属性</h3>
+<p>当定义 <code>pthread_mutexattr_t</code> 对象之后，需要使用
+<code>pthread_mutexattr_init()</code>
+函数对该对象进行初始化操作；当对象不再使用时，需要使用
+<code>pthread_mutexattr_destroy()</code>
+将其销毁。<code>pthread_mutexattr_init()</code>
+会使用<strong>默认的</strong>互斥锁属性初始化参数 <code>attr</code>
+指向的对象。</p>
+<p>本小节函数总览：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">示例代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>pthread_mutexattr_init()</code></td>
+<td style="text-align: left;">用默认值初始化属性对象</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_mutexattr.cc</code></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_mutexattr_destroy()</code></td>
+<td style="text-align: left;">销毁属性对象</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_mutexattr.cc</code></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_mutexattr_settype()</code></td>
+<td style="text-align: left;">设置互斥锁类型</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_mutexattr.cc</code></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_mutexattr_gettype()</code></td>
+<td style="text-align: left;">获取互斥锁类型</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_mutexattr.cc</code></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_mutexattr_setpshared()</code></td>
+<td style="text-align: left;">设置进程共享属性</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_mutexattr_getpshared()</code></td>
+<td style="text-align: left;">获取进程共享属性</td>
+<td style="text-align: left;">—</td>
+</tr>
+</tbody>
+</table>
+<h3
+id="pthread_mutexattr_init-pthread_mutexattr_destroy-初始化与销毁属性对象">pthread_mutexattr_init()
+/ pthread_mutexattr_destroy() — 初始化与销毁属性对象</h3>
+<p><strong>作用</strong>:: <code>init</code>
+用默认值初始化一个互斥锁属性对象；<code>destroy</code> 销毁它。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">pthread_mutexattr_init</span><span class="params">(<span class="type">pthread_mutexattr_t</span> *attr)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">pthread_mutexattr_destroy</span><span class="params">(<span class="type">pthread_mutexattr_t</span> *attr)</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>attr</code>：指向要初始化 / 销毁的属性对象</li>
+</ul>
+<p><strong>返回值</strong>：成功返回
+<strong>0</strong>；失败返回<strong>错误码</strong></p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>属性对象只用于 <code>pthread_mutex_init()</code>
+的第二个参数，<strong>初始化完锁之后它就没用了</strong>，可以（也应该）马上
+<code>destroy</code></li>
+<li>属性对象<strong>可以被反复复用</strong>：<code>settype()</code>
+改一次 → <code>init()</code> 一把锁 → 再改一次 → 再 <code>init()</code>
+另一把。但要注意"<strong>读出来的是最后一次设置的值</strong>"，别拿一个被改过的属性对象当"默认值"用（实测时踩过这个坑，见下）</li>
+<li>参考示例：<code>Thread-Sync/src/pthread_mutexattr.cc</code></li>
+</ul>
+<h3
+id="pthread_mutexattr_settype-pthread_mutexattr_gettype-类型属性">pthread_mutexattr_settype()
+/ pthread_mutexattr_gettype() — 类型属性</h3>
+<p><strong>作用</strong>:: 设置 /
+获取互斥锁的<strong>类型</strong>属性，类型决定了这把锁的检查行为。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">pthread_mutexattr_settype</span><span class="params">(<span class="type">pthread_mutexattr_t</span> *attr, <span class="type">int</span> type)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">pthread_mutexattr_gettype</span><span class="params">(<span class="type">const</span> <span class="type">pthread_mutexattr_t</span> *attr, <span class="type">int</span> *type)</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>attr</code>：属性对象</li>
+<li><code>type</code>（<code>settype</code>）：要设置的类型；<code>type</code>（<code>gettype</code>）是<strong>输出参数</strong>，回填当前类型</li>
+</ul>
+<p><strong>返回值</strong>：成功返回
+<strong>0</strong>；失败返回<strong>错误码</strong>（<code>EINVAL</code>
+类型非法）</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>可设置的类型有 4 种（<code>PTHREAD_MUTEX_NORMAL</code> /
+<code>_ERRORCHECK</code> / <code>_RECURSIVE</code> /
+<code>_DEFAULT</code>），详见下表</li>
+<li>大部分场景用<strong>默认锁</strong>就够；只有"确实需要重复加锁"（如递归函数）才用
+<code>RECURSIVE</code>，只有"想在开发期抓出加锁错误"才用
+<code>ERRORCHECK</code></li>
+<li><code>gettype()</code> 对刚 <code>init</code> 完的属性对象返回的是
+<code>PTHREAD_MUTEX_DEFAULT</code></li>
+</ul>
+<h3 id="四种互斥锁类型">四种互斥锁类型</h3>
+<p>互斥锁的类型属性控制着互斥锁的锁定特性，一共有 <strong>4
+种</strong>类型：</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">类型</th>
+<th style="text-align: left;">同一线程重复加锁</th>
+<th style="text-align: left;">解锁别人的锁 / 解锁未锁定的锁</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>PTHREAD_MUTEX_NORMAL</code></td>
+<td style="text-align: left;"><strong>死锁</strong></td>
+<td style="text-align: left;">未定义行为</td>
+<td
+style="text-align: left;">标准互斥锁类型，<strong>不做任何错误检查或死锁检测</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PTHREAD_MUTEX_ERRORCHECK</code></td>
+<td style="text-align: left;">返回<strong>错误</strong></td>
+<td style="text-align: left;">返回<strong>错误</strong></td>
+<td style="text-align: left;">提供错误检查，适合开发期自查</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PTHREAD_MUTEX_RECURSIVE</code></td>
+<td style="text-align: left;"><strong>允许</strong>（维护加锁次数）</td>
+<td style="text-align: left;">返回错误</td>
+<td style="text-align: left;">递归互斥锁，解锁次数必须等于加锁次数</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PTHREAD_MUTEX_DEFAULT</code></td>
+<td style="text-align: left;">Linux 上与 <code>NORMAL</code> 相同</td>
+<td style="text-align: left;">未定义行为</td>
+<td
+style="text-align: left;">默认行为；<code>PTHREAD_MUTEX_INITIALIZER</code>
+和 <code>attr=NULL</code> 创建的都是它</td>
+</tr>
+</tbody>
+</table>
+<p>各类的细节：</p>
+<ul>
+<li><strong><code>PTHREAD_MUTEX_NORMAL</code></strong>：一种标准的互斥锁类型，不做任何的错误检查或死锁检测。如果线程试图对<strong>已经由自己锁定</strong>的互斥锁再次进行加锁，则发生<strong>死锁</strong></li>
+<li><strong><code>PTHREAD_MUTEX_ERRORCHECK</code></strong>：此类互斥锁会提供错误检查。譬如这三种情况都会导致返回错误：
+<ul>
+<li>线程试图对已经由自己锁定的互斥锁再次进行加锁（同一线程对同一互斥锁加锁两次）→
+返回 <code>EDEADLK</code></li>
+<li>线程对由其它线程锁定的互斥锁进行解锁 → 返回 <code>EPERM</code></li>
+<li>线程对处于未锁定状态的互斥锁进行解锁 → 返回 <code>EPERM</code></li>
+</ul></li>
+<li><strong><code>PTHREAD_MUTEX_RECURSIVE</code></strong>：此类互斥锁允许同一线程在互斥锁解锁之前对该互斥锁进行<strong>多次加锁</strong>，然后维护互斥锁加锁的次数，把这种互斥锁称为<strong>递归互斥锁</strong>；但是如果<strong>解锁次数不等于加锁次数，则是不会释放锁的</strong></li>
+<li><strong><code>PTHREAD_MUTEX_DEFAULT</code></strong>：此类互斥锁提供默认的行为和特性。使用宏
+<code>PTHREAD_MUTEX_INITIALIZER</code> 初始化的互斥锁，或者调用参数
+<code>attr</code> 为 <code>NULL</code> 的
+<code>pthread_mutex_init()</code> 函数所创建的互斥锁，都属于此类型</li>
+</ul>
+<p><strong>示例代码</strong>：<code>Thread-Sync/src/pthread_mutexattr.cc</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">pthread_mutex_t</span> mutex;</span><br><span class="line"><span class="type">pthread_mutexattr_t</span> attr;</span><br><span class="line"><span class="comment">/* 初始化互斥锁属性对象 */</span></span><br><span class="line"><span class="built_in">pthread_mutexattr_init</span>(&amp;attr);</span><br><span class="line"><span class="comment">/* 将类型属性设置为 PTHREAD_MUTEX_NORMAL */</span></span><br><span class="line"><span class="built_in">pthread_mutexattr_settype</span>(&amp;attr, PTHREAD_MUTEX_NORMAL);</span><br><span class="line"><span class="comment">/* 初始化互斥锁 */</span></span><br><span class="line"><span class="built_in">pthread_mutex_init</span>(&amp;mutex, &amp;attr);</span><br><span class="line">......</span><br><span class="line"><span class="comment">/* 使用完之后 */</span></span><br><span class="line"><span class="built_in">pthread_mutexattr_destroy</span>(&amp;attr);</span><br><span class="line"><span class="built_in">pthread_mutex_destroy</span>(&amp;mutex);</span><br></pre></td></tr></table></figure>
+<p><strong>实测输出</strong>（四种类型依次演示）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">【NORMAL】不查错、不检死锁 → 同一线程二次加锁会死锁</span><br><span class="line">  子进程：第 1 次 lock 成功，正在第 2 次 lock ...</span><br><span class="line">  1 秒后子进程仍然阻塞 → 死锁已确认，父进程 kill 掉它</span><br><span class="line"></span><br><span class="line">【ERRORCHECK】提供错误检查，出错就返回错误码</span><br><span class="line">  第 1 次 lock: 成功</span><br><span class="line">  同一线程第 2 次 lock: 35 (Resource deadlock avoided)   ← EDEADLK</span><br><span class="line">  解锁自己持有的锁: 成功</span><br><span class="line">  对未加锁的锁 unlock: 1 (Operation not permitted)   ← EPERM</span><br><span class="line"></span><br><span class="line">【RECURSIVE】递归锁：同一线程可多次加锁，解锁次数必须匹配</span><br><span class="line">  第 1 次 lock: 成功</span><br><span class="line">  第 2 次 lock: 成功</span><br><span class="line">  第 3 次 lock: 成功</span><br><span class="line">  别的线程 trylock 同一把锁: 16 (Device or resource busy)</span><br><span class="line">  第 1 次 unlock: 成功</span><br><span class="line">  第 2 次 unlock: 成功</span><br><span class="line">  第 3 次 unlock: 成功</span><br><span class="line"></span><br><span class="line">【DEFAULT】用 PTHREAD_MUTEX_INITIALIZER 或 attr=NULL 得到的锁</span><br><span class="line">  刚 init 完的类型属性 = 0</span><br><span class="line">  PTHREAD_MUTEX_DEFAULT = 0, NORMAL = 0, ERRORCHECK = 2, RECURSIVE = 1</span><br><span class="line">  glibc(Linux) 上 PTHREAD_MUTEX_DEFAULT 与 NORMAL 取值相同</span><br><span class="line">  → 默认锁不做错误检查、不检死锁，所以默认锁重复加锁就会死锁</span><br></pre></td></tr></table></figure>
+<p>从实测输出可以确认几件事：</p>
+<ul>
+<li><code>EDEADLK</code> 的值是
+<strong>35</strong>（<code>Resource deadlock avoided</code>），<code>EPERM</code>
+是 <strong>1</strong>，<code>EBUSY</code> 是 <strong>16</strong></li>
+<li><strong>Linux/glibc 上 <code>PTHREAD_MUTEX_DEFAULT</code> 与
+<code>PTHREAD_MUTEX_NORMAL</code> 取值相同（都是
+0）</strong>，所以"默认锁"和"NORMAL
+锁"是同一回事——<strong>默认锁重复加锁就会死锁</strong>，这一点务必记住</li>
+<li>递归锁的"递归"只对<strong>持有它的线程</strong>有效：别的线程去
+<code>trylock</code> 依然是
+<code>EBUSY</code>，得等自己把所有层解锁完</li>
+<li>演示 NORMAL 死锁时，代码把"故意制造死锁"的部分放在
+<strong><code>fork()</code> 出来的子进程</strong>里跑，父进程等 1 秒后用
+<code>waitpid(WNOHANG)</code> 判断"还活着"，确认死锁后再
+<code>kill</code>
+掉。这样演示既确凿又不会把自己卡死——排查死锁问题时，"用子进程 +
+超时收尸"是个很实用的技巧</li>
+</ul>
+<h3 id="现代-c-写法补充">现代 C++ 写法（补充）</h3>
+<p>实际工程里很少直接裸调
+<code>pthread_mutex_lock/unlock</code>——因为"忘了配对解锁"的代价太高。C++11
+起标准库把互斥锁和 RAII 封装好了，<strong>能用标准库就别用裸 pthread
+API</strong>：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">C++ 设施</th>
+<th style="text-align: left;">对标</th>
+<th style="text-align: left;">作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>std::mutex</code></td>
+<td style="text-align: left;"><code>pthread_mutex_t</code></td>
+<td style="text-align: left;">普通互斥锁（RAII 友好）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>std::recursive_mutex</code></td>
+<td style="text-align: left;"><code>PTHREAD_MUTEX_RECURSIVE</code></td>
+<td style="text-align: left;">递归互斥锁</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>std::timed_mutex</code></td>
+<td style="text-align: left;"><code>pthread_mutex_timedlock</code></td>
+<td style="text-align: left;">支持 <code>try_lock_for</code> /
+<code>try_lock_until</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>std::lock_guard&lt;M&gt;</code></td>
+<td style="text-align: left;">—</td>
+<td
+style="text-align: left;"><strong>最简单</strong>：构造加锁、析构解锁，禁止手动
+unlock</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>std::unique_lock&lt;M&gt;</code></td>
+<td style="text-align: left;">—</td>
+<td
+style="text-align: left;">更灵活：可延迟加锁、可手动解锁、配合条件变量使用</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>std::scoped_lock&lt;M...&gt;</code>（C++17）</td>
+<td style="text-align: left;">—</td>
+<td
+style="text-align: left;"><strong>一次锁多把锁，内部用死锁避免算法</strong>（对应
+<code>std::lock</code> 的 RAII 版）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>std::atomic&lt;T&gt;</code></td>
+<td style="text-align: left;">—</td>
+<td style="text-align: left;">单变量无锁原子操作，见 C++
+原子变量基础总结</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 手写 pthread：容易漏解锁</span></span><br><span class="line"><span class="built_in">pthread_mutex_lock</span>(&amp;mutex);</span><br><span class="line">g_count++;</span><br><span class="line"><span class="built_in">pthread_mutex_unlock</span>(&amp;mutex);      <span class="comment">// 这一行漏了就是灾难</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// C++ 写法：离开作用域自动解锁，异常安全</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function">std::lock_guard&lt;std::mutex&gt; <span class="title">lock</span><span class="params">(g_mutex)</span></span>;</span><br><span class="line">    g_count++;</span><br><span class="line">&#125;                                  <span class="comment">// ← 这里自动解锁，任何路径都不会漏</span></span><br></pre></td></tr></table></figure>
+<p>还有一个容易踩的点：<strong>同时需要多把锁时，不要手动按顺序
+<code>lock</code> 两把</strong>，用 <code>std::scoped_lock</code> 或
+<code>std::lock</code> 让标准库去做死锁避免：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">std::scoped_lock <span class="title">lock</span><span class="params">(m1, m2)</span></span>;     <span class="comment">// C++17：内部实现就是&quot;要么全拿到、要么都不拿&quot;</span></span><br></pre></td></tr></table></figure>
+<p><strong>示例代码</strong>：<code>Thread-Sync/src/mutex.cc</code>
+是一个完整的 C++11 版生产者-消费者（<code>std::mutex</code> +
+<code>std::condition_variable</code> + <code>std::unique_lock</code> +
+<code>std::atomic</code>），代码与实测输出见下文"实战：生产者-消费者模型"。</p>
+<hr>
+<h2 id="条件变量condition-variable">条件变量（Condition Variable）</h2>
+<p><strong>条件变量用于自动阻塞线程，直到某个特定事件发生或某个条件满足为止。</strong></p>
+<p>条件变量通常搭配互斥锁一起使用，是因为<strong>条件的检测是在互斥锁的保护下进行的</strong>，也就是说条件本身是由互斥锁保护的，线程在改变条件状态之前必须首先锁住互斥锁，不然就可能引发线程不安全的问题。</p>
+<blockquote>
+<p><strong>一句话理解条件变量</strong>：互斥锁解决"<strong>同一时刻只能我一个人动数据</strong>"，条件变量解决"<strong>数据还没就绪的时候，我该怎么体面地等着</strong>"。</p>
+<p>没有条件变量时，想等一个条件往往只能"加锁 → 看条件 → 不满足就解锁 →
+<code>sleep</code> 一会儿 →
+再来一次"，这叫<strong>轮询（polling）</strong>：要么睡太久反应慢，要么睡太短白烧
+CPU，还很难睡对时间。条件变量把这件事交给内核：<strong>不满足就睡，谁改了条件谁负责叫醒我</strong>。</p>
+</blockquote>
+<p>本小节函数总览：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">示例代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>PTHREAD_COND_INITIALIZER</code></td>
+<td style="text-align: left;">静态初始化条件变量（宏）</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_cond.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_cond_init()</code></td>
+<td style="text-align: left;">动态初始化条件变量</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_cond_destroy()</code></td>
+<td style="text-align: left;">销毁条件变量</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_cond.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_cond_wait()</code></td>
+<td style="text-align: left;">等待条件（原子地解锁 +
+睡眠，醒来再加锁）</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_cond.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_cond_timedwait()</code></td>
+<td style="text-align: left;">限时等待条件（超时返回
+<code>ETIMEDOUT</code>）</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_cond_signal()</code></td>
+<td
+style="text-align: left;">通知<strong>至少一个</strong>等待的线程</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_cond.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_cond_broadcast()</code></td>
+<td style="text-align: left;">通知<strong>所有</strong>等待的线程</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_cond.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_condattr_init()</code> /
+<code>pthread_condattr_destroy()</code></td>
+<td style="text-align: left;">初始化 / 销毁条件变量属性对象</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_condattr_setclock()</code> /
+<code>pthread_condattr_getclock()</code></td>
+<td style="text-align: left;">设置 / 获取 <code>timedwait</code>
+用的时钟</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_condattr_setpshared()</code>
+/ <code>pthread_condattr_getpshared()</code></td>
+<td style="text-align: left;">设置 / 获取进程共享属性</td>
+<td style="text-align: left;">—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="条件变量的初始化">条件变量的初始化</h3>
+<p>条件变量使用 <code>pthread_cond_t</code>
+数据类型来表示。类似于互斥锁，在使用条件变量之前必须对其进行初始化。初始化方式同样也有两种：使用宏
+<code>PTHREAD_COND_INITIALIZER</code> 或者使用函数
+<code>pthread_cond_init()</code>。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">pthread_cond_t</span> cond = PTHREAD_COND_INITIALIZER;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_init</span><span class="params">(<span class="type">pthread_cond_t</span> *cond, <span class="type">const</span> <span class="type">pthread_condattr_t</span> *attr)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_destroy</span><span class="params">(<span class="type">pthread_cond_t</span> *cond)</span></span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>cond</code>：指向要初始化 / 销毁的条件变量</li>
+<li><code>attr</code>：条件变量属性，传 <code>NULL</code>
+表示默认属性</li>
+</ul>
+<p><strong>返回值</strong>：成功返回
+<strong>0</strong>；失败返回<strong>错误码</strong></p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>在使用条件变量之前必须对条件变量进行初始化操作，使用
+<code>PTHREAD_COND_INITIALIZER</code> 宏或者函数
+<code>pthread_cond_init()</code> 都行</li>
+<li>对已经初始化的条件变量<strong>再次进行初始化</strong>，将可能会导致未定义行为</li>
+<li>对<strong>没有进行初始化</strong>的条件变量进行销毁，也将可能会导致未定义行为</li>
+<li>对某个条件变量而言，<strong>仅当没有任何线程等待它时，将其销毁才是最安全的</strong></li>
+<li>经 <code>pthread_cond_destroy()</code> 销毁的条件变量，可以再次调用
+<code>pthread_cond_init()</code> 对其进行重新初始化</li>
+<li>参考示例：<code>Thread-Sync/src/pthread_cond.cc</code></li>
+</ul>
+<h3 id="通知和等待条件变量">通知和等待条件变量</h3>
+<p>条件变量的主要操作便是<strong>发送信号（signal）</strong>和<strong>等待</strong>。发送信号操作即是通知一个或多个处于等待状态的线程，某个共享变量的状态已经改变，这些处于等待状态的线程收到通知之后便会被唤醒，唤醒之后再检查条件是否满足。等待操作是指在收到一个通知前一直处于阻塞状态。</p>
+<p><code>pthread_cond_signal()</code> 和
+<code>pthread_cond_broadcast()</code>
+均可向指定的条件变量发送信号，通知一个或多个处于等待状态的线程。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">pthread_cond_t</span> cond = PTHREAD_COND_INITIALIZER;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_broadcast</span><span class="params">(<span class="type">pthread_cond_t</span> *cond)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_signal</span><span class="params">(<span class="type">pthread_cond_t</span> *cond)</span></span>;</span><br></pre></td></tr></table></figure>
+<p><strong>两者区别</strong>：</p>
+<ul>
+<li><code>pthread_cond_signal()</code>
+函数<strong>至少能唤醒一个</strong>线程</li>
+<li><code>pthread_cond_broadcast()</code>
+函数则能<strong>唤醒所有</strong>线程</li>
+<li>使用 <code>pthread_cond_broadcast()</code>
+函数<strong>总能产生正确的结果</strong>（唤醒所有等待状态的线程），但函数
+<code>pthread_cond_signal()</code>
+会<strong>更为高效</strong>，因为它只需确保至少唤醒一个线程即可</li>
+</ul>
+<p><strong>该用哪个？</strong> 判断标准很简单：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">场景</th>
+<th style="text-align: left;">选择</th>
+<th style="text-align: left;">理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td
+style="text-align: left;">唤醒后<strong>所有</strong>等待者都能干活（如"数据已就绪，谁抢到算谁的"）</td>
+<td style="text-align: left;"><code>signal()</code></td>
+<td style="text-align: left;">一次只叫一个，避免"惊群"</td>
+</tr>
+<tr>
+<td
+style="text-align: left;">等待者的条件<strong>各不相同</strong>，或"状态变了大家都得重新判断"</td>
+<td style="text-align: left;"><code>broadcast()</code></td>
+<td style="text-align: left;">叫错人等于没人干，会卡住</td>
+</tr>
+<tr>
+<td style="text-align: left;">不确定 / 图省心 / 调试期</td>
+<td style="text-align: left;"><code>broadcast()</code></td>
+<td style="text-align: left;"><strong>总是正确</strong>，只是略低效</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>实测演示（<code>./pthread_cond broadcast</code>）</strong>：三个线程都卡在同一个条件变量上，主线程先把条件置真、<code>signal()</code>
+一次 → <strong>只醒来 1 个</strong>；随后 <code>broadcast()</code> →
+剩下 2 个全醒。</p>
+</blockquote>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">3 个线程都卡在 pthread_cond_wait 上等 b_ready（初值 0）</span><br><span class="line">  主线程：pthread_cond_signal() —— 至少唤醒 1 个</span><br><span class="line">  [等待者1] 被唤醒（累计醒来 1 个）</span><br><span class="line">  此刻醒来 1 个</span><br><span class="line">  主线程：pthread_cond_broadcast() —— 唤醒剩下所有</span><br><span class="line">  [等待者2] 被唤醒（累计醒来 2 个）</span><br><span class="line">  [等待者3] 被唤醒（累计醒来 3 个）</span><br><span class="line">  全部结束，共醒来 3 个</span><br></pre></td></tr></table></figure>
+<h3 id="pthread_cond_wait-等待条件">pthread_cond_wait() — 等待条件</h3>
+<p><strong>作用</strong>::
+当判断某个条件不满足时，将线程设置为等待状态（阻塞）。调用者把互斥锁传递给函数，函数<strong>自动把调用线程放到等待该条件的线程列表上，然后将互斥锁解锁</strong>；当被唤醒返回时，<strong>会再次锁住互斥锁</strong>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_wait</span><span class="params">(<span class="type">pthread_cond_t</span> *cond, <span class="type">pthread_mutex_t</span> *mutex)</span></span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>cond</code>：要等待的条件变量</li>
+<li><code>mutex</code>：与之配套的互斥锁，<strong>调用前必须已经由本线程加锁</strong></li>
+</ul>
+<p><strong>返回值</strong>：成功返回
+<strong>0</strong>；失败返回<strong>错误码</strong></p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>通常情况下，条件判断以及 <code>pthread_cond_wait()</code>
+函数调用均在互斥锁的保护下，也就是说在此之前线程已经对互斥锁加锁了</li>
+<li>调用 <code>pthread_cond_wait()</code>
+时，<strong>入口处解锁、返回时加锁</strong>这两件事合起来是<strong>原子</strong>的：不会出现"解锁了但还没进等待队列"这个窗口。这一点是关键——否则通知可能在缝隙里溜走，导致线程永远等下去</li>
+<li>返回时<strong>不能假定条件一定成立</strong>，必须用
+<code>while</code> 重新检查（见下节）</li>
+<li>参考示例：<code>Thread-Sync/src/pthread_cond.cc</code></li>
+</ul>
+<h3
+id="条件变量的判断条件为什么必须用-while-而不是-if">条件变量的判断条件，为什么必须用
+while 而不是 if</h3>
+<p>使用条件变量，都会有与之相关的判断条件，通常情况下会涉及到一个或多个共享变量。<strong>使用了
+<code>while</code> 循环、而不是 <code>if</code> 语句，来控制对
+<code>pthread_cond_wait()</code> 的调用。</strong></p>
+<ul>
+<li>当线程从 <code>pthread_cond_wait()</code>
+返回时，<strong>并不能确定判断条件的状态</strong>，应该立即重新检查判断条件，如果条件不满足，那就继续休眠等待</li>
+</ul>
+<p>从 <code>pthread_cond_wait()</code>
+返回后，并不能确定判断条件是真还是假，其理由如下：</p>
+<ul>
+<li><strong>当有多于一个线程在等待条件变量时</strong>，任何线程都有可能会率先醒来获取互斥锁，率先醒来获取到互斥锁的线程可能会对共享变量进行修改，进而改变判断条件的状态</li>
+<li><strong>可能会发出虚假的通知（spurious wakeup）</strong></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 错误写法：用 if</span></span><br><span class="line"><span class="keyword">if</span> (g_count == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">pthread_cond_wait</span>(&amp;cond, &amp;mutex);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 醒来后直接以为有数据了 → 可能是虚假唤醒，或者数据已被别的消费者抢走</span></span><br><span class="line"><span class="type">int</span> v = g_buf[g_head];</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 正确写法：用 while</span></span><br><span class="line"><span class="keyword">while</span> (g_count == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">pthread_cond_wait</span>(&amp;cond, &amp;mutex);   <span class="comment">// 醒来回到这里，重新判断</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> v = g_buf[g_head];</span><br></pre></td></tr></table></figure>
+<p><strong>实测输出</strong>（<code>Thread-Sync/src/pthread_cond.cc</code>，有界缓冲区
+size=3，生产者 1 个产 8 件，消费者 2 个各取 4 件）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">有界缓冲区 size=3，生产者 1 个（共 8 件），消费者 2 个（各 4 件）</span><br><span class="line">  [生产者] 放入 0，队列 1 个</span><br><span class="line">  [消费者1] 取出 0，队列 0 个</span><br><span class="line">  [消费者2] 缓冲区空，等数据...</span><br><span class="line">  [生产者] 放入 1，队列 1 个</span><br><span class="line">  [消费者2] 取出 1，队列 0 个</span><br><span class="line">  [生产者] 放入 2，队列 1 个</span><br><span class="line">  [生产者] 放入 3，队列 2 个</span><br><span class="line">  [生产者] 放入 4，队列 3 个</span><br><span class="line">  [生产者] 缓冲区满(3)，等空位...</span><br><span class="line">  [消费者1] 取出 2，队列 2 个</span><br><span class="line">  [生产者] 放入 5，队列 3 个</span><br><span class="line">  [消费者2] 取出 3，队列 2 个</span><br><span class="line">  [生产者] 放入 6，队列 3 个</span><br><span class="line">  [生产者] 缓冲区满(3)，等空位...</span><br><span class="line">  [消费者1] 取出 4，队列 2 个</span><br><span class="line">  [生产者] 放入 7，队列 3 个</span><br><span class="line">  [消费者2] 取出 5，队列 2 个</span><br><span class="line">  [生产者] 结束</span><br><span class="line">  [消费者1] 取出 6，队列 1 个</span><br><span class="line">  [消费者2] 取出 7，队列 0 个</span><br><span class="line">  [消费者1] 结束</span><br><span class="line">  [消费者2] 结束</span><br><span class="line">结束：缓冲区剩 0 个；被唤醒后条件仍不满足（while 复查命中）= 3 次</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><strong>注意最后那行"while 复查命中 = 3 次"</strong>：这就是
+<code>while</code> 的价值所在——这 3 次里线程被唤醒了，但回到
+<code>while</code>
+一检查发现条件<strong>又不满足了</strong>（比如"缓冲区满"的生产者被唤醒后，空位已经被另一个生产者抢走），于是继续回去睡。如果当初写的是
+<code>if</code>，这 3
+次就会直接往下执行，<strong>往满缓冲区里塞数据</strong>（或者从空缓冲区里取数据）——这类
+bug 往往要等压测才炸。</p>
+<p>想主动观察"虚假唤醒"，可以在 <code>pthread_cond_wait()</code>
+返回但条件不满足时打个计数器；示例里 <code>g_recheck++</code>
+记的正是这个数。</p>
+</blockquote>
+<h3 id="pthread_cond_timedwait-限时等待补充">pthread_cond_timedwait() —
+限时等待（补充）</h3>
+<p><strong>作用</strong>:: 与 <code>pthread_cond_wait()</code>
+相同，但最多等到指定时刻，超时就返回 <code>ETIMEDOUT</code>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_timedwait</span><span class="params">(<span class="type">pthread_cond_t</span> *cond, <span class="type">pthread_mutex_t</span> *mutex,</span></span></span><br><span class="line"><span class="params"><span class="function">                           <span class="type">const</span> <span class="keyword">struct</span> timespec *abstime)</span></span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>cond</code>、<code>mutex</code>：同
+<code>pthread_cond_wait()</code></li>
+<li><code>abstime</code>：<strong>绝对时间</strong>，默认基准是
+<code>CLOCK_REALTIME</code></li>
+</ul>
+<p><strong>返回值</strong>：成功返回 <strong>0</strong>；超时返回
+<strong><code>ETIMEDOUT</code></strong>；其它错误码见 man 手册</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>超时<strong>不算错误</strong>，只是"条件还没来"：必须在
+<code>while</code>
+里配合一个"是否该退出"的标记使用，不能拿超时当"条件成立"</li>
+<li>因为默认时钟是 <code>CLOCK_REALTIME</code>，NTP
+校时会干扰超时判断。想要"单调时钟"（不受系统时间调整影响）需要用
+<code>pthread_condattr_setclock()</code> 把条件变量的时钟改成
+<code>CLOCK_MONOTONIC</code>，再用
+<code>clock_gettime(CLOCK_MONOTONIC, ...)</code> 算截止时刻</li>
+<li>它的经典用途是<strong>让等待线程能定期醒来自查"是不是该退出了"</strong>——C++
+里对应 <code>std::condition_variable::wait_for()</code>。本工程的 C++
+版生产者-消费者（<code>Thread-Sync/src/mutex.cc</code>）用的就是这个套路：<code>wait_for(lock, 200ms, 谓词)</code>，即使没人通知也能周期性醒来看一眼
+<code>g_is_running</code>，于是 <strong>Ctrl+C 之后线程不会永远卡在
+<code>wait</code> 里退不出去</strong></li>
+<li>一个常见变体和陷阱：用 <code>wait</code>
+的循环里如果<strong>每次超时都无条件重试</strong>，就等于把条件变量退化成了轮询，白烧
+CPU，超时时间要选得有意义</li>
+</ul>
+<h3 id="条件变量的属性补充">条件变量的属性（补充）</h3>
+<p>和互斥锁一样，条件变量也有属性对象
+<code>pthread_condattr_t</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_condattr_init</span><span class="params">(<span class="type">pthread_condattr_t</span> *attr)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_condattr_destroy</span><span class="params">(<span class="type">pthread_condattr_t</span> *attr)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* timedwait 用哪个时钟 */</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_condattr_setclock</span><span class="params">(<span class="type">pthread_condattr_t</span> *attr, <span class="type">clockid_t</span> clock_id)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_condattr_getclock</span><span class="params">(<span class="type">const</span> <span class="type">pthread_condattr_t</span> *attr, <span class="type">clockid_t</span> *clock_id)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 是否可跨进程共享 */</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_condattr_setpshared</span><span class="params">(<span class="type">pthread_condattr_t</span> *attr, <span class="type">int</span> pshared)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_condattr_getpshared</span><span class="params">(<span class="type">const</span> <span class="type">pthread_condattr_t</span> *attr, <span class="type">int</span> *pshared)</span></span>;</span><br></pre></td></tr></table></figure>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">属性</th>
+<th style="text-align: left;">取值</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">时钟</td>
+<td style="text-align: left;"><code>CLOCK_REALTIME</code>（默认）/
+<code>CLOCK_MONOTONIC</code></td>
+<td style="text-align: left;">影响 <code>pthread_cond_timedwait()</code>
+的超时基准</td>
+</tr>
+<tr>
+<td style="text-align: left;">进程共享</td>
+<td
+style="text-align: left;"><code>PTHREAD_PROCESS_PRIVATE</code>（默认）/
+<code>PTHREAD_PROCESS_SHARED</code></td>
+<td style="text-align: left;"><code>SHARED</code>
+时该条件变量可放在共享内存里供多个进程使用（跨进程同步，见
+IPC（进程间通信））</td>
+</tr>
+</tbody>
+</table>
+<p>用法（把条件变量改成单调时钟）：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">pthread_condattr_t</span> cattr;</span><br><span class="line"><span class="built_in">pthread_condattr_init</span>(&amp;cattr);</span><br><span class="line"><span class="built_in">pthread_condattr_setclock</span>(&amp;cattr, CLOCK_MONOTONIC);</span><br><span class="line"></span><br><span class="line"><span class="type">pthread_cond_t</span> cond;</span><br><span class="line"><span class="built_in">pthread_cond_init</span>(&amp;cond, &amp;cattr);</span><br><span class="line"></span><br><span class="line"><span class="built_in">pthread_condattr_destroy</span>(&amp;cattr);</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>条件变量的 <code>SHARED</code>
+属性是"跨进程同步"的一环：需要把互斥锁也设成
+<code>PTHREAD_PROCESS_SHARED</code>，并把两者一起放进
+<code>mmap(MAP_SHARED|MAP_ANONYMOUS)</code> 或 POSIX
+共享内存里，否则不同进程看到的是各自的副本。跨进程场景更常用<strong>有名信号量</strong>（见下文）。</p>
+</blockquote>
+<hr>
+<h2 id="读写锁read-write-lock">读写锁（Read-Write Lock）</h2>
+<p>读写锁是互斥锁的<strong>特化</strong>：如果把"读"和"写"区别对待，共享数据的<strong>读操作可以并行</strong>，只有写操作才需要独占，那么"读多写少"的场景能获得比互斥锁更好的并发度。</p>
+<p>读写锁有 <strong>3
+种状态</strong>：读模式下的加锁状态（以下简称<strong>读加锁状态</strong>）、写模式下的加锁状态（以下简称<strong>写加锁状态</strong>）和不加锁状态。</p>
+<ul>
+<li><strong>一次只有一个线程可以占有写模式的读写锁</strong>，但是<strong>可以有多个线程同时占有读模式的读写锁</strong>。因此可知，读写锁比互斥锁具有<strong>更高的并行性</strong></li>
+<li>当读写锁处于<strong>写加锁状态</strong>时，在这个锁被解锁之前，所有试图对这个锁进行加锁操作（不管是以读模式加锁还是以写模式加锁）的线程都会被<strong>阻塞</strong></li>
+<li>当读写锁处于<strong>读加锁状态</strong>时，所有试图以读模式对它进行加锁的线程都可以加锁成功；但是任何以写模式对它进行加锁的线程都会被<strong>阻塞</strong>，直到所有持有读模式锁的线程释放它们的锁为止</li>
+</ul>
+<p>读写锁非常适合于<strong>对共享数据读的次数远大于写的次数</strong>的情况。</p>
+<p>本小节函数总览：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">示例代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td
+style="text-align: left;"><code>PTHREAD_RWLOCK_INITIALIZER</code></td>
+<td style="text-align: left;">静态初始化读写锁（宏）</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/rwlock.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_rwlock_init()</code></td>
+<td style="text-align: left;">动态初始化读写锁</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_rwlock_destroy()</code></td>
+<td style="text-align: left;">销毁读写锁</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/rwlock.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_rwlock_rdlock()</code></td>
+<td style="text-align: left;">以读模式加锁（共享）</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/rwlock.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_rwlock_wrlock()</code></td>
+<td style="text-align: left;">以写模式加锁（独占）</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/rwlock.cc</code></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_rwlock_tryrdlock()</code></td>
+<td style="text-align: left;">尝试以读模式加锁（不阻塞）</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_rwlock_trywrlock()</code></td>
+<td style="text-align: left;">尝试以写模式加锁（不阻塞）</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_rwlock_timedrdlock()</code>
+/ <code>pthread_rwlock_timedwrlock()</code></td>
+<td style="text-align: left;">限时版读 / 写加锁（补充）</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_rwlock_unlock()</code></td>
+<td style="text-align: left;">解锁（读锁写锁都用它）</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/rwlock.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_rwlockattr_init()</code> /
+<code>pthread_rwlockattr_destroy()</code></td>
+<td style="text-align: left;">初始化 / 销毁读写锁属性对象</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_rwlockattr_setpshared()</code> /
+<code>pthread_rwlockattr_getpshared()</code></td>
+<td style="text-align: left;">设置 / 获取进程共享属性</td>
+<td style="text-align: left;">—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="读写锁的初始化">读写锁的初始化</h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">pthread_rwlock_t</span> rwlock = PTHREAD_RWLOCK_INITIALIZER;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_init</span><span class="params">(<span class="type">pthread_rwlock_t</span> *rwlock, <span class="type">const</span> <span class="type">pthread_rwlockattr_t</span> *attr)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_destroy</span><span class="params">(<span class="type">pthread_rwlock_t</span> *rwlock)</span></span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>rwlock</code>：指向要初始化 / 销毁的读写锁</li>
+<li><code>attr</code>：读写锁属性对象（<code>pthread_rwlockattr_t</code>
+数据类型定义了读写锁的属性），传 <code>NULL</code> 表示默认属性</li>
+</ul>
+<p><strong>返回值</strong>：成功返回
+<strong>0</strong>；失败返回<strong>错误码</strong>（<code>EBUSY</code>
+还有线程持有锁）</p>
+<h3 id="读写锁上锁和解锁">读写锁上锁和解锁</h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_rdlock</span><span class="params">(<span class="type">pthread_rwlock_t</span> *rwlock)</span></span>;      <span class="comment">// 读锁定：共享</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_wrlock</span><span class="params">(<span class="type">pthread_rwlock_t</span> *rwlock)</span></span>;      <span class="comment">// 写锁定：独占</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_tryrdlock</span><span class="params">(<span class="type">pthread_rwlock_t</span> *rwlock)</span></span>;   <span class="comment">// 不阻塞版</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_trywrlock</span><span class="params">(<span class="type">pthread_rwlock_t</span> *rwlock)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_unlock</span><span class="params">(<span class="type">pthread_rwlock_t</span> *rwlock)</span></span>;      <span class="comment">// 解锁（读、写都用它）</span></span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>rwlock</code>：指向要操作的读写锁</li>
+</ul>
+<p><strong>返回值</strong>：成功返回
+<strong>0</strong>；失败返回<strong>错误码</strong></p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>如果线程不希望被阻塞，可以调用
+<code>pthread_rwlock_tryrdlock()</code> 和
+<code>pthread_rwlock_trywrlock()</code>
+来尝试加锁，如果不可以获取锁时，这两个函数都会<strong>立马返回错误</strong>，错误码为
+<strong><code>EBUSY</code></strong></li>
+<li><strong>解锁只有 <code>pthread_rwlock_unlock()</code>
+一个函数</strong>，它不区分当前是读锁还是写锁——因为锁内部记着状态。这也意味着"用
+<code>rdlock</code> 加锁、用 <code>unlock</code>
+解锁"是唯一正确的配对方式，<strong>没有
+<code>pthread_rwlock_rdunlock()</code> 这种东西</strong></li>
+<li><strong>同一个线程对同一把读锁连续加锁两次会死锁</strong>（glibc
+默认策略下读锁不可递归）。这是实测原稿示例时踩到的真实 bug：读线程写成
+<code>rdlock(); printf(); rdlock();</code>，第二次 <code>rdlock</code>
+直接把自己卡住，而且<strong>从不解锁</strong>，几分钟都跑不完</li>
+<li>写锁上加锁两次同样会死锁（写锁不递归）</li>
+<li>参考示例：<code>Thread-Sync/src/rwlock.cc</code></li>
+</ul>
+<p><strong>实测输出</strong>（<code>./rwlock 10000</code>：5 个写线程 +
+5 个读线程，各 1 万次）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">写线程 5 个 × 10000 次，读线程 5 个 × 10000 次（共 10 个线程）</span><br><span class="line">期望计数: 50000</span><br><span class="line">实际计数: 50000</span><br><span class="line">读线程最大并发数: 5（&gt;1 说明多个读者能同时持有读锁）</span><br><span class="line">耗时: 630 ms</span><br></pre></td></tr></table></figure>
+<p>结论：</p>
+<ul>
+<li><strong><code>实际计数 = 50000</code></strong>：5
+个写线程并发累加也没有丢更新 → 写锁的<strong>独占</strong>起了作用</li>
+<li><strong><code>读线程最大并发数 = 5</code></strong>：5
+个读线程<strong>同时</strong>都在临界区里 →
+读锁的<strong>共享</strong>生效了。这正是读写锁比互斥锁强的地方（同样的写法换成互斥锁，这个数只会是
+1）</li>
+<li>示例里统计并发读者数用的是 <code>std::atomic&lt;int&gt;</code>
+而不是普通
+<code>int</code>：<strong>统计"有多少人在读"这件事本身也是共享变量的读写</strong>，如果用普通
+<code>int</code>
+去统计，就变成了"读锁保护下的写操作"，自己给自己制造竞态</li>
+</ul>
+<h3 id="读写锁的属性">读写锁的属性</h3>
+<p>需要使用 <code>pthread_rwlockattr_init()</code>
+函数对其进行初始化操作，初始化会将 <code>pthread_rwlockattr_t</code>
+对象定义的各个读写锁属性初始化为默认值；当不再使用
+<code>pthread_rwlockattr_t</code> 对象时，需要调用
+<code>pthread_rwlockattr_destroy()</code> 函数将其销毁。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlockattr_destroy</span><span class="params">(<span class="type">pthread_rwlockattr_t</span> *attr)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlockattr_init</span><span class="params">(<span class="type">pthread_rwlockattr_t</span> *attr)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>读写锁<strong>只有一个属性</strong>，那便是<strong>进程共享属性</strong>，它与互斥锁以及自旋锁的进程共享属性相同。<code>pthread_rwlockattr_getpshared()</code>
+用于从 <code>pthread_rwlockattr_t</code> 对象中获取共享属性，函数
+<code>pthread_rwlockattr_setpshared()</code> 用于设置
+<code>pthread_rwlockattr_t</code> 对象中的共享属性。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlockattr_getpshared</span><span class="params">(<span class="type">const</span> <span class="type">pthread_rwlockattr_t</span> *attr, <span class="type">int</span> *pshared)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlockattr_setpshared</span><span class="params">(<span class="type">pthread_rwlockattr_t</span> *attr, <span class="type">int</span> pshared)</span></span>;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong><code>PTHREAD_PROCESS_SHARED</code></strong>：共享读写锁。该读写锁可以在多个进程中的线程之间共享</li>
+<li><strong><code>PTHREAD_PROCESS_PRIVATE</code></strong>：私有读写锁。只有本进程内的线程才能够使用该读写锁</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">pthread_rwlock_t</span> rwlock;            <span class="comment">// 定义读写锁</span></span><br><span class="line"><span class="type">pthread_rwlockattr_t</span> attr;          <span class="comment">// 定义读写锁属性</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 初始化读写锁属性对象 */</span></span><br><span class="line"><span class="built_in">pthread_rwlockattr_init</span>(&amp;attr);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 将进程共享属性设置为 PTHREAD_PROCESS_PRIVATE */</span></span><br><span class="line"><span class="built_in">pthread_rwlockattr_setpshared</span>(&amp;attr, PTHREAD_PROCESS_PRIVATE);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 初始化读写锁 */</span></span><br><span class="line"><span class="built_in">pthread_rwlock_init</span>(&amp;rwlock, &amp;attr);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 使用完之后 */</span></span><br><span class="line"><span class="built_in">pthread_rwlock_destroy</span>(&amp;rwlock);        <span class="comment">// 销毁读写锁</span></span><br><span class="line"><span class="built_in">pthread_rwlockattr_destroy</span>(&amp;attr);      <span class="comment">// 销毁读写锁属性对象</span></span><br></pre></td></tr></table></figure>
+<h3 id="读写锁的两个坑重点">读写锁的两个坑（重点）</h3>
+<p><strong>坑一：读锁不能"升级"为写锁</strong></p>
+<p>"先 <code>rdlock</code> 读一下，发现要改，就地 <code>wrlock</code>
+升级"——这是<strong>必然死锁</strong>的写法。因为 <code>wrlock</code>
+会等"所有读者释放读锁"，而<strong>自己就是那个还没放手的读者</strong>。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 死锁：自己拿着读锁在等自己放读锁</span></span><br><span class="line"><span class="built_in">pthread_rwlock_rdlock</span>(&amp;rwlock);</span><br><span class="line"><span class="keyword">if</span> (need_update) &#123;</span><br><span class="line">    <span class="built_in">pthread_rwlock_wrlock</span>(&amp;rwlock);   <span class="comment">// 永久阻塞</span></span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">pthread_rwlock_unlock</span>(&amp;rwlock);</span><br></pre></td></tr></table></figure>
+<p>正确做法是<strong>先解锁读锁，再重新加写锁，然后重新检查条件</strong>（因为中间状态可能已经被别人改了）：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ✅ 先放读锁，再加写锁，加完必须重新判断</span></span><br><span class="line"><span class="built_in">pthread_rwlock_rdlock</span>(&amp;rwlock);</span><br><span class="line"><span class="type">bool</span> need = <span class="built_in">check</span>();</span><br><span class="line"><span class="built_in">pthread_rwlock_unlock</span>(&amp;rwlock);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (need) &#123;</span><br><span class="line">    <span class="built_in">pthread_rwlock_wrlock</span>(&amp;rwlock);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">check</span>()) &#123;          <span class="comment">// 重新判断！中间可能有人改过了</span></span><br><span class="line">        <span class="built_in">update</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">pthread_rwlock_unlock</span>(&amp;rwlock);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>坑二：读者优先会导致"写饥饿"</strong></p>
+<p>glibc
+默认的读写锁策略是<strong>读者优先（<code>PTHREAD_RWLOCK_PREFER_READER_NP</code>）</strong>：只要还有读者在读，新来的读者可以<strong>插队</strong>拿到读锁，写线程就得一直等。如果读请求持续不断，<strong>写线程可能长时间拿不到锁（写饥饿）</strong>。</p>
+<ul>
+<li>想缓解，可以在属性里设成写者优先：<code>pthread_rwlockattr_setkind_np(&amp;attr, PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP)</code>（带
+<code>_np</code> 说明是<strong>非标准扩展</strong>，只在 glibc
+上用）</li>
+<li>注意 <code>PTHREAD_RWLOCK_PREFER_WRITER_NP</code>
+这个"看起来最像"的取值在 glibc 上有历史
+bug，实际效果和"读者优先"一样，<strong>要用带 <code>NONRECURSIVE</code>
+的那个</strong></li>
+<li>实用建议：<strong>读写锁适合"读远多于写、且读操作很短"</strong>的场景。如果你的写操作很重，或者读写比例并不悬殊，老老实实用互斥锁反而更简单可靠——<strong>别为了"看起来更高级"而用读写锁</strong></li>
+</ul>
+<hr>
+<h2 id="自旋锁spin-lock">自旋锁（Spin Lock）</h2>
+<p>自旋锁与互斥锁相似，但是<strong>互斥锁在无法获取到锁时会让线程陷入阻塞等待状态</strong>；而<strong>自旋锁在无法获取到锁时，将会在原地"自旋"等待</strong>（反复检查锁的状态，即<strong>忙等
+/ busy-wait</strong>，线程始终占着 CPU，不进睡眠）。</p>
+<blockquote>
+<p><strong>试图对同一自旋锁加锁两次必然会导致死锁</strong>，而试图对同一互斥锁加锁两次不一定会导致死锁，原因在于互斥锁有不同的类型（<code>RECURSIVE</code>
+型允许重复加锁）。</p>
+</blockquote>
+<p>自旋锁通常用于以下情况：<strong>需要保护的代码段执行时间很短</strong>，这样就会使得持有锁的线程会很快释放锁，而"自旋"等待的线程也只需等待很短的时间；在这种情况下就比较适合使用自旋锁，<strong>效率高</strong>！</p>
+<p>本小节函数总览：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">示例代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>pthread_spin_init()</code></td>
+<td style="text-align: left;">初始化自旋锁</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/spin_lock.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_spin_destroy()</code></td>
+<td style="text-align: left;">销毁自旋锁</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/spin_lock.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_spin_lock()</code></td>
+<td style="text-align: left;">加锁（拿不到就一直自旋）</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/spin_lock.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_spin_trylock()</code></td>
+<td style="text-align: left;">尝试加锁（失败立即返回
+<code>EBUSY</code>）</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_spin_unlock()</code></td>
+<td style="text-align: left;">解锁</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/spin_lock.cc</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="自旋锁与互斥锁的区别">自旋锁与互斥锁的区别</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">对比项</th>
+<th style="text-align: left;">互斥锁</th>
+<th style="text-align: left;">自旋锁</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">拿不到锁时</td>
+<td style="text-align: left;">线程<strong>睡眠</strong>（让出
+CPU，进内核调度）</td>
+<td
+style="text-align: left;">原地<strong>自旋</strong>（不睡，反复重试，占着
+CPU）</td>
+</tr>
+<tr>
+<td style="text-align: left;">实现方式</td>
+<td
+style="text-align: left;"><strong>基于自旋锁（futex）实现</strong>，所以自旋锁相较于互斥锁<strong>更加底层</strong></td>
+<td style="text-align: left;">更底层</td>
+</tr>
+<tr>
+<td style="text-align: left;">开销</td>
+<td
+style="text-align: left;">锁开销<strong>要远高于</strong>自旋锁；<strong>自旋锁的效率远高于互斥锁</strong></td>
+<td style="text-align: left;">更轻量</td>
+</tr>
+<tr>
+<td style="text-align: left;">适用临界区长度</td>
+<td style="text-align: left;">长临界区（睡眠的代价可以被摊平）</td>
+<td style="text-align: left;"><strong>极短</strong>的临界区</td>
+</tr>
+<tr>
+<td style="text-align: left;">单核上的表现</td>
+<td style="text-align: left;">正常</td>
+<td
+style="text-align: left;">自旋<strong>浪费整个时间片</strong>（单核上通常不该用）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>中断服务函数中</strong></td>
+<td
+style="text-align: left;"><strong>不能用</strong>（中断里不能休眠、不能被抢占）</td>
+<td style="text-align: left;"><strong>可以用</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;">是否可递归</td>
+<td style="text-align: left;"><code>RECURSIVE</code> 型可以</td>
+<td
+style="text-align: left;"><strong>不可以，第二次加锁必然死锁</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>关于"中断服务函数里用自旋锁"</strong>：在执行中断服务函数时要求<strong>不能休眠、不能
+被抢占</strong>（内核中使用自旋锁会自动禁止抢占），一旦休眠意味着执行中断服务函数时主动交出了
+CPU
+使用权，休眠结束时<strong>无法返回到中断服务函数中</strong>，这样就会导致<strong>死锁</strong>！</p>
+<blockquote>
+<p>这也是为什么在实际项目中，<strong>内核/驱动里到处是自旋锁，而用户态应用几乎只用互斥锁</strong>：用户态临界区一旦变长，自旋等待的那个线程就是在毫无意义地烧
+CPU（还会因为它"占着 CPU
+不睡"，把持锁线程挤下线，让情况更糟）。只有在"我赌它几十纳秒内就放锁"时，自旋才划算。</p>
+</blockquote>
+<h3 id="自旋锁初始化">自旋锁初始化</h3>
+<p>自旋锁使用 <code>pthread_spinlock_t</code>
+数据类型表示。当定义自旋锁后，需要使用 <code>pthread_spin_init()</code>
+函数对其进行初始化；当不再使用自旋锁时，调用
+<code>pthread_spin_destroy()</code> 函数将其销毁。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_spin_destroy</span><span class="params">(<span class="type">pthread_spinlock_t</span> *lock)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_spin_init</span><span class="params">(<span class="type">pthread_spinlock_t</span> *lock, <span class="type">int</span> pshared)</span></span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>lock</code>：指向要初始化 / 销毁的自旋锁</li>
+<li><code>pshared</code>：表示自旋锁的<strong>进程共享属性</strong>
+<ul>
+<li><strong><code>PTHREAD_PROCESS_SHARED</code></strong>：共享自旋锁。该自旋锁可以在多个进程中的线程之间共享</li>
+<li><strong><code>PTHREAD_PROCESS_PRIVATE</code></strong>：私有自旋锁。只有本进程内的线程才能够使用该自旋锁</li>
+</ul></li>
+</ul>
+<p><strong>返回值</strong>：成功返回
+<strong>0</strong>；失败返回<strong>错误码</strong>（<code>EBUSY</code>
+锁未解锁就销毁）</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>自旋锁<strong>必须初始化</strong>，且初始化开销不小，绝不要在临界区里反复
+<code>init</code>/<code>destroy</code>（那就完全违背了它的设计初衷）</li>
+<li>与互斥锁不同，<code>pthread_spinlock_t</code>
+<strong>没有静态初始化宏</strong>，只能靠
+<code>pthread_spin_init()</code>——所以它不能像
+<code>PTHREAD_MUTEX_INITIALIZER</code> 那样直接给全局变量用</li>
+</ul>
+<h3 id="自旋锁加锁和解锁">自旋锁加锁和解锁</h3>
+<p><code>pthread_spin_lock()</code> 函数或
+<code>pthread_spin_trylock()</code>
+函数对自旋锁进行加锁，前者在未获取到锁时<strong>一直"自旋"</strong>；对于后者，如果未能获取到锁，就<strong>立刻返回错误</strong>，错误码为
+<code>EBUSY</code>。使用 <code>pthread_spin_unlock()</code>
+函数对自旋锁进行解锁。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_spin_lock</span><span class="params">(<span class="type">pthread_spinlock_t</span> *lock)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_spin_trylock</span><span class="params">(<span class="type">pthread_spinlock_t</span> *lock)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_spin_unlock</span><span class="params">(<span class="type">pthread_spinlock_t</span> *lock)</span></span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>lock</code>：指向要操作的自旋锁</li>
+</ul>
+<p><strong>返回值</strong>：成功返回
+<strong>0</strong>；失败返回<strong>错误码</strong>（<code>trylock</code>
+拿不到锁返回 <code>EBUSY</code>）</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>临界区里<strong>不要</strong>做任何可能阻塞的事（<code>printf</code>、文件
+IO、<code>malloc</code>、调用别人写的函数）——自旋锁的设计前提就是"临界区极短"</li>
+<li>参考示例：<code>Thread-Sync/src/spin_lock.cc</code>（两个线程各做
+100 万次 +1 / -1，最终应回到 0）</li>
+</ul>
+<p><strong>实测输出</strong>（<code>./spin_lock 1000000</code>）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">两个线程各 +/- 1000000 次，最终应为 0</span><br><span class="line">最终 g_shared_count = 0 (正确)</span><br><span class="line">耗时: 24 ms</span><br></pre></td></tr></table></figure>
+<p>两个线程各 100 万次加/减，共用 24
+ms（其中还包括了进程启动与线程创建的开销），加锁本身的开销被摊到几乎看不见——这就是"自旋锁效率远高于互斥锁"在<strong>极短临界区</strong>下的直观体现。若把这段代码换成互斥锁跑一遍对比，耗时会明显变大（每次加锁都可能要进内核把线程挂起再唤醒）。</p>
+<hr>
+<h2 id="信号量semaphore">信号量（Semaphore）</h2>
+<p>信号量是是<strong>计数型</strong>的同步工具：不仅能当互斥锁用，还能表达"<strong>还剩几个资源可用</strong>"这种语义，是互斥锁
++ 条件变量做不到的。</p>
+<p>信号量分两种：</p>
+<ul>
+<li><strong>无名信号量</strong>（<code>sem_t</code> +
+<code>sem_init()</code>）：放在内存里，<strong>线程间</strong>或（配合共享内存）<strong>进程间</strong>使用</li>
+<li><strong>有名信号量</strong>（<code>sem_open()</code>）：有
+<code>/名字</code>，存在于文件系统中（<code>/dev/shm/sem.名字</code>），<strong>天生可以跨进程</strong>使用</li>
+</ul>
+<p>本小节函数总览：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">示例代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>sem_init()</code></td>
+<td style="text-align: left;">初始化无名信号量，指定初值</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/semaphore.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_destroy()</code></td>
+<td style="text-align: left;">销毁无名信号量</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/semaphore.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_wait()</code></td>
+<td style="text-align: left;">P 操作：计数 -1，为 0 则阻塞</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/semaphore.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_trywait()</code></td>
+<td style="text-align: left;">P 操作的非阻塞版（不能减返回
+<code>EAGAIN</code>）</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_timedwait()</code></td>
+<td style="text-align: left;">P 操作的限时版（超时返回
+<code>ETIMEDOUT</code>）</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_post()</code></td>
+<td style="text-align: left;">V 操作：计数 +1，唤醒一个等待者</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/semaphore.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_getvalue()</code></td>
+<td
+style="text-align: left;">取当前计数（<strong>调试/观测用，不能当判断条件</strong>）</td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/semaphore.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_open()</code></td>
+<td style="text-align: left;">打开 / 创建有名信号量</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_close()</code></td>
+<td style="text-align: left;">关闭有名信号量（不删除）</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_unlink()</code></td>
+<td style="text-align: left;">删除有名信号量的名字</td>
+<td style="text-align: left;">—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sem_init-sem_destroy-无名信号量的初始化与销毁">sem_init() /
+sem_destroy() — 无名信号量的初始化与销毁</h3>
+<p><strong>作用</strong>:: <code>sem_init()</code>
+初始化一个无名信号量并指定<strong>初值</strong>；<code>sem_destroy()</code>
+销毁它。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;semaphore.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">sem_init</span><span class="params">(<span class="type">sem_t</span> *sem, <span class="type">int</span> pshared, <span class="type">unsigned</span> <span class="type">int</span> value)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">sem_destroy</span><span class="params">(<span class="type">sem_t</span> *sem)</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>sem</code>：指向要初始化 / 销毁的信号量</li>
+<li><code>pshared</code>：<code>0</code> =
+线程间共享（进程内）；<strong>非 0</strong> =
+进程间共享（信号量必须放在共享内存里）</li>
+<li><code>value</code>：信号量的<strong>初值</strong>，决定了它的语义：
+<ul>
+<li><code>value = 1</code> → <strong>互斥锁</strong>（同一时刻只允许 1
+个线程通过）</li>
+<li><code>value = N</code> → <strong>计数信号量</strong>，最多允许 N
+个线程同时通过（限流/资源池）</li>
+<li><code>value = 0</code> → <strong>同步信号量</strong>，谁先
+<code>sem_wait</code> 谁先睡，等别人 <code>sem_post</code> 来唤醒</li>
+</ul></li>
+</ul>
+<p><strong>返回值</strong>：成功返回 <strong>0</strong>；失败返回
+<strong>-1</strong> 并设置 <code>errno</code></p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>注意信号量是<strong>少数用 <code>errno</code> 报错的 POSIX
+线程相关工具</strong>（因为是 <code>sem_*</code> 命名空间而非
+<code>pthread_*</code>），判断要写
+<code>if (sem_wait(&amp;s) == -1)</code></li>
+<li>初始化时 <code>value</code> 就是"可用资源数"，<strong>P
+操作（<code>sem_wait</code>）拿走一个，V
+操作（<code>sem_post</code>）还回来</strong>——把"空槽位"和"已有数据"都当成资源来数，就能优雅地写出生产者-消费者（见示例）</li>
+<li>glibc 对 <code>sem_init()</code> 的 <code>pshared != 0</code>
+支持不好，<strong>跨进程请优先用有名信号量
+<code>sem_open()</code></strong></li>
+<li>参考示例：<code>Thread-Sync/src/semaphore.cc</code></li>
+</ul>
+<h3 id="sem_wait-sem_post-p-操作与-v-操作">sem_wait() / sem_post() — P
+操作与 V 操作</h3>
+<p><strong>作用</strong>:: <code>sem_wait()</code> 把计数减
+1，若计数已是 0 则<strong>阻塞</strong>（P 操作，荷兰语
+<em>proberen</em> 尝试）；<code>sem_post()</code> 把计数加
+1，并<strong>唤醒一个</strong>正在等待的线程（V 操作，<em>verhogen</em>
+增加）。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;semaphore.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">sem_wait</span><span class="params">(<span class="type">sem_t</span> *sem)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">sem_trywait</span><span class="params">(<span class="type">sem_t</span> *sem)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">sem_post</span><span class="params">(<span class="type">sem_t</span> *sem)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">sem_getvalue</span><span class="params">(<span class="type">sem_t</span> *sem, <span class="type">int</span> *sval)</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>sem</code>：指向要操作的信号量</li>
+<li><code>sval</code>（<code>getvalue</code>）：<strong>输出参数</strong>，回填当前计数</li>
+</ul>
+<p><strong>返回值</strong>：成功返回 <strong>0</strong>；失败返回
+<strong>-1</strong> 并设置 <code>errno</code>（<code>trywait</code>
+计数为 0 时返回 <code>EAGAIN</code>，<code>wait</code> 被信号中断返回
+<code>EINTR</code>）</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li><strong>P/V
+操作本身是原子的</strong>，不需要再加锁保护信号量自己</li>
+<li><strong><code>sem_post()</code>
+可以在信号处理函数里安全调用</strong>（POSIX
+明确它是异步信号安全的），这是它相对条件变量的一个优势——"中断/信号里通知，主流程里
+<code>sem_wait</code> 等"是常见模式</li>
+<li><strong><code>sem_getvalue()</code>
+的值是"快照"</strong>，取到的瞬间就可能被别的线程改掉，所以<strong>绝不能用它来判断"能不能取"</strong>（那是典型的
+TOCTOU 竞态）。要用就用
+<code>sem_trywait()</code>。它只适合打日志、做观测</li>
+<li>计数<strong>不是必须为 0 才阻塞</strong>：<code>sem_wait</code>
+只看"计数是否大于
+0"，所以计数信号量的初值决定了"最多几个并发"，这个特性常被用来做<strong>并发限流</strong>（比如限制同时访问某服务的线程数不超过
+5）</li>
+</ul>
+<p><strong>实测输出</strong>（<code>./semaphore</code>，1 个生产者 + 1
+个消费者，缓冲区 5 个槽）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">缓冲区 size=5：只有 1 个生产者 + 1 个消费者时，</span><br><span class="line">两个信号量已经保证了&quot;槽位/数据&quot;的独占，共享缓冲区本身不需要再加互斥锁</span><br><span class="line">  [生产者] 放入 0</span><br><span class="line">  [消费者] 取出 0</span><br><span class="line">  [生产者] 放入 1</span><br><span class="line">  [消费者] 取出 1</span><br><span class="line">  [生产者] 放入 2</span><br><span class="line">  [消费者] 取出 2</span><br><span class="line">  [生产者] 放入 3</span><br><span class="line">  [生产者] 放入 4</span><br><span class="line">  [消费者] 取出 3</span><br><span class="line">  [生产者] 放入 5</span><br><span class="line">  [消费者] 取出 4</span><br><span class="line">  [消费者] 取出 5</span><br><span class="line">结束：空槽信号量=5，满槽信号量=0（都回到出发时的状态）</span><br></pre></td></tr></table></figure>
+<p><strong>把信号量当互斥锁用</strong>（<code>./semaphore counter</code>，初值
+<code>1</code>）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">两个线程各 +1000000 次，用初值为 1 的信号量当互斥锁</span><br><span class="line">期望结果: 2000000</span><br><span class="line">实际结果: 2000000 （正确）</span><br></pre></td></tr></table></figure>
+<h3 id="有名信号量补充可跨进程">有名信号量（补充，可跨进程）</h3>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;semaphore.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">sem_t</span> *<span class="title function_">sem_open</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *name, <span class="type">int</span> oflag, <span class="type">mode_t</span> mode, <span class="type">unsigned</span> <span class="type">int</span> value)</span>;</span><br><span class="line"><span class="type">int</span>    <span class="title function_">sem_close</span><span class="params">(<span class="type">sem_t</span> *sem)</span>;</span><br><span class="line"><span class="type">int</span>    <span class="title function_">sem_unlink</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *name)</span>;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>name</code> 形如 <code>"/mysem"</code>（<strong>必须以
+<code>/</code> 开头，且只有一层</strong>），实际落在
+<code>/dev/shm/sem.mysem</code></li>
+<li><code>oflag</code> 用 <code>O_CREAT</code> /
+<code>O_CREAT|O_EXCL</code>；<strong>带 <code>O_CREAT</code> 时必须给
+<code>mode</code> 和 <code>value</code></strong></li>
+<li><code>sem_close()</code>
+只是"关掉本进程的引用"，<strong>不删除</strong>信号量；要删除得用
+<code>sem_unlink()</code>，而且<strong>必须所有进程都
+<code>sem_close</code>
+之后才真正消失</strong>——所以"进程异常退出留下一堆 sem
+文件"是常见现象，排查时记得 <code>ls /dev/shm</code></li>
+<li>进程 A <code>sem_open</code> 后用 <code>sem_post</code>，进程 B
+<code>sem_open</code> 同名后用
+<code>sem_wait</code>，这就是一个<strong>天然的跨进程计数器/门闸</strong>，比共享内存
++ 条件变量的组合省事得多</li>
+</ul>
+<hr>
+<h2 id="四种同步机制横向对比">四种同步机制横向对比</h2>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">对比项</th>
+<th style="text-align: left;">互斥锁 <code>pthread_mutex_t</code></th>
+<th style="text-align: left;">读写锁 <code>pthread_rwlock_t</code></th>
+<th style="text-align: left;">自旋锁
+<code>pthread_spinlock_t</code></th>
+<th style="text-align: left;">信号量 <code>sem_t</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">拿不到时的行为</td>
+<td style="text-align: left;">睡眠等待</td>
+<td style="text-align: left;">睡眠等待</td>
+<td style="text-align: left;"><strong>忙等（自旋）</strong></td>
+<td style="text-align: left;">睡眠等待</td>
+</tr>
+<tr>
+<td style="text-align: left;">并行能力</td>
+<td style="text-align: left;">独占</td>
+<td style="text-align: left;"><strong>读共享 / 写独占</strong></td>
+<td style="text-align: left;">独占</td>
+<td style="text-align: left;">计数（&gt;1 可多个并发）</td>
+</tr>
+<tr>
+<td style="text-align: left;">有"属主"概念</td>
+<td style="text-align: left;">有（谁锁谁解）</td>
+<td style="text-align: left;">有</td>
+<td style="text-align: left;">有</td>
+<td style="text-align: left;"><strong>无</strong>（A 可以 wait，B 可以
+post）</td>
+</tr>
+<tr>
+<td style="text-align: left;">能否用在信号处理函数/中断</td>
+<td style="text-align: left;">不能</td>
+<td style="text-align: left;">不能</td>
+<td
+style="text-align: left;">不能（用户态）；<strong>内核中断里可以</strong></td>
+<td style="text-align: left;"><code>sem_post</code>
+<strong>可以</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;">跨进程</td>
+<td style="text-align: left;">需 <code>PTHREAD_PROCESS_SHARED</code> +
+共享内存</td>
+<td style="text-align: left;">同左</td>
+<td style="text-align: left;">同左</td>
+<td style="text-align: left;"><strong>有名信号量天生可以</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;">配合条件等待</td>
+<td style="text-align: left;">需配条件变量</td>
+<td style="text-align: left;">需配条件变量</td>
+<td style="text-align: left;">不适合</td>
+<td style="text-align: left;"><strong>自带 P/V 语义</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;">递归加锁</td>
+<td style="text-align: left;"><code>RECURSIVE</code> 型可以</td>
+<td style="text-align: left;">不可以</td>
+<td style="text-align: left;">不可以</td>
+<td style="text-align: left;">不适用</td>
+</tr>
+<tr>
+<td style="text-align: left;">典型场景</td>
+<td style="text-align: left;">万能主力</td>
+<td style="text-align: left;">读多写少</td>
+<td style="text-align: left;">极短临界区、内核/驱动</td>
+<td style="text-align: left;">资源计数、限流、跨进程门闸</td>
+</tr>
+<tr>
+<td style="text-align: left;">静态初始化宏</td>
+<td style="text-align: left;">✅
+<code>PTHREAD_MUTEX_INITIALIZER</code></td>
+<td style="text-align: left;">✅
+<code>PTHREAD_RWLOCK_INITIALIZER</code></td>
+<td style="text-align: left;">❌ 无</td>
+<td style="text-align: left;">❌ 无</td>
+</tr>
+<tr>
+<td style="text-align: left;">报错方式</td>
+<td style="text-align: left;">返回错误码</td>
+<td style="text-align: left;">返回错误码</td>
+<td style="text-align: left;">返回错误码</td>
+<td style="text-align: left;"><strong><code>-1</code> +
+<code>errno</code></strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>怎么选（实战顺序）</strong>：</p>
+<ol type="1">
+<li>先问"这是不是<strong>只有一个变量</strong>的加减/标志位" → 是就用
+<code>std::atomic</code>，别上锁</li>
+<li>再问"要不要<strong>等条件</strong>" → 要就用「互斥锁 +
+条件变量」，或信号量</li>
+<li>再问"是不是<strong>读远多于写</strong>" →
+是才考虑读写锁（否则用互斥锁）</li>
+<li>最后问"临界区是不是<strong>只有几条指令</strong>、且绝不可能阻塞" →
+是才考虑自旋锁</li>
+<li><strong>拿不准就用互斥锁</strong>。互斥锁是最不容易写错的；性能不够时再换，别提前优化</li>
+</ol>
+</blockquote>
+<hr>
+<h2 id="实战生产者-消费者模型">实战：生产者-消费者模型</h2>
+<p>生产者-消费者是线程同步的"Hello
+World"，把前面所有工具串起来了：<strong>一个线程往缓冲区放数据，其它线程从缓冲区取数据</strong>，需要同时满足：</p>
+<ol type="1">
+<li>缓冲区的读写要<strong>互斥</strong>（不能一边放一边取同一格）</li>
+<li>缓冲区<strong>满</strong>时生产者必须等，<strong>空</strong>时消费者必须等（<strong>同步</strong>）</li>
+<li>生产者放入的数据，消费者要能<strong>看到</strong>（可见性，由锁/信号量保证）</li>
+</ol>
+<h3 id="三种实现对照">三种实现对照</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">实现</th>
+<th style="text-align: left;">用到的工具</th>
+<th style="text-align: left;">示例文件</th>
+<th style="text-align: left;">特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">POSIX 互斥锁 + 条件变量</td>
+<td style="text-align: left;"><code>pthread_mutex_t</code> +
+<code>pthread_cond_t</code></td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/pthread_cond.cc</code></td>
+<td style="text-align: left;">最经典，"满/空"两个条件变量各管一头</td>
+</tr>
+<tr>
+<td style="text-align: left;">C++11 标准库</td>
+<td style="text-align: left;"><code>std::mutex</code> +
+<code>std::condition_variable</code> +
+<code>std::unique_lock</code></td>
+<td style="text-align: left;"><code>Thread-Sync/src/mutex.cc</code></td>
+<td style="text-align: left;">工程里最常用，RAII + 谓词版
+<code>wait_for</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">双计数信号量</td>
+<td style="text-align: left;"><code>sem_t × 2</code></td>
+<td
+style="text-align: left;"><code>Thread-Sync/src/semaphore.cc</code></td>
+<td
+style="text-align: left;">代码最短：空槽、满槽各一个信号量，<strong>连互斥锁都省了</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>POSIX
+版的核心写法</strong>（<code>Thread-Sync/src/pthread_cond.cc</code>）：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 生产者 */</span></span><br><span class="line"><span class="built_in">pthread_mutex_lock</span>(&amp;g_mutex);</span><br><span class="line"><span class="keyword">while</span> (g_count == BUF_SIZE) &#123;                 <span class="comment">// 条件不满足 → 用 while 等（不能用 if）</span></span><br><span class="line">    <span class="built_in">pthread_cond_wait</span>(&amp;g_not_full, &amp;g_mutex); <span class="comment">// 原子地：解锁 + 睡；被唤醒时重新加锁</span></span><br><span class="line">    g_recheck++;</span><br><span class="line">&#125;</span><br><span class="line">g_buf[g_tail] = i;</span><br><span class="line">g_tail = (g_tail + <span class="number">1</span>) % BUF_SIZE;</span><br><span class="line">g_count++;</span><br><span class="line"><span class="built_in">pthread_cond_signal</span>(&amp;g_not_empty);            <span class="comment">// 通知一个消费者：有数据了</span></span><br><span class="line"><span class="built_in">pthread_mutex_unlock</span>(&amp;g_mutex);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 消费者 */</span></span><br><span class="line"><span class="built_in">pthread_mutex_lock</span>(&amp;g_mutex);</span><br><span class="line"><span class="keyword">while</span> (g_count == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">pthread_cond_wait</span>(&amp;g_not_empty, &amp;g_mutex);</span><br><span class="line">    g_recheck++;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> v = g_buf[g_head];</span><br><span class="line">g_head = (g_head + <span class="number">1</span>) % BUF_SIZE;</span><br><span class="line">g_count--;</span><br><span class="line"><span class="built_in">pthread_cond_signal</span>(&amp;g_not_full);             <span class="comment">// 通知生产者：有空位了</span></span><br><span class="line"><span class="built_in">pthread_mutex_unlock</span>(&amp;g_mutex);</span><br></pre></td></tr></table></figure>
+<p><strong>信号量版的核心写法</strong>（<code>Thread-Sync/src/semaphore.cc</code>）：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 生产者 */</span></span><br><span class="line"><span class="built_in">sem_wait</span>(&amp;g_empty);                 <span class="comment">// P 操作：空槽 -1，没有空位就在这里阻塞</span></span><br><span class="line">g_buf[g_tail] = i;</span><br><span class="line">g_tail = (g_tail + <span class="number">1</span>) % BUF_SIZE;</span><br><span class="line"><span class="built_in">sem_post</span>(&amp;g_full);                  <span class="comment">// V 操作：已填槽 +1，唤醒消费者</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 消费者 */</span></span><br><span class="line"><span class="built_in">sem_wait</span>(&amp;g_full);                  <span class="comment">// 没有数据就阻塞</span></span><br><span class="line"><span class="type">int</span> v = g_buf[g_head];</span><br><span class="line">g_head = (g_head + <span class="number">1</span>) % BUF_SIZE;</span><br><span class="line"><span class="built_in">sem_post</span>(&amp;g_empty);</span><br></pre></td></tr></table></figure>
+<p><strong>C++
+版的核心写法</strong>（<code>Thread-Sync/src/mutex.cc</code>）：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 生产者：带超时 + 谓词的 wait_for，既能等条件，又能定期醒来自查&quot;该不该退出&quot;</span></span><br><span class="line">g_is_full.<span class="built_in">wait_for</span>(lock, std::chrono::<span class="built_in">milliseconds</span>(<span class="number">200</span>), [] &#123;</span><br><span class="line">    <span class="keyword">return</span> !g_is_running.<span class="built_in">load</span>() || g_queue.<span class="built_in">size</span>() &lt; MAX_QUEUE_SIZE;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 消费者</span></span><br><span class="line">g_is_empty.<span class="built_in">wait_for</span>(lock, std::chrono::<span class="built_in">milliseconds</span>(<span class="number">200</span>), [] &#123;</span><br><span class="line">    <span class="keyword">return</span> !g_is_running.<span class="built_in">load</span>() || !g_queue.<span class="built_in">empty</span>();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><strong>实测输出</strong>（<code>./mutex 3</code>，C++11 版，跑 3
+秒后自行退出）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">main() start：有界队列(max=100) 生产者-消费者，运行 3 秒（Ctrl+C 可提前结束）</span><br><span class="line">[消费者1] 退出，共消费 15 个</span><br><span class="line">[生产者] 退出，共生产 30 个</span><br><span class="line">[消费者2] 退出，共消费 6 个</span><br><span class="line">最终队列剩 9 个：生产 30 / 消费者1 消费 15 / 消费者2 消费 6</span><br><span class="line">main() end</span><br></pre></td></tr></table></figure>
+<p>生产 30 = 消费 15 + 消费 6 + 剩余
+9，<strong>账是平的</strong>——这也是验证生产者-消费者写对了的最简单办法：<strong>进出必须守恒</strong>。</p>
+<h3 id="两个实践要点">两个实践要点</h3>
+<p><strong>要点一：通知发在解锁前还是解锁后？</strong></p>
+<p>示例里统一是"<strong>先 <code>signal</code> 再
+<code>unlock</code></strong>"。原因：在不持锁时发通知，被唤醒的线程可能立刻抢占互斥锁却发现条件又不成立，于是白白多睡一轮（俗称"唤醒风暴"）；而持锁发通知虽然会让被唤醒者再等一下，但<strong>正确性不受影响</strong>。POSIX
+允许两种顺序，<strong>先通知后解锁是更常见的推荐写法</strong>。</p>
+<p><strong>要点二：<code>signal</code> 还是
+<code>broadcast</code>？</strong></p>
+<p>在上面这个"有界缓冲区"里，生产者只关心"有没有空位"，消费者只关心"有没有数据"，<strong>两份条件互不干扰</strong>，所以用
+<code>signal()</code>
+各叫一个最划算。但只要出现"<strong>等待者的条件不一样</strong>"（比如同时有"等队列非空"和"等队列为空"两类线程挂在同一个条件变量上），就必须用
+<code>broadcast()</code>——否则 <code>signal()</code>
+叫醒的可能是一个条件根本不成立的线程，而真正该干活的那个还在睡。</p>
+<blockquote>
+<p><strong>判断口诀</strong>：<strong>通知方不知道谁该醒，就用
+<code>broadcast()</code>。</strong> 图省心用 <code>broadcast()</code>
+永远不会错，只是效率略低。</p>
+</blockquote>
+<hr>
+<h2 id="常见坑清单">常见坑清单</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">坑</th>
+<th style="text-align: left;">现象</th>
+<th style="text-align: left;">正确做法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">用 <code>if</code> 包
+<code>pthread_cond_wait()</code></td>
+<td style="text-align: left;">偶发"空缓冲区取数 /
+满缓冲区放数"、要压测才炸</td>
+<td style="text-align: left;">一律用 <strong><code>while</code></strong>
+重新检查条件</td>
+</tr>
+<tr>
+<td style="text-align: left;">忘了配对 <code>unlock</code></td>
+<td style="text-align: left;">死锁，且很难定位</td>
+<td style="text-align: left;">每条返回路径都解锁；C++ 用
+<code>lock_guard</code> / <code>unique_lock</code></td>
+</tr>
+<tr>
+<td
+style="text-align: left;">临界区里做慢操作（<code>printf</code>/IO/malloc）</td>
+<td style="text-align: left;">并发退化成串行、吞吐暴跌</td>
+<td style="text-align: left;">只把真正共享的读写放进锁内</td>
+</tr>
+<tr>
+<td style="text-align: left;">多把锁加锁顺序不一致</td>
+<td style="text-align: left;">AB-BA 死锁</td>
+<td style="text-align: left;"><strong>全局统一加锁顺序</strong>；或用
+<code>trylock</code> 退避；C++17 用 <code>std::scoped_lock</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">加锁顺序一致但仍长时间持锁</td>
+<td style="text-align: left;">死锁没了，改成"互相等很久"</td>
+<td style="text-align: left;">缩小临界区、拆分锁粒度</td>
+</tr>
+<tr>
+<td style="text-align: left;">默认锁重复加锁</td>
+<td style="text-align: left;">直接死锁（Linux 上
+<code>DEFAULT == NORMAL</code>）</td>
+<td style="text-align: left;">需要重入就用
+<code>PTHREAD_MUTEX_RECURSIVE</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">用 <code>ERRORCHECK</code> 型"防死锁"</td>
+<td style="text-align: left;">以为加了它就不会死锁</td>
+<td
+style="text-align: left;">它只是<strong>返回错误码</strong>，不会帮你避免死锁；真正避免靠设计</td>
+</tr>
+<tr>
+<td style="text-align: left;">读写锁里 <code>rdlock</code> 加锁两次</td>
+<td style="text-align: left;">自己把自己卡死（读锁不递归）</td>
+<td style="text-align: left;">一次加锁一次解锁；读锁不能升级为写锁</td>
+</tr>
+<tr>
+<td style="text-align: left;">读写锁读多写多</td>
+<td style="text-align: left;">写线程饥饿，写操作延迟奇高</td>
+<td style="text-align: left;">读远多于写才用读写锁；必要时设写者优先
+<code>_NP</code> 属性</td>
+</tr>
+<tr>
+<td style="text-align: left;">统计信息用普通 <code>int</code></td>
+<td style="text-align: left;">锁保护下的数据没事，统计值自己出错</td>
+<td style="text-align: left;">统计量用 <code>std::atomic</code>
+或也放进锁里</td>
+</tr>
+<tr>
+<td style="text-align: left;">自旋锁用在长临界区/单核</td>
+<td style="text-align: left;">CPU 飙满、吞吐反降</td>
+<td
+style="text-align: left;">自旋锁只用于<strong>极短</strong>临界区</td>
+</tr>
+<tr>
+<td style="text-align: left;">自旋锁临界区里 <code>printf</code></td>
+<td style="text-align: left;">线程"自旋"到天荒地老</td>
+<td style="text-align: left;">临界区不阻塞、不调用外部函数</td>
+</tr>
+<tr>
+<td style="text-align: left;">自旋锁重复加锁</td>
+<td
+style="text-align: left;"><strong>必然死锁</strong>（自旋锁不可递归）</td>
+<td style="text-align: left;">一次加锁一次解锁</td>
+</tr>
+<tr>
+<td style="text-align: left;">拿 <code>sem_getvalue()</code>
+判断能否取</td>
+<td style="text-align: left;">TOCTOU 竞态，偶发取到空资源</td>
+<td style="text-align: left;">用 <code>sem_trywait()</code>
+试；<code>getvalue</code> 只用于观测</td>
+</tr>
+<tr>
+<td style="text-align: left;">用 <code>errno</code> 判断
+<code>pthread_*</code> 成败</td>
+<td style="text-align: left;">判断永远不成立</td>
+<td style="text-align: left;"><code>pthread_*</code>
+看<strong>返回值</strong>；<code>sem_*</code> 才看
+<code>errno</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_mutex_t</code>
+被赋值/拷贝</td>
+<td style="text-align: left;">未定义行为，锁状态错乱</td>
+<td style="text-align: left;">锁和数据成对定义，只按引用/指针传</td>
+</tr>
+<tr>
+<td style="text-align: left;">销毁正在使用/等待中的锁</td>
+<td style="text-align: left;">未定义行为</td>
+<td style="text-align: left;"><code>destroy</code>
+前确保无人在用；<code>EBUSY</code> 就是提醒</td>
+</tr>
+<tr>
+<td style="text-align: left;">多线程里 <code>fork()</code> 后动锁</td>
+<td style="text-align: left;">子进程继承了"被别的线程持有着"的锁 →
+死锁</td>
+<td style="text-align: left;">fork 后 exec
+前只调<strong>异步信号安全函数</strong>，或用
+<code>pthread_atfork()</code>（见 <a
+href="/posts/linux-thread.html">线程基本概念</a>）</td>
+</tr>
+<tr>
+<td style="text-align: left;">靠"跑一遍没问题"判断没有竞态</td>
+<td style="text-align: left;">换优化等级/换机器就复现</td>
+<td style="text-align: left;">用
+<code>-fsanitize=thread</code>（TSan）编译检测；见下方"验证工具"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="验证工具让竞态无处可藏">验证工具：让竞态无处可藏</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">工具</th>
+<th style="text-align: left;">用法</th>
+<th style="text-align: left;">能发现什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td
+style="text-align: left;"><strong>TSan</strong>（ThreadSanitizer）</td>
+<td
+style="text-align: left;"><code>g++ -fsanitize=thread -g main.cc -o app</code></td>
+<td
+style="text-align: left;"><strong>数据竞争</strong>（报告"哪两行、哪两个线程"），多线程调试首选</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Helgrind /
+DRD</strong>（valgrind）</td>
+<td
+style="text-align: left;"><code>valgrind --tool=helgrind ./app</code></td>
+<td style="text-align: left;">数据竞争、锁顺序问题、死锁风险（比 TSan
+慢很多）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>std::atomic 的 TSan
+注解</strong></td>
+<td style="text-align: left;">—</td>
+<td style="text-align: left;">自己写的无锁代码 TSan 会误报，需要
+<code>ANNOTATE_HAPPENS_BEFORE</code> 之类标注</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><strong><code>-fsanitize=address</code></strong></td>
+<td style="text-align: left;">与多线程无关但常一起用</td>
+<td
+style="text-align: left;">越界、释放后使用（多线程里"数据被别的线程释放了"很常见）</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>实测提醒：本笔记的 <code>race_condition.cc</code> 在
+<strong>Release（<code>-O2</code>）</strong> 下不加
+<code>volatile</code>
+时竞态会"消失"（编译器把变量缓存进了寄存器）。<strong>这类问题 TSan
+能抓到，肉眼看代码/跑测试抓不到</strong>——所以并发代码"能编译、能跑出对的数"完全不能证明它是对的。</p>
+</blockquote>
+<hr>
+<h2 id="附本笔记涉及的函数速查">附：本笔记涉及的函数速查</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">所属章节</th>
+<th style="text-align: left;">一句话作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td
+style="text-align: left;"><code>PTHREAD_MUTEX_INITIALIZER</code></td>
+<td style="text-align: left;">互斥锁</td>
+<td style="text-align: left;">静态初始化互斥锁（等价于默认属性）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_mutex_init()</code></td>
+<td style="text-align: left;">互斥锁</td>
+<td style="text-align: left;">动态初始化互斥锁，可指定属性</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_mutex_lock()</code></td>
+<td style="text-align: left;">互斥锁</td>
+<td style="text-align: left;">加锁，拿不到就阻塞</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_mutex_unlock()</code></td>
+<td style="text-align: left;">互斥锁</td>
+<td style="text-align: left;">解锁，唤醒一个等待者</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_mutex_trylock()</code></td>
+<td style="text-align: left;">互斥锁</td>
+<td style="text-align: left;">尝试加锁，失败立即返回
+<code>EBUSY</code></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_mutex_timedlock()</code></td>
+<td style="text-align: left;">互斥锁</td>
+<td style="text-align: left;">限时加锁，超时返回
+<code>ETIMEDOUT</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_mutex_destroy()</code></td>
+<td style="text-align: left;">互斥锁</td>
+<td style="text-align: left;">销毁互斥锁（不能销毁正被持有的锁）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_mutexattr_init()</code></td>
+<td style="text-align: left;">互斥锁属性</td>
+<td style="text-align: left;">用默认值初始化属性对象</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_mutexattr_destroy()</code></td>
+<td style="text-align: left;">互斥锁属性</td>
+<td style="text-align: left;">销毁属性对象</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_mutexattr_settype()</code></td>
+<td style="text-align: left;">互斥锁属性</td>
+<td
+style="text-align: left;">设置锁类型（NORMAL/ERRORCHECK/RECURSIVE/DEFAULT）</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_mutexattr_gettype()</code></td>
+<td style="text-align: left;">互斥锁属性</td>
+<td style="text-align: left;">读取锁类型</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_mutexattr_setpshared()</code> /
+<code>getpshared()</code></td>
+<td style="text-align: left;">互斥锁属性</td>
+<td style="text-align: left;">设置 / 获取进程共享属性</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>std::mutex</code> /
+<code>std::lock_guard</code> / <code>std::unique_lock</code> /
+<code>std::scoped_lock</code></td>
+<td style="text-align: left;">现代 C++ 写法</td>
+<td style="text-align: left;">RAII 封装，异常安全、不漏解锁</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PTHREAD_COND_INITIALIZER</code></td>
+<td style="text-align: left;">条件变量</td>
+<td style="text-align: left;">静态初始化条件变量</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_cond_init()</code> /
+<code>pthread_cond_destroy()</code></td>
+<td style="text-align: left;">条件变量</td>
+<td style="text-align: left;">动态初始化 / 销毁条件变量</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_cond_wait()</code></td>
+<td style="text-align: left;">条件变量</td>
+<td style="text-align: left;">原子解锁 + 睡眠，被唤醒后重新加锁</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_cond_timedwait()</code></td>
+<td style="text-align: left;">条件变量</td>
+<td style="text-align: left;">限时等待，超时返回
+<code>ETIMEDOUT</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_cond_signal()</code></td>
+<td style="text-align: left;">条件变量</td>
+<td style="text-align: left;">至少唤醒一个等待线程</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_cond_broadcast()</code></td>
+<td style="text-align: left;">条件变量</td>
+<td style="text-align: left;">唤醒所有等待线程</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_condattr_setclock()</code> /
+<code>getclock()</code></td>
+<td style="text-align: left;">条件变量属性</td>
+<td style="text-align: left;">指定 <code>timedwait</code>
+使用的时钟（<code>CLOCK_MONOTONIC</code> 更稳）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_condattr_setpshared()</code>
+/ <code>getpshared()</code></td>
+<td style="text-align: left;">条件变量属性</td>
+<td style="text-align: left;">设置 / 获取进程共享属性</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>PTHREAD_RWLOCK_INITIALIZER</code></td>
+<td style="text-align: left;">读写锁</td>
+<td style="text-align: left;">静态初始化读写锁</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_rwlock_init()</code> /
+<code>pthread_rwlock_destroy()</code></td>
+<td style="text-align: left;">读写锁</td>
+<td style="text-align: left;">动态初始化 / 销毁读写锁</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_rwlock_rdlock()</code></td>
+<td style="text-align: left;">读写锁</td>
+<td style="text-align: left;">读模式加锁（共享，可多个读者）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_rwlock_wrlock()</code></td>
+<td style="text-align: left;">读写锁</td>
+<td style="text-align: left;">写模式加锁（独占）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_rwlock_tryrdlock()</code> /
+<code>trywrlock()</code></td>
+<td style="text-align: left;">读写锁</td>
+<td style="text-align: left;">不阻塞的读 / 写尝试加锁，失败返回
+<code>EBUSY</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_rwlock_timedrdlock()</code>
+/ <code>timedwrlock()</code></td>
+<td style="text-align: left;">读写锁</td>
+<td style="text-align: left;">限时版读 / 写加锁</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_rwlock_unlock()</code></td>
+<td style="text-align: left;">读写锁</td>
+<td style="text-align: left;">解锁（读锁写锁共用这一个函数）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_rwlockattr_init()</code> /
+<code>destroy()</code></td>
+<td style="text-align: left;">读写锁属性</td>
+<td style="text-align: left;">初始化 / 销毁读写锁属性对象</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_rwlockattr_setpshared()</code> /
+<code>getpshared()</code></td>
+<td style="text-align: left;">读写锁属性</td>
+<td style="text-align: left;">设置 / 获取进程共享属性</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>pthread_rwlockattr_setkind_np()</code></td>
+<td style="text-align: left;">读写锁属性</td>
+<td style="text-align: left;">设读者/写者优先（glibc
+扩展，<code>_NP</code>）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_spin_init()</code> /
+<code>pthread_spin_destroy()</code></td>
+<td style="text-align: left;">自旋锁</td>
+<td style="text-align: left;">初始化 / 销毁自旋锁（须指定
+<code>pshared</code>）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_spin_lock()</code></td>
+<td style="text-align: left;">自旋锁</td>
+<td style="text-align: left;">加锁，拿不到就在原地自旋</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_spin_trylock()</code></td>
+<td style="text-align: left;">自旋锁</td>
+<td style="text-align: left;">尝试加锁，失败立即返回
+<code>EBUSY</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pthread_spin_unlock()</code></td>
+<td style="text-align: left;">自旋锁</td>
+<td style="text-align: left;">解锁</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_init()</code> /
+<code>sem_destroy()</code></td>
+<td style="text-align: left;">信号量</td>
+<td style="text-align: left;">初始化 /
+销毁无名信号量（初值决定语义）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_wait()</code></td>
+<td style="text-align: left;">信号量</td>
+<td style="text-align: left;">P 操作：计数 -1，为 0 则阻塞</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_trywait()</code></td>
+<td style="text-align: left;">信号量</td>
+<td style="text-align: left;">P 操作非阻塞版（不能减返回
+<code>EAGAIN</code>）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_timedwait()</code></td>
+<td style="text-align: left;">信号量</td>
+<td style="text-align: left;">P 操作限时版（超时返回
+<code>ETIMEDOUT</code>）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_post()</code></td>
+<td style="text-align: left;">信号量</td>
+<td style="text-align: left;">V 操作：计数 +1
+并唤醒等待者（信号安全）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_getvalue()</code></td>
+<td style="text-align: left;">信号量</td>
+<td
+style="text-align: left;">读取当前计数（仅供观测，不可当判断条件）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sem_open()</code> /
+<code>sem_close()</code> / <code>sem_unlink()</code></td>
+<td style="text-align: left;">信号量</td>
+<td style="text-align: left;">有名信号量：创建打开 / 关闭 /
+删除（可跨进程）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>std::atomic&lt;T&gt;</code></td>
+<td style="text-align: left;">补充</td>
+<td style="text-align: left;">单变量无锁原子操作（见 C++
+原子变量基础总结）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="参考">参考</h2>
+<ul>
+<li><p>《Linux 应用编程》线程同步章节（本文摘抄来源）</p></li>
+<li><p><code>man 3 pthread_mutex_init</code> /
+<code>man 3 pthread_mutex_lock</code> /
+<code>man 3 pthread_mutex_unlock</code> /
+<code>man 3 pthread_mutex_trylock</code> /
+<code>man 3 pthread_mutex_timedlock</code> /
+<code>man 3 pthread_mutex_destroy</code> /
+<code>man 3 pthread_mutexattr_init</code> /
+<code>man 3 pthread_mutexattr_settype</code></p></li>
+<li><p><code>man 3 pthread_cond_init</code> /
+<code>man 3 pthread_cond_wait</code> /
+<code>man 3 pthread_cond_timedwait</code> /
+<code>man 3 pthread_cond_signal</code> /
+<code>man 3 pthread_cond_broadcast</code> /
+<code>man 3 pthread_condattr_setclock</code></p></li>
+<li><p><code>man 3 pthread_rwlock_init</code> /
+<code>man 3 pthread_rwlock_rdlock</code> /
+<code>man 3 pthread_rwlock_wrlock</code> /
+<code>man 3 pthread_rwlock_unlock</code> /
+<code>man 3 pthread_rwlockattr_setkind_np</code></p></li>
+<li><p><code>man 3 pthread_spin_init</code> /
+<code>man 3 pthread_spin_lock</code> /
+<code>man 3 pthread_spin_trylock</code> /
+<code>man 3 pthread_spin_unlock</code></p></li>
+<li><p><code>man 3 sem_init</code> / <code>man 3 sem_wait</code> /
+<code>man 3 sem_post</code> / <code>man 3 sem_getvalue</code> /
+<code>man 3 sem_open</code></p></li>
+<li><p><code>man 7 pthreads</code>：多线程接口总览；<code>man 7 signal</code>：异步信号安全函数清单（含
+<code>sem_post</code>）</p></li>
+<li><p>配套示例代码（宿主机
+<code>/data/build/ubuntu-22.04-gcc/root/linux/Thread-Sync/src/</code>）：
+<code>race_condition</code> / <code>pthread_mutex</code> /
+<code>pthread_mutexattr</code> / <code>deadlock</code> /
+<code>pthread_cond</code> / <code>mutex</code> / <code>rwlock</code> /
+<code>spin_lock</code> / <code>semaphore</code></p></li>
+<li><p>配套示例代码（GitHub）：<a
+target="_blank" rel="noopener" href="https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux/tree/main/Thread-Sync/src"
+class="uri">https://github.com/uek2233/NAS-Ubuntu-Gcc-Linux/tree/main/Thread-Sync/src</a></p></li>
+<li><p>相关笔记：<a
+href="/posts/linux-thread.html">线程基本概念</a>、C++
+原子变量基础总结、<a href="/posts/linux-process.html">进程基础</a>、<a
+href="/posts/linux-signal.html">信号</a></p></li>
+</ul>
+<hr />
+<h2 id="本系列文章">📚 本系列文章</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">#</th>
+<th style="text-align: left;">文章</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: left;"><a href="/posts/linux-stdio.html">Linux
+应用编程：标准文件 IO</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: left;"><a
+href="/posts/linux-file-attr.html">Linux
+应用编程：文件属性与目录</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: left;"><a href="/posts/linux-string.html">Linux
+应用编程：字符串处理函数全解</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td style="text-align: left;"><a href="/posts/linux-sysinfo.html">Linux
+应用编程：系统信息与资源</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td style="text-align: left;"><a href="/posts/linux-signal.html">Linux
+应用编程：信号</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">6</td>
+<td style="text-align: left;"><a href="/posts/linux-process.html">Linux
+应用编程：进程基础</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">7</td>
+<td style="text-align: left;"><a href="/posts/linux-thread.html">Linux
+应用编程：线程基本概念</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">8</td>
+<td style="text-align: left;"><a
+href="/posts/linux-thread-sync.html">Linux 应用编程：线程同步</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">9</td>
+<td style="text-align: left;"><a
+href="/posts/linux-advanced-io.html">Linux 应用编程：高级 IO</a></td>
+</tr>
+</tbody>
+</table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xxh123.online">Kikyo</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xxh123.online/posts/linux-thread-sync.html">https://xxh123.online/posts/linux-thread-sync.html</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://xxh123.online" target="_blank">Kikyo</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Linux/">Linux</a><a class="post-meta__tags" href="/tags/%E7%BA%BF%E7%A8%8B/">线程</a><a class="post-meta__tags" href="/tags/pthread/">pthread</a><a class="post-meta__tags" href="/tags/%E4%BA%92%E6%96%A5%E9%94%81/">互斥锁</a><a class="post-meta__tags" href="/tags/%E6%9D%A1%E4%BB%B6%E5%8F%98%E9%87%8F/">条件变量</a></div><div class="post_share"><div class="social-share" data-image="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/12_photo_2026-11-15_15-33-39.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/posts/linux-advanced-io.html" title="Linux 应用编程：高级 IO"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/13_photo_2026-11-15_15-33-42.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Linux 应用编程：高级 IO</div></div></a></div><div class="next-post pull-right"><a href="/posts/linux-thread.html" title="Linux 应用编程：线程基本概念"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/11_photo_2026-11-15_15-33-36.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Linux 应用编程：线程基本概念</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/posts/linux-thread.html" title="Linux 应用编程：线程基本概念"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/11_photo_2026-11-15_15-33-36.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-15</div><div class="title">Linux 应用编程：线程基本概念</div></div></a></div><div><a href="/posts/af-unix-ipc.html" title="Unix域套接字（AF_UNIX）实现进程间双向通信"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260828001706915.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-28</div><div class="title">Unix域套接字（AF_UNIX）实现进程间双向通信</div></div></a></div><div><a href="/posts/jsoncpp-guide.html" title="JSONcpp 完整使用指南"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260716232238119.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-16</div><div class="title">JSONcpp 完整使用指南</div></div></a></div><div><a href="/posts/79494db.html" title="Docker 使用手册"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260705232331789.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-05</div><div class="title">Docker 使用手册</div></div></a></div><div><a href="/posts/86a23c4b.html" title="CMake 的使用方法"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260705235814295.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-07</div><div class="title">CMake 的使用方法</div></div></a></div><div><a href="/posts/697f8e4b.html" title="shell 语法"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260707000813836.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-07</div><div class="title">shell 语法</div></div></a></div></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/202405192117137.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Kikyo</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">51</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">58</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ywj77"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon faa-parent animated-hover" href="https://github.com/ywj77" target="_blank" title="Github"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-github"></use></svg></a><a class="social-icon faa-parent animated-hover" href="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&amp;email=3442237157@qq.com" target="_blank" title="Email"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-youjian1"></use></svg></a><a class="social-icon faa-parent animated-hover" href="/atom.xml" target="_blank" title="RSS"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-rss"></use></svg></a><a class="social-icon faa-parent animated-hover" href="https://space.bilibili.com/3546385680959950" target="_blank" title="BiliBili"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-wf_Bzhan"></use></svg></a><a class="social-icon faa-parent animated-hover" href="tencent://Message/?Uin=3442237157&amp;amp;websiteName=local.edu.com:8888=&amp;amp;Menu=yes" target="_blank" title="QQ"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-qq"></use></svg></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5thread-synchronization"><span class="toc-number">1.</span> <span class="toc-text">线程同步（Thread
+Synchronization）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E5%A5%97%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81%E7%B4%A2%E5%BC%95github"><span class="toc-number">1.1.</span> <span class="toc-text">配套示例代码索引（GitHub）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5"><span class="toc-number">1.2.</span> <span class="toc-text">为什么需要线程同步</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B1%E4%BA%AB%E8%B5%84%E6%BA%90%E4%B8%8E%E4%B8%B4%E7%95%8C%E5%8C%BA"><span class="toc-number">1.2.1.</span> <span class="toc-text">共享资源与临界区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%9E%E6%80%81%E6%9D%A1%E4%BB%B6race-condition"><span class="toc-number">1.2.2.</span> <span class="toc-text">竞态条件（Race Condition）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%8C%E6%AD%A5%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E4%B8%89%E4%BB%B6%E4%BA%8B"><span class="toc-number">1.2.3.</span> <span class="toc-text">同步要解决的三件事</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%8C%E6%AD%A5%E5%B7%A5%E5%85%B7%E4%B8%80%E8%A7%88%E5%AF%BC%E8%A7%88"><span class="toc-number">1.2.4.</span> <span class="toc-text">同步工具一览（导览）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%92%E6%96%A5%E9%94%81mutex"><span class="toc-number">1.3.</span> <span class="toc-text">互斥锁（Mutex）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%92%E6%96%A5%E9%94%81%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">1.3.1.</span> <span class="toc-text">互斥锁的初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pthread_mutex_lock-%E5%8A%A0%E9%94%81"><span class="toc-number">1.3.2.</span> <span class="toc-text">pthread_mutex_lock() — 加锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pthread_mutex_unlock-%E8%A7%A3%E9%94%81"><span class="toc-number">1.3.3.</span> <span class="toc-text">pthread_mutex_unlock() — 解锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pthread_mutex_trylock-%E5%B0%9D%E8%AF%95%E5%8A%A0%E9%94%81"><span class="toc-number">1.3.4.</span> <span class="toc-text">pthread_mutex_trylock() —
+尝试加锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pthread_mutex_timedlock-%E9%99%90%E6%97%B6%E5%8A%A0%E9%94%81%E8%A1%A5%E5%85%85"><span class="toc-number">1.3.5.</span> <span class="toc-text">pthread_mutex_timedlock()
+— 限时加锁（补充）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pthread_mutex_destroy-%E9%94%80%E6%AF%81%E4%BA%92%E6%96%A5%E9%94%81"><span class="toc-number">1.3.6.</span> <span class="toc-text">pthread_mutex_destroy() —
+销毁互斥锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%92%E6%96%A5%E9%94%81%E6%AD%BB%E9%94%81"><span class="toc-number">1.3.7.</span> <span class="toc-text">互斥锁死锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%92%E6%96%A5%E9%94%81%E7%9A%84%E5%B1%9E%E6%80%A7"><span class="toc-number">1.3.8.</span> <span class="toc-text">互斥锁的属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pthread_mutexattr_init-pthread_mutexattr_destroy-%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E9%94%80%E6%AF%81%E5%B1%9E%E6%80%A7%E5%AF%B9%E8%B1%A1"><span class="toc-number">1.3.9.</span> <span class="toc-text">pthread_mutexattr_init()
+&#x2F; pthread_mutexattr_destroy() — 初始化与销毁属性对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pthread_mutexattr_settype-pthread_mutexattr_gettype-%E7%B1%BB%E5%9E%8B%E5%B1%9E%E6%80%A7"><span class="toc-number">1.3.10.</span> <span class="toc-text">pthread_mutexattr_settype()
+&#x2F; pthread_mutexattr_gettype() — 类型属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9B%E7%A7%8D%E4%BA%92%E6%96%A5%E9%94%81%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.3.11.</span> <span class="toc-text">四种互斥锁类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8E%B0%E4%BB%A3-c-%E5%86%99%E6%B3%95%E8%A1%A5%E5%85%85"><span class="toc-number">1.3.12.</span> <span class="toc-text">现代 C++ 写法（补充）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9D%A1%E4%BB%B6%E5%8F%98%E9%87%8Fcondition-variable"><span class="toc-number">1.4.</span> <span class="toc-text">条件变量（Condition Variable）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9D%A1%E4%BB%B6%E5%8F%98%E9%87%8F%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">1.4.1.</span> <span class="toc-text">条件变量的初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%9A%E7%9F%A5%E5%92%8C%E7%AD%89%E5%BE%85%E6%9D%A1%E4%BB%B6%E5%8F%98%E9%87%8F"><span class="toc-number">1.4.2.</span> <span class="toc-text">通知和等待条件变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pthread_cond_wait-%E7%AD%89%E5%BE%85%E6%9D%A1%E4%BB%B6"><span class="toc-number">1.4.3.</span> <span class="toc-text">pthread_cond_wait() — 等待条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9D%A1%E4%BB%B6%E5%8F%98%E9%87%8F%E7%9A%84%E5%88%A4%E6%96%AD%E6%9D%A1%E4%BB%B6%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%85%E9%A1%BB%E7%94%A8-while-%E8%80%8C%E4%B8%8D%E6%98%AF-if"><span class="toc-number">1.4.4.</span> <span class="toc-text">条件变量的判断条件，为什么必须用
+while 而不是 if</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pthread_cond_timedwait-%E9%99%90%E6%97%B6%E7%AD%89%E5%BE%85%E8%A1%A5%E5%85%85"><span class="toc-number">1.4.5.</span> <span class="toc-text">pthread_cond_timedwait() —
+限时等待（补充）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9D%A1%E4%BB%B6%E5%8F%98%E9%87%8F%E7%9A%84%E5%B1%9E%E6%80%A7%E8%A1%A5%E5%85%85"><span class="toc-number">1.4.6.</span> <span class="toc-text">条件变量的属性（补充）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%BB%E5%86%99%E9%94%81read-write-lock"><span class="toc-number">1.5.</span> <span class="toc-text">读写锁（Read-Write Lock）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%BB%E5%86%99%E9%94%81%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">1.5.1.</span> <span class="toc-text">读写锁的初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%BB%E5%86%99%E9%94%81%E4%B8%8A%E9%94%81%E5%92%8C%E8%A7%A3%E9%94%81"><span class="toc-number">1.5.2.</span> <span class="toc-text">读写锁上锁和解锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%BB%E5%86%99%E9%94%81%E7%9A%84%E5%B1%9E%E6%80%A7"><span class="toc-number">1.5.3.</span> <span class="toc-text">读写锁的属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%BB%E5%86%99%E9%94%81%E7%9A%84%E4%B8%A4%E4%B8%AA%E5%9D%91%E9%87%8D%E7%82%B9"><span class="toc-number">1.5.4.</span> <span class="toc-text">读写锁的两个坑（重点）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%87%AA%E6%97%8B%E9%94%81spin-lock"><span class="toc-number">1.6.</span> <span class="toc-text">自旋锁（Spin Lock）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E6%97%8B%E9%94%81%E4%B8%8E%E4%BA%92%E6%96%A5%E9%94%81%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">1.6.1.</span> <span class="toc-text">自旋锁与互斥锁的区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E6%97%8B%E9%94%81%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">1.6.2.</span> <span class="toc-text">自旋锁初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E6%97%8B%E9%94%81%E5%8A%A0%E9%94%81%E5%92%8C%E8%A7%A3%E9%94%81"><span class="toc-number">1.6.3.</span> <span class="toc-text">自旋锁加锁和解锁</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%A1%E5%8F%B7%E9%87%8Fsemaphore"><span class="toc-number">1.7.</span> <span class="toc-text">信号量（Semaphore）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#sem_init-sem_destroy-%E6%97%A0%E5%90%8D%E4%BF%A1%E5%8F%B7%E9%87%8F%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E9%94%80%E6%AF%81"><span class="toc-number">1.7.1.</span> <span class="toc-text">sem_init() &#x2F;
+sem_destroy() — 无名信号量的初始化与销毁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sem_wait-sem_post-p-%E6%93%8D%E4%BD%9C%E4%B8%8E-v-%E6%93%8D%E4%BD%9C"><span class="toc-number">1.7.2.</span> <span class="toc-text">sem_wait() &#x2F; sem_post() — P
+操作与 V 操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%89%E5%90%8D%E4%BF%A1%E5%8F%B7%E9%87%8F%E8%A1%A5%E5%85%85%E5%8F%AF%E8%B7%A8%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.7.3.</span> <span class="toc-text">有名信号量（补充，可跨进程）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E7%A7%8D%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6%E6%A8%AA%E5%90%91%E5%AF%B9%E6%AF%94"><span class="toc-number">1.8.</span> <span class="toc-text">四种同步机制横向对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E6%88%98%E7%94%9F%E4%BA%A7%E8%80%85-%E6%B6%88%E8%B4%B9%E8%80%85%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.9.</span> <span class="toc-text">实战：生产者-消费者模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E7%A7%8D%E5%AE%9E%E7%8E%B0%E5%AF%B9%E7%85%A7"><span class="toc-number">1.9.1.</span> <span class="toc-text">三种实现对照</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A4%E4%B8%AA%E5%AE%9E%E8%B7%B5%E8%A6%81%E7%82%B9"><span class="toc-number">1.9.2.</span> <span class="toc-text">两个实践要点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%9D%91%E6%B8%85%E5%8D%95"><span class="toc-number">1.10.</span> <span class="toc-text">常见坑清单</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E5%B7%A5%E5%85%B7%E8%AE%A9%E7%AB%9E%E6%80%81%E6%97%A0%E5%A4%84%E5%8F%AF%E8%97%8F"><span class="toc-number">1.10.1.</span> <span class="toc-text">验证工具：让竞态无处可藏</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E6%9C%AC%E7%AC%94%E8%AE%B0%E6%B6%89%E5%8F%8A%E7%9A%84%E5%87%BD%E6%95%B0%E9%80%9F%E6%9F%A5"><span class="toc-number">1.11.</span> <span class="toc-text">附：本笔记涉及的函数速查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">1.12.</span> <span class="toc-text">参考</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AC%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0"><span class="toc-number">1.13.</span> <span class="toc-text">📚 本系列文章</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-advanced-io.html" title="Linux 应用编程：高级 IO"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/13_photo_2026-11-15_15-33-42.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：高级 IO"/></a><div class="content"><a class="title" href="/posts/linux-advanced-io.html" title="Linux 应用编程：高级 IO">Linux 应用编程：高级 IO</a><time datetime="2026-11-15T09:00:00.000Z" title="发表于 2026-11-15 17:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-thread-sync.html" title="Linux 应用编程：线程同步"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/12_photo_2026-11-15_15-33-39.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：线程同步"/></a><div class="content"><a class="title" href="/posts/linux-thread-sync.html" title="Linux 应用编程：线程同步">Linux 应用编程：线程同步</a><time datetime="2026-11-15T08:00:00.000Z" title="发表于 2026-11-15 16:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-thread.html" title="Linux 应用编程：线程基本概念"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/11_photo_2026-11-15_15-33-36.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：线程基本概念"/></a><div class="content"><a class="title" href="/posts/linux-thread.html" title="Linux 应用编程：线程基本概念">Linux 应用编程：线程基本概念</a><time datetime="2026-11-15T07:00:00.000Z" title="发表于 2026-11-15 15:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-process.html" title="Linux 应用编程：进程基础"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/08_photo_2026-11-15_15-33-19.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：进程基础"/></a><div class="content"><a class="title" href="/posts/linux-process.html" title="Linux 应用编程：进程基础">Linux 应用编程：进程基础</a><time datetime="2026-11-15T06:00:00.000Z" title="发表于 2026-11-15 14:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-signal.html" title="Linux 应用编程：信号"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/07_photo_2026-11-15_15-33-22.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：信号"/></a><div class="content"><a class="title" href="/posts/linux-signal.html" title="Linux 应用编程：信号">Linux 应用编程：信号</a><time datetime="2026-11-15T05:00:00.000Z" title="发表于 2026-11-15 13:00:00">2026-11-15</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2026 By Kikyo</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>if (!window.MathJax) {
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      tags: 'ams'
+    },
+    chtml: {
+      scale: 1.1
+    },
+    options: {
+      renderActions: {
+        findScript: [10, doc => {
+          for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+            const display = !!node.type.match(/; *mode=display/)
+            const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+            const text = document.createTextNode('')
+            node.parentNode.replaceChild(text, node)
+            math.start = {node: text, delim: '', n: 0}
+            math.end = {node: text, delim: '', n: 0}
+            doc.math.push(math)
+          }
+        }, '']
+      }
+    }
+  }
+  
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js'
+  script.id = 'MathJax-script'
+  script.async = true
+  document.head.appendChild(script)
+} else {
+  MathJax.startup.document.state(0)
+  MathJax.texReset()
+  MathJax.typesetPromise()
+}</script><script>(() => {
+  const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaid.length === 0) return
+  const runMermaid = () => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    Array.from($mermaid).forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+      const mermaidID = 'mermaid-' + index
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+
+      const renderV10 = () => {
+        renderFn.then(({svg}) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svg)
+        })
+      }
+
+      const renderV9 = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      typeof renderFn === 'string' ? renderV9(renderFn) : renderV10()
+    })
+  }
+
+  const loadMermaid = () => {
+    window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js').then(runMermaid)
+  }
+
+  btf.addGlobalFn('themeChange', runMermaid, 'mermaid')
+
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://twikoo.xxh123.online/',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = () => {
+    twikoo.init(Object.assign({
+      el: '#twikoo-wrap',
+      envId: 'https://twikoo.xxh123.online/',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      }
+    }, null))
+
+    
+  }
+
+  const loadTwikoo = () => {
+    if (typeof twikoo === 'object') setTimeout(init,0)
+    else getScript('https://cdn.jsdelivr.net/npm/twikoo@1.6.31/dist/twikoo.all.min.js').then(init)
+  }
+
+  if ('Twikoo' === 'Twikoo' || !true) {
+    if (true) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script></div><div class="aplayer no-destroy" data-id="10081861680" data-server="netease" data-type="playlist"   data-order="list" data-fixed="true" data-preload="auto" data-autoplay="false" data-mutex="true" ></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener
+  btf.removeGlobalFnEvent('pjax')
+  btf.removeGlobalFnEvent('themeChange')
+
+  document.getElementById('rightside').classList.remove('rightside-show')
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', e => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><div class="app-refresh" id="app-refresh" style="position: fixed;top: -2.2rem;left: 0;right: 0;z-index: 99999;padding: 0 1rem;font-size: 15px;height: 2.2rem;transition: all 0.3s ease;"><div class="app-refresh-wrap" style=" display: flex;color: #fff;height: 100%;align-items: center;justify-content: center;"><label>✨ 有新文章啦！ 👉</label><a href="javascript:void(0)" onclick="location.reload()"><span style="color: #fff;text-decoration: underline;cursor: pointer;">🍗点击食用🍔</span></a></div></div><script>if ('serviceWorker' in navigator) {
+if (navigator.serviceWorker.controller) {
+navigator.serviceWorker.addEventListener('controllerchange', function() {
+showNotification()
+})
+}
+window.addEventListener('load', function() {
+navigator.serviceWorker.register('/sw.js')
+})
+}
+function showNotification() {
+if (GLOBAL_CONFIG.Snackbar) {
+var snackbarBg =
+document.documentElement.getAttribute('data-theme') === 'light' ?
+GLOBAL_CONFIG.Snackbar.bgLight :
+GLOBAL_CONFIG.Snackbar.bgDark
+var snackbarPos = GLOBAL_CONFIG.Snackbar.position
+Snackbar.show({
+text: '✨ 有新文章啦！ 👉',
+backgroundColor: snackbarBg,
+duration: 500000,
+pos: snackbarPos,
+actionText: '🍗点击食用🍔',
+actionTextColor: '#fff',
+onActionClick: function(e) {
+location.reload()
+},
+})
+} else {
+var showBg =
+document.documentElement.getAttribute('data-theme') === 'light' ?
+'#3b70fc' :
+'#1f1f1f'
+var cssText = `top: 0; background: ${showBg};`
+document.getElementById('app-refresh').style.cssText = cssText
+}
+}</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_footer_beautify_injector_config(){
+    var parent_div_git = document.getElementById('footer-wrap');
+    var item_html = '<div id="workboard"></div><p id="ghbdages"><a class="github-badge" target="_blank" href="https://hexo.io/" style="margin-inline:5px" data-title="博客框架为Hexo_v5.4.0" title=""><img src="https://img.shields.io/badge/Frame-Hexo-blue?style=flat&amp;logo=hexo" alt=""/></a><a class="github-badge" target="_blank" href="https://butterfly.js.org/" style="margin-inline:5px" data-title="主题版本Butterfly_v4.2.2" title=""><img src="https://img.shields.io/badge/Theme-Butterfly-6513df?style=flat&amp;logo=bitdefender" alt=""/></a><a class="github-badge" target="_blank" href="https://www.jsdelivr.com/" style="margin-inline:5px" data-title="本站使用JsDelivr为静态资源提供CDN加速" title=""><img src="https://img.shields.io/badge/CDN-jsDelivr-orange?style=flat&amp;logo=jsDelivr" alt=""/></a><a class="github-badge" target="_blank" href="https://beian.miit.gov.cn/#/Integrated/index" style="margin-inline:5px" data-title="本站已在湘进行备案" title=""><img src="https://img.shields.io/badge/湘ICP备-2022004213号-e1d492?style=flat&amp;logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAdCAYAAAC9pNwMAAABS2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDIgNzkuMTYwOTI0LCAyMDE3LzA3LzEzLTAxOjA2OjM5ICAgICAgICAiPgogPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIi8+CiA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgo8P3hwYWNrZXQgZW5kPSJyIj8+nhxg7wAACNlJREFUSInF1mmMVeUdx/Hv2e+5+519mJWBYQZkGxZZxLKJqBXGoLS1iXWrmihotFXaJiTWWlsbl6q1aetWd5u0VkKjNG4YEJSlOCibDLMwM8x679z9nnPP1jcVJUxf+7z6J8+LT37/Z4VvaQhfFS8+sBXbctCDGrVTKlBUH4mxAbI9Hfj0IJLsp6paJ5/tmn20N/D0wKDRMq9F/c3M2U1/V0vDfWMFh+tv/Ig1zYPMabDImPJ52OaXO87W580KggCiiOsJOJ6I3wcNFaaeNKxrt72f2fLGu4FpJ/sDQABRzD22fH7/Yze069vGc6mrDLNIJCDik10sxz2by3VdPM87xzkP9jwPTZFRVI1YUJKH+oy7n3tbvv/P2wW/UQxRWe6w4ZJRptYLHDoCuz8v5cP92XbI762O+h6UVWHnUFbPpU0fEb2A60mMJ7MUi9b/b7UgKhiZMaIxm8YLplLMDPz8hl/EH+rs8TNlUpFf32uyZJGLPDwCiTGUyTWodTN49eUCdz2YwXb9NNcObp1X98WDoufynzMVCEKGn27ayPTWBi5ad8P5iQUkJEnFLjqM9Z+hrVX0vfDe6K2dPRWsW2bwyp9EUifSJB84gdxrkR0eRgv1o/3I4fbbprJ6scqamzVO9pffec1S5ZWY2Nfz5qEy/FqOC2Y3s3j53HMSi18VRjFPwSwg+1RfVbl115vvJrsfej7UGIsYPPGgQ7JXoO+Xx5B3dHEomyJ9x1qiQozkr95h5937aFnVyouPlgJK+Ss7Fxz64OTSxSX+LHYxT2IsRW5kbGI4oHcR0jqoqTjV9se3I7/f8rS/ClS23GxSXhph6L5d9Akm7qqZhHWBQGUJ+CWGFzcg7e7m6D3/ZuW1Ea5YKdA3EojuONi813TqNi+YPYOKUhXDtCeGL26/hakLLiEcdsaHRkRAoLRc4fJrmhnekyF0apgZowWSwwkaa+rw3f8WA1GZZsPP5JEChX8dhZTN6iU6kAcs5s+dHd183SJ0VVKL57pfw6YdRQw23aeWTns47DPTALWlRTR7kMLew6hGgYqUhWXYFFUdPZ6lUBahLA8hVcOftckfi7No7VRAAQqsX1dybfvG1qwriM9mM5mJ4e4jO5Cc01dPqixbr8tWGBQUL4vjGigEEShi+xUmZ2RiR/sJ1pbS8NkgZrKAGw0TsgQsQyFaF/nfYTGprAlMFysbA1pI3mhkR6snhGsaymYGvPyFEb9IdbUE2AzFFTwpRqCtBY0wmdER+hZW4j63gcJj38V+/ErSUZXsYBfjIZHIRW0c2Z8BskCAqN+CbBJBFnyyKjR+Ez57nBxLqpfMUeSISElMBFz6x2Q6OxzWrYjyxWVzEewioU3LCS5vQY6nMUrLwNaxXvoQ59IloFSx54PPAZtQLExVZZDxsVE8J4dn6v4JYatgbSjk0owPw7RGH2ADMo88Z7L20ip8f7gC7fAo0q4+0rt7kEQDvaghVZbiPHUHcyeXcfLjT3jmpR7AYsnSScya3UR8bARVMck7Y/cB75/X6rDf3Fg2dw2jKZm5dXGm1LuAzO5DCo9v6aT0ibco5kzOvLOP+NGTFJtDpPYeZKijk/Rn3QxsfZV7txwhX7ABiZUXBsGvIvguQApNQQva9RMmTvZ2dpVUls+tX/UD7GN/Y8Ws05w6rQF+9vyzg1vZjbvMRJhXiRSU8DpTFFe0QE8S6SfPkOkZoktrB2oAhZWrwljxOPmchiSMYOWNoxNuruFU5vWeXdsojiUon345113dBBQBmTYlTimgdB8nfPo4WjaNFgN9OMEkJ02dnadVt5ki54Esqy+bzKJltVhSPbI3iN2zCyMTeXNCuG7Omm2Zok7PR2+R7jvD8ouruHhmCrB5jVZeYxLdrTP4sr4Vtd9g4MA4qc4c+6cu5NPamfw4P59t2WrA4YdXKkASf7SFivo6PDdEPmf1fRM++zp1bH/0r4I1dD1ODtOWaW4IsvPjL7nqXhloQiSPwjjgMYkMASyGEBkjhISCQwkwzve/18AbT+pk8pVY4UacQi9y+gyZ0eRAw4qHa89LXEx1LXMSPfhDJYRb59BtlLKg2WPT2l6qYl1svtGkrLYckyA1S+t5+2ATm37WCui0LSynsckDNH5zTxAchbQtkx08hDHYiW6NgC0enHBzEZ102UDH8QORdEckjEzZrNWkRydzyx17uGnDXqbUnGZ6dRPjSY91q2TqwjFuvTxLo5Zn5Qo/pumRSFcTLQtybEhGE0fQrDhhJ0VvH2lTnnHPhGtsmWan469apERjI2MH3qN7+7MEfH6ql29CbV7PvsMG32k6yU2XDhEKyZw66eJaRdrXR7CzCcqUNC3zwgymPJRCH4KRRLINimpL14A5Y4GDeOqbsPRVcfuN7Xj44pav/hFfrNT2kr2rsqf2Ibp5pEA14ZIImUyW3t5REkkTXRGQ/DGGhtLginhqCWknQDE5hKf5UFSF9Lj020Q2ul5V1AR2hr+8vuP8Vlc2zMPRxoSjnx7XBC14sDoydahSGq7KdO/HFyrBchxCVfX4fDKp4T7SCQejYODZLrYgIqgKFsNIgQqEYob8mW6yiUyb7Z64LVK/+B85xznnJ3AWzqTzuIX46mr5wLs+UUTyIriBCjRNxguHMJIFDLEEvXEOVRWnSJ0+jCd4CJoGjoedM1CLcXQziW3nMV2TSMBeOx7vWZvPt1r+cMPzE8KunaUkFn0vNrvtqXj34c1W6gzxlEQ6naIoBahtnkMwoFMwIVzSRNguMt53Aj2s4nkSlgPoGqLkICsRNF0gl8rYWuP8+11/w/OOJDEhHPKLCIpOXmi+M9AgP+maiesLifF2T1Rn5ZNj5Lo/Qc/GcPMmhdoqlEgIGzCK4PiCmJKK68p4KfF3qYGuF0qCRUkJTzleUbvQyWRTuE5xYthxQbBs7EISAbkzUFG3VfXXbK2YFi3X/eryfKKnqVBItNjJxDzH8erddC4SqWwcN5WyTtlyO1RP/Lh3eHD76MB40swmiDVJyDLYRhpc5+ub6tse/wWKbvSQEAw1awAAAABJRU5ErkJggg==" alt=""/></a><a class="github-badge" target="_blank" href="https://github.com/" style="margin-inline:5px" data-title="本站项目由Github托管" title=""><img src="https://img.shields.io/badge/Source-Github-d021d6?style=flat&amp;logo=GitHub" alt=""/></a><a class="github-badge" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" style="margin-inline:5px" data-title="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可" title=""><img src="https://img.shields.io/badge/Copyright-BY--NC--SA%204.0-d42328?style=flat&amp;logo=Claris" alt=""/></a></p>';
+    console.log('已挂载butterfly_footer_beautify')
+    parent_div_git.insertAdjacentHTML("beforeend",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_footer_beautify_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_footer_beautify_injector_config();
+  }
+  </script><script async src="/js/runtime/runtime.js"></script><script async src="/js/ali_font.js"></script><div class="js-pjax"><script async="async">var arr = document.getElementsByClassName('recent-post-item');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__zoomIn');
+    arr[i].setAttribute('data-wow-duration', '1.5s');
+    arr[i].setAttribute('data-wow-delay', '200ms');
+    arr[i].setAttribute('data-wow-offset', '30');
+    arr[i].setAttribute('data-wow-iteration', '1');
+  }</script><script async="async">var arr = document.getElementsByClassName('card-widget');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__zoomIn');
+    arr[i].setAttribute('data-wow-duration', '');
+    arr[i].setAttribute('data-wow-delay', '200ms');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('flink-list-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__flipInY');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('flink-list-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__animated');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('article-sort-item');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__slideInRight');
+    arr[i].setAttribute('data-wow-duration', '1.5s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('site-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__flipInY');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('site-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__animated');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script></div><script defer src="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/wow.min.js"></script><script defer src="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/wow_init.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"position":"left","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script></body></html>

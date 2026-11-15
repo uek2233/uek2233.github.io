@@ -1,0 +1,2245 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Linux 应用编程：进程基础 | Kikyo</title><meta name="author" content="Kikyo"><meta name="copyright" content="Kikyo"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="进程（Process）  本文是 Linux 应用编程学习笔记，配套示例代码位于宿主机： &#x2F;data&#x2F;build&#x2F;ubuntu-22.04-gcc&#x2F;root&#x2F;linux&#x2F;Processe&#x2F;src&#x2F;（下文以 Processe&#x2F;src&#x2F;xxx.cc 简写引用） 代码在容器 ubuntu-22.04-gcc 中编译运行（容器内路径 &#x2F;root&#x2F;linux&#x2F; 与宿主机该目录是同一份），编译产物在 outp">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux 应用编程：进程基础">
+<meta property="og:url" content="https://xxh123.online/posts/linux-process.html">
+<meta property="og:site_name" content="Kikyo">
+<meta property="og:description" content="进程（Process）  本文是 Linux 应用编程学习笔记，配套示例代码位于宿主机： &#x2F;data&#x2F;build&#x2F;ubuntu-22.04-gcc&#x2F;root&#x2F;linux&#x2F;Processe&#x2F;src&#x2F;（下文以 Processe&#x2F;src&#x2F;xxx.cc 简写引用） 代码在容器 ubuntu-22.04-gcc 中编译运行（容器内路径 &#x2F;root&#x2F;linux&#x2F; 与宿主机该目录是同一份），编译产物在 outp">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/08_photo_2026-11-15_15-33-19.jpg">
+<meta property="article:published_time" content="2026-11-15T06:00:00.000Z">
+<meta property="article:modified_time" content="2026-11-15T07:47:19.131Z">
+<meta property="article:author" content="Kikyo">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="进程">
+<meta property="article:tag" content="fork">
+<meta property="article:tag" content="守护进程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/08_photo_2026-11-15_15-33-19.jpg"><link rel="shortcut icon" href="/img/Rocket.png"><link rel="canonical" href="https://xxh123.online/posts/linux-process.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="manifest" href="/manifest.json"/><meta name="msapplication-TileColor" content="#40B2E6"/><link rel="apple-touch-icon" sizes="180x180" href="/img/siteicon/128.png"/><link rel="icon" type="image/png" sizes="32x32" href="/img/siteicon/32.png"/><link rel="icon" type="image/png" sizes="16x16" href="/img/siteicon/16.png"/><link rel="mask-icon" href="/img/siteicon/128.png" color="#5bbad5"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Linux 应用编程：进程基础',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-11-15 15:47:19'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css" media="defer" onload="this.media='all'"><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/runtime/runtime.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/assets/font-awesome-animation.min.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/tag_plugins.css" media="defer" onload="this.media='all'"><script src="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/assets/carousel-touch.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/animate.min.css" media="print" onload="this.media='screen'"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.2.0"><link rel="alternate" href="/atom.xml" title="Kikyo" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/202405192117137.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">51</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">58</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/"><i class="fa-fw fas fa-home faa-tada"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/archives/"><i class="fa-fw fas fa-archive faa-tada"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/artitalk/"><i class="fa-fw fas fa-comment-dots faa-tada"></i><span> 闲言碎语</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/music/"><i class="fa-fw fas fa-music faa-tada"></i><span> 音乐馆</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/categories/"><i class="fa-fw fas fa-folder-open faa-tada"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/wallpapers/"><i class="fa-fw fab fa-artstation faa-tada"></i><span> 壁纸</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/comments/"><i class="fa-fw fas fa-envelope faa-tada"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/link/"><i class="fa-fw fas fa-link faa-tada"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/bangumis/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-hecha"></use></svg><span> 追番</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/about/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-zhifeiji"></use></svg><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/08_photo_2026-11-15_15-33-19.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Kikyo"><span class="site-name">Kikyo</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/"><i class="fa-fw fas fa-home faa-tada"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/archives/"><i class="fa-fw fas fa-archive faa-tada"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/artitalk/"><i class="fa-fw fas fa-comment-dots faa-tada"></i><span> 闲言碎语</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/music/"><i class="fa-fw fas fa-music faa-tada"></i><span> 音乐馆</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/categories/"><i class="fa-fw fas fa-folder-open faa-tada"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/wallpapers/"><i class="fa-fw fab fa-artstation faa-tada"></i><span> 壁纸</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/comments/"><i class="fa-fw fas fa-envelope faa-tada"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/link/"><i class="fa-fw fas fa-link faa-tada"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/bangumis/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-hecha"></use></svg><span> 追番</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/about/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-zhifeiji"></use></svg><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Linux 应用编程：进程基础</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-11-15T06:00:00.000Z" title="发表于 2026-11-15 14:00:00">2026-11-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-11-15T07:47:19.131Z" title="更新于 2026-11-15 15:47:19">2026-11-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Linux/">Linux</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Linux/%E5%BA%94%E7%94%A8%E7%BC%96%E7%A8%8B/">应用编程</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">17.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>59分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Linux 应用编程：进程基础"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="进程process">进程（Process）</h1>
+<blockquote>
+<p>本文是 Linux 应用编程学习笔记，配套示例代码位于宿主机：
+<code>/data/build/ubuntu-22.04-gcc/root/linux/Processe/src/</code>（下文以
+<code>Processe/src/xxx.cc</code> 简写引用） 代码在容器
+<code>ubuntu-22.04-gcc</code> 中编译运行（容器内路径
+<code>/root/linux/</code> 与宿主机该目录是同一份），编译产物在
+<code>output/Processe/</code> 下。</p>
+</blockquote>
+<p><strong>阅读脉络</strong>：进程是什么（基本概念）→
+进程的内存长什么样（布局/虚拟地址）→ 进程带什么数据（环境变量）→
+怎么生、怎么死（fork / exit / init）→ 怎么养孩子（wait 收尸）→
+怎么换芯（exec）→ 进程之间的组织（状态/进程组/会话）→
+两类特殊进程（守护进程/单例进程）。</p>
+<hr>
+<h2 id="进程与程序">进程与程序</h2>
+<p><strong>进程</strong>其实就是一个<strong>可执行程序的实例</strong>。程序（Program）是静态的、存放在磁盘上的可执行文件；进程（Process）是程序被加载到内存中运行后的动态实体，是操作系统进行资源分配的基本单位。</p>
+<h3 id="程序是如何被执行起来的">程序是如何被执行起来的</h3>
+<ol type="1">
+<li><strong>链接器</strong>：<code>main()</code>
+函数之前需要先执行一段<strong>引导代码</strong>（启动例程，由 crt1.o /
+crti.o 等目标文件提供），最终由这段引导代码去调用应用程序的
+<code>main()</code>
+函数。编写应用程序时不用考虑引导代码的问题——在编译链接时，由<strong>链接器</strong>将引导代码链接到应用程序当中，一起构成最终的可执行文件</li>
+<li><strong>加载器</strong>：程序运行需要通过操作系统的<strong>加载器</strong>（loader）来实现。加载器是操作系统中的程序：当执行一个程序时，加载器负责将此应用程序加载到内存中去执行</li>
+<li><strong>argc 和 argv 传参</strong>：命令行参数由 <strong>shell
+进程</strong>逐一解析，shell
+进程会将这些参数传递给加载器；加载器加载应用程序时会将其传递给应用程序的引导代码；当引导代码调用
+<code>main()</code> 函数时，再由它最终传递给 <code>main()</code>
+函数</li>
+</ol>
+<p>所以一个 <code>./app</code> 从敲下回车到进入 main()，链路是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shell 解析命令行参数 ──▶ 加载器加载可执行文件 ──▶ 引导代码 ──▶ main(argc, argv)</span><br></pre></td></tr></table></figure>
+<h3 id="程序的结束">程序的结束</h3>
+<p>进程终止的方式：</p>
+<ul>
+<li><code>main()</code> 中执行 <code>return</code>（等价于调用
+<code>exit()</code>，返回值即退出状态）</li>
+<li>调用 <code>exit()</code></li>
+<li>调用 <code>abort()</code>（异常终止，产生 SIGABRT，详见 <a
+href="/posts/linux-signal.html">信号</a>）</li>
+<li>进程接收到一个信号，如 <code>SIGKILL</code>（被 <code>kill -9</code>
+杀死）、<code>SIGSEGV</code>（段错误）等</li>
+</ul>
+<p><code>atexit()</code>
+库函数用于注册一个进程在<strong>正常终止</strong>时要调用的函数（如清理资源、落盘日志）。</p>
+<h3 id="进程号">进程号</h3>
+<p>系统通过进程号（Process ID,
+<strong>PID</strong>）唯一标识系统中的某一个进程。每个进程还有一个<strong>父进程号（PPID）</strong>，指向创建它的父进程。</p>
+<p>本小节函数总览：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">示例代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>getpid()</code></td>
+<td style="text-align: left;">获取本进程的进程号</td>
+<td style="text-align: left;">各示例均有使用</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>getppid()</code></td>
+<td style="text-align: left;">获取父进程的进程号</td>
+<td style="text-align: left;"><code>Processe/src/fork1.cc</code> 等</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>atexit()</code></td>
+<td style="text-align: left;">注册进程正常终止时要调用的函数</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>exit()</code></td>
+<td style="text-align: left;">库函数，正常终止进程（刷新 stdio
+缓冲）</td>
+<td style="text-align: left;"><code>Processe/src/fork1.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_exit()</code></td>
+<td style="text-align: left;">系统调用，立即终止进程（不刷新 stdio
+缓冲）</td>
+<td style="text-align: left;"><code>Processe/src/fork1.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>abort()</code></td>
+<td style="text-align: left;">异常终止进程（产生 SIGABRT + core）</td>
+<td style="text-align: left;">—（详见 <a
+href="/posts/linux-signal.html">信号</a>）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="getpid-获取本进程的进程号">getpid() — 获取本进程的进程号</h3>
+<p><strong>作用</strong>:: 获取调用进程自身的进程号（PID）。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">pid_t</span> <span class="title function_">getpid</span><span class="params">(<span class="type">void</span>)</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>返回值</strong>：调用进程的 PID（<code>pid_t</code> 实际是
+<code>int</code>）</p>
+<h3 id="getppid-获取父进程的进程号">getppid() — 获取父进程的进程号</h3>
+<p><strong>作用</strong>::
+获取调用进程的父进程的进程号（PPID）。父进程结束后，子进程会被 init
+进程（PID 1）收养，此时 <code>getppid()</code> 返回
+1（见"僵尸进程与孤儿进程"一节）。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">pid_t</span> <span class="title function_">getppid</span><span class="params">(<span class="type">void</span>)</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>返回值</strong>：父进程的 PID</p>
+<h3 id="atexit-注册进程终止处理函数">atexit() —
+注册进程终止处理函数</h3>
+<p><strong>作用</strong>::
+注册一个函数，使它在进程<strong>正常终止</strong>（调用
+<code>exit()</code> 或从 <code>main()</code>
+return）时被自动调用，常用于统一做资源清理。<code>abort()</code>
+或收到致命信号导致的终止<strong>不会</strong>调用它。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">atexit</span><span class="params">(<span class="type">void</span> (*function)(<span class="type">void</span>))</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>参数</strong>：<code>function</code>：终止处理函数指针，无参数无返回值</p>
+<p><strong>返回值</strong>：成功返回 0；失败返回非 0</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>可以注册多个终止处理函数，调用顺序与注册顺序<strong>相反</strong>（后注册的先执行，LIFO）</li>
+<li>在 <code>exec()</code>
+执行新程序后，原进程映像已被替换，注册的终止处理函数<strong>不会</strong>在新程序中执行</li>
+<li>终止处理函数里不要再调用 <code>exit()</code>，否则会无限递归</li>
+</ul>
+<h3 id="exit-正常终止进程库函数">exit() — 正常终止进程（库函数）</h3>
+<p><strong>作用</strong>::
+终止调用进程，属于<strong>正常终止</strong>。会先调用所有
+<code>atexit()</code> 注册的终止处理函数、刷新 stdio 流缓冲区，最后调用
+<code>_exit()</code> 系统调用真正退出。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">exit</span><span class="params">(<span class="type">int</span> status)</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>参数</strong>：<code>status</code>：进程的终止状态（退出码），<strong>只有低
+8 位有效</strong>（取值 0~255）。0 表示成功，非 0
+表示出错（<code>exit(-1)</code> 实际得到 255）</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li><code>exit()</code> 建立在系统调用 <code>_exit()</code>
+之上，是"库函数 + 收尾动作"的封装</li>
+<li>与 <code>_exit()</code> 的关键区别：**exit() 会刷新 stdio
+缓冲区，_exit() 不会**。如果数据还在 stdio 缓冲里没写出去就调
+<code>_exit()</code>，数据会丢失</li>
+<li>在调用了 <code>fork()</code>
+之后，父、子进程中<strong>一般只有一个会通过 <code>exit()</code>
+退出，另一个应使用
+<code>_exit()</code></strong>（原因见"进程的诞生与终止"中关于缓冲区的分析）</li>
+</ul>
+<h3 id="exit-立即终止进程系统调用"><code>_exit()</code> —
+立即终止进程（系统调用）</h3>
+<p><strong>作用</strong>::
+立即终止调用进程，属于系统调用，是进程退出的最终通道。<strong>不执行</strong>
+atexit 处理函数、<strong>不刷新</strong> stdio 缓冲区。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> _exit(<span class="type">int</span> status);</span><br></pre></td></tr></table></figure></p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>子进程建议使用 <code>_exit()</code> 退出，避免把从父进程拷贝来的
+stdio 缓冲再刷一遍（见第五章缓冲区问题）</li>
+<li>参考示例：<code>Processe/src/fork1.cc</code> 中父进程
+<code>exit(0)</code>、子进程 <code>_exit(0)</code></li>
+</ul>
+<h3 id="abort-异常终止进程">abort() — 异常终止进程</h3>
+<p><strong>作用</strong>:: 异常终止程序，产生 <code>SIGABRT</code>
+信号并生成核心转储文件（core dump）。与 <code>exit()</code>
+不同，它不走任何正常收尾流程。详细内容已在 <a
+href="/posts/linux-signal.html">信号</a> 笔记中整理，此处不再展开。</p>
+<hr>
+<h2 id="进程的环境变量">进程的环境变量</h2>
+<p>每一个进程都有一组与其相关的<strong>环境变量</strong>。这些环境变量以字符串形式存储在一个字符串数组列表中，把这个数组称为<strong>环境列表（environment
+list）</strong>。其中每个字符串都是以
+<code>名称=值</code>（<code>name=value</code>）形式定义，每一个环境变量都有它所表示的含义（如
+<code>PATH</code> 表示命令搜索路径、<code>HOME</code>
+表示用户主目录）。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">env</span>                 <span class="comment"># 查看 shell 进程的所有环境变量</span></span><br><span class="line"><span class="built_in">export</span> LINUX_APP=123456   <span class="comment"># 添加 LINUX_APP 环境变量</span></span><br><span class="line"><span class="built_in">export</span> -n LINUX_APP       <span class="comment"># 删除 LINUX_APP 环境变量</span></span><br></pre></td></tr></table></figure>
+<p><strong>进程的环境变量是从其父进程中继承过来的</strong>：在 shell
+终端下执行一个应用程序，该进程的环境变量就是从其父进程（shell
+进程）中继承的。所以修改 shell 的
+<code>export</code>，会影响之后启动的所有子进程。</p>
+<p>除了 shell 内
+<code>export</code>，还可以在<strong>执行程序时临时指定</strong>：在程序路径前面以
+<code>name=value</code>
+形式添加环境变量，多个环境变量以空格分隔，只对这一次执行生效：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">LINUX_APP=123456 ./app          <span class="comment"># 给 ./app 临时设置 LINUX_APP</span></span><br><span class="line">LINUX_APP=123456 HOME=/tmp ./app <span class="comment"># 多个环境变量空格分隔</span></span><br></pre></td></tr></table></figure>
+<p>本小节函数总览：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">示例代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>environ</code></td>
+<td style="text-align: left;">全局变量，指向整个环境列表（char*
+数组）</td>
+<td style="text-align: left;"><code>Processe/src/environ.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>getenv()</code></td>
+<td style="text-align: left;">获取某个环境变量的值</td>
+<td style="text-align: left;"><code>Processe/src/environ.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>putenv()</code></td>
+<td style="text-align: left;">添加/修改环境变量（不复制字符串）</td>
+<td style="text-align: left;"><code>Processe/src/environ.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>setenv()</code></td>
+<td style="text-align: left;">添加/修改环境变量（可控制是否覆盖）</td>
+<td style="text-align: left;"><code>Processe/src/environ.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>unsetenv()</code></td>
+<td style="text-align: left;">删除某个环境变量</td>
+<td style="text-align: left;"><code>Processe/src/environ.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>clearenv()</code></td>
+<td style="text-align: left;">清空整个环境列表</td>
+<td style="text-align: left;"><code>Processe/src/environ.cc</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="environ-全局变量">environ 全局变量</h3>
+<p><strong>作用</strong>:: 指向进程环境列表的全局指针。环境列表是一个以
+<code>NULL</code> 结尾的 <code>char *</code> 数组，每个元素是
+<code>name=value</code>
+字符串。可以直接遍历它查看进程的全部环境变量。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="type">char</span> **environ;   <span class="comment">/* 某些头文件需要特定宏才声明它，可手动 extern */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="type">char</span> **ep = environ; *ep != <span class="literal">NULL</span>; ep++) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%s\n&quot;</span>, *ep);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>将全局变量 <code>environ</code> 赋值为 <code>NULL</code>
+可以清空环境列表（<code>clearenv()</code> 内部就是这么做的）</li>
+<li>环境变量在进程地址空间中位于用户空间<strong>最高地址端</strong>（见下一章内存布局）</li>
+</ul>
+<h3 id="getenv-获取环境变量">getenv() — 获取环境变量</h3>
+<p><strong>作用</strong>::
+根据名字获取某个环境变量的值，是查询环境变量最常用的函数。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *<span class="title function_">getenv</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *name)</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>返回值</strong>：成功返回指向 <code>name=value</code>
+字符串中 value 部分的指针；<strong>找不到返回 NULL</strong></p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>返回的指针指向进程环境列表内部，<strong>不要</strong>去修改它指向的内容</li>
+<li>参考示例：<code>Processe/src/environ.cc</code> 中
+<code>getenv("HOME")</code>、<code>getenv("LINUX_APP")</code></li>
+</ul>
+<h3 id="setenv-添加或修改环境变量">setenv() — 添加或修改环境变量</h3>
+<p><strong>作用</strong>::
+向进程的环境变量列表中添加一个新的环境变量，或修改一个已存在环境变量对应的值，是实际开发中<strong>推荐</strong>使用的接口。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">setenv</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *name, <span class="type">const</span> <span class="type">char</span> *value, <span class="type">int</span> overwrite)</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>name</code>：环境变量名</li>
+<li><code>value</code>：环境变量的值</li>
+<li><code>overwrite</code>：当 <code>name</code> 已存在时——非 0
+则覆盖旧值，0 则<strong>保持旧值不变</strong>（此时函数仍返回成功）</li>
+</ul>
+<p><strong>返回值</strong>：成功返回 0；失败返回 -1 并设置 errno</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li><code>setenv()</code> 会<strong>复制</strong> name 和 value
+字符串到自己分配的内存缓冲区中（调用者可以放心使用栈上的临时字符串）</li>
+<li>正因为 <code>setenv()</code> 会分配内存，反复 <code>setenv()</code>
++ <code>clearenv()</code> 会<strong>不断产生内存泄漏</strong>（见
+clearenv 注意事项）</li>
+<li>参考示例：<code>Processe/src/environ.cc</code>（<code>overwrite=1</code>
+覆盖成功、<code>overwrite=0</code> 覆盖失败）</li>
+</ul>
+<h3 id="putenv-添加或修改环境变量">putenv() — 添加或修改环境变量</h3>
+<p><strong>作用</strong>::
+向进程的环境变量数组中添加一个新的环境变量，或修改一个已经存在的环境变量对应的值。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">putenv</span><span class="params">(<span class="type">char</span> *<span class="built_in">string</span>)</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>参数</strong>：<code>string</code>：指向
+<code>name=value</code> 格式字符串的指针</p>
+<p><strong>返回值</strong>：成功返回 0；失败返回 -1 并设置 errno</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li><strong><code>putenv()</code> 并不会为 <code>name=value</code>
+字符串分配内存</strong>，而是直接把该字符串的地址放进环境列表。因此<strong>不能随意修改
+<code>string</code> 所指向的内容</strong>，否则会影响进程的环境变量</li>
+<li>出于这种原因，参数 <code>string</code>
+<strong>不应为自动变量</strong>（即栈中分配的字符数组），函数返回后栈内存就被回收了，环境列表会指向悬空内存。应该用静态存储期数组或
+<code>malloc</code> 出来的内存（参考示例 <code>environ.cc</code> 中用了
+<code>static char put_buf[]</code>）</li>
+<li>与 <code>setenv()</code> 的区别：<code>setenv()</code>
+内部会拷贝字符串、可通过 <code>overwrite</code>
+参数控制是否覆盖；<code>putenv()</code>
+既不拷贝、也无法精细控制覆盖行为</li>
+</ul>
+<h3 id="unsetenv-删除环境变量">unsetenv() — 删除环境变量</h3>
+<p><strong>作用</strong>:: 从环境变量表中移除参数 <code>name</code>
+标识的环境变量。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">unsetenv</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *name)</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>返回值</strong>：成功返回 0；失败返回 -1 并设置
+errno（<code>name</code> 不存在不算错误）</p>
+<p><strong>注意事项</strong>：参考示例：<code>Processe/src/environ.cc</code>（删除后
+<code>getenv()</code> 返回 NULL）</p>
+<h3 id="clearenv-清空环境变量">clearenv() — 清空环境变量</h3>
+<p><strong>作用</strong>:: 清除环境变量表中的所有变量（glibc 扩展，非
+POSIX 标准）。执行后 <code>environ == NULL</code>。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _GNU_SOURCE</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">clearenv</span><span class="params">(<span class="type">void</span>)</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>返回值</strong>：成功返回 0；失败返回 -1</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li><strong>内存泄漏坑</strong>：<code>setenv()</code>
+会为环境变量分配一块内存缓冲区，随之成为进程的一部分；而调用
+<code>clearenv()</code>
+时<strong>并没有释放该缓冲区</strong>。反复调用这两个函数的程序，会不断产生内存泄漏</li>
+<li>思考：为什么 clearenv 不释放？因为内核维护的
+<code>char **environ</code> 里只存了字符串指针，<code>clearenv()</code>
+无从知道哪些字符串是 <code>setenv()</code>
+分配的、哪些是继承来的，所以只能放弃回收</li>
+<li>实际开发中几乎用不到清空全部环境变量，了解即可</li>
+</ul>
+<p><strong>完整示例</strong>：<code>Processe/src/environ.cc</code>（运行输出见下，演示
+getenv / setenv 覆盖与不覆盖 / putenv / unsetenv / clearenv
+全流程）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">$ ./environ</span><br><span class="line">=== 1. getenv() ===</span><br><span class="line">HOME = /root</span><br><span class="line"></span><br><span class="line">=== 2. setenv() 新增 LINUX_APP ===</span><br><span class="line">LINUX_APP = 123456</span><br><span class="line"></span><br><span class="line">=== 3. setenv() overwrite=0 不覆盖 ===</span><br><span class="line">LINUX_APP = 123456 （overwrite=0 未覆盖）</span><br><span class="line"></span><br><span class="line">=== 4. putenv() 修改 LINUX_APP ===</span><br><span class="line">LINUX_APP = abcdef</span><br><span class="line"></span><br><span class="line">=== 5. unsetenv() 删除 LINUX_APP ===</span><br><span class="line">getenv(LINUX_APP) = (null，已删除)</span><br><span class="line"></span><br><span class="line">=== 6. clearenv() 清空全部 ===</span><br><span class="line">[clearenv 之后] environ 为 NULL（环境列表已被清空）</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="进程的内存布局与虚拟地址空间">进程的内存布局与虚拟地址空间</h2>
+<h3 id="进程的内存布局">进程的内存布局</h3>
+<p>一个进程在<strong>用户空间</strong>中的内存，从高地址到低地址可划分为以下几个核心区域：</p>
+<ol type="1">
+<li><strong>环境变量与命令行参数</strong>
+<ul>
+<li><strong>位置</strong>：用户空间的最高地址端</li>
+<li><strong>内容</strong>：存放程序启动时传入的命令行参数（如
+<code>argv</code>）和系统环境变量（如
+<code>PATH</code>、<code>HOME</code>）</li>
+</ul></li>
+<li><strong>栈区（Stack）</strong>
+<ul>
+<li><strong>位置</strong>：由高地址向低地址增长</li>
+<li><strong>内容</strong>：存放函数的<strong>局部变量</strong>、<strong>函数参数值</strong>以及<strong>函数调用的上下文</strong>（返回地址等）</li>
+<li><strong>特点</strong>：由编译器自动分配和释放，空间连续且容量有限（Linux
+下可用 <code>ulimit -s</code> 查看，默认通常为
+<strong>8MB</strong>）</li>
+</ul></li>
+<li><strong>文件映射与匿名映射区（Memory Mapping Segment）</strong>
+<ul>
+<li><strong>位置</strong>：位于栈和堆之间</li>
+<li><strong>内容</strong>：主要用于<strong>动态链接库</strong>（.so
+文件）的加载、共享内存映射，以及使用 <code>mmap</code>
+系统调用申请的大块内存（<code>malloc</code> 申请超过 128KB
+的大块内存时，glibc 底层也是用 mmap 实现）</li>
+</ul></li>
+<li><strong>堆区（Heap）</strong>
+<ul>
+<li><strong>位置</strong>：由低地址向高地址增长，与栈区相对扩展</li>
+<li><strong>内容</strong>：存放程序运行期间<strong>动态分配</strong>的内存（如
+C 语言的 <code>malloc</code> 或 C++ 的 <code>new</code>）</li>
+<li><strong>特点</strong>：由程序员手动申请和释放，若不释放易造成内存泄漏；空间不连续，容量几乎取决于系统的虚拟内存大小</li>
+</ul></li>
+<li><strong>BSS 段（Block Started by Symbol）</strong>
+<ul>
+<li><strong>位置</strong>：位于堆区下方、数据段上方</li>
+<li><strong>内容</strong>：存放<strong>未初始化</strong>或<strong>初始化为
+0</strong> 的全局变量和静态（<code>static</code>）变量</li>
+<li><strong>特点</strong>：在可执行文件中<strong>不占用实际磁盘空间</strong>，只记录大小，<strong>程序加载时由内核统一清零</strong></li>
+</ul></li>
+<li><strong>数据段（Data Segment）</strong>
+<ul>
+<li><strong>位置</strong>：位于 BSS 段下方</li>
+<li><strong>内容</strong>：存放<strong>已初始化且不为 0</strong>
+的全局变量和静态变量</li>
+<li><strong>特点</strong>：属于静态内存分配，其寿命贯穿整个程序运行期</li>
+</ul></li>
+<li><strong>代码段与常量区（Text &amp; Read-Only Data）</strong>
+<ul>
+<li><strong>位置</strong>：用户空间的最低地址端</li>
+<li><strong>内容</strong>：
+<ul>
+<li><code>.text</code>（代码区）：存放 CPU
+执行的机器指令（二进制代码）</li>
+<li><code>.rodata</code>（只读数据区）：存放只读常量，例如字符串字面量
+<code>"hello world"</code></li>
+</ul></li>
+<li><strong>特点</strong>：通常是<strong>只读</strong>的，防止程序意外修改自身指令</li>
+</ul></li>
+</ol>
+<p>整体布局一览（<strong>从高地址到低地址</strong>）：</p>
+<blockquote>
+<p>🎨 <strong>示意图：进程内存空间</strong></p>
+<p>本节原配有一张手绘示意图（Excalidraw），博客版暂未提供图片。 |
+内存区域 | 位置/增长方向 | 存放内容 | 分配/释放方式 | 读写权限 | |
+:------------- | :----------- | :-------------------- |
+:------------------- | :------- | | <strong>内核空间</strong> | 最高
+1G（32 位） | 操作系统内核代码、数据及进程控制块 | 内核管理 |
+仅内核可读写 | | <strong>环境变量与 argv</strong> | 用户空间最高端 |
+环境列表、命令行参数 | 启动时由内核/加载器布置 | 可读可写 | |
+<strong>栈区 (Stack)</strong> | 向低地址增长 |
+局部变量、函数参数、调用栈 | 编译器自动分配 | 可读可写 | |
+<strong>映射区 (Mmap)</strong> | 栈和堆之间，向低地址增长 |
+动态链接库、共享内存、大块 mmap 内存 | 显式系统调用 | 可读可写/可执行 |
+| <strong>堆区 (Heap)</strong> | 向高地址增长 | 动态申请的内存块 |
+程序员手动控制（malloc/free） | 可读可写 | | <strong>BSS 段</strong> |
+堆下方、数据段上方 | 未初始化/清零的全局与静态变量 | 程序启动时内核清零
+| 可读可写 | | <strong>数据段 (Data)</strong> | BSS 下方 |
+已初始化的全局/静态变量 | 编译时确定 | 可读可写 | | <strong>代码段
+(Text)</strong> | 用户空间最低端 | 机器指令、只读常量 | 编译时确定 |
+只读/可执行 |</p>
+</blockquote>
+<p><strong>查看段大小</strong>：<code>size</code>
+命令可以查看二进制可执行文件的 text（代码段）、data（数据段）、bss
+段的段大小：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ size ./fork1</span><br><span class="line">   text    data     bss     dec     hex filename</span><br><span class="line">   2696     616       8    3320     cf8 ./fork1</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>💡 快速记忆：<strong>代码段（只读）→ 数据段（已初始化全局/静态）→
+BSS（未初始化全局/静态，运行时清零）→ 堆（向上长）→
+映射区（共享库/mmap）→ 栈（向下长）→ 环境变量与
+argv</strong>。<code>malloc</code> 小内存走堆（brk），大内存走
+mmap；栈溢出是向低地址方向"越界"。</p>
+</blockquote>
+<h3 id="虚拟地址空间">虚拟地址空间</h3>
+<p>在 Linux
+系统中，每一个进程都在自己<strong>独立</strong>的地址空间中运行。在 32
+位系统中，每个进程的逻辑地址空间均为 <strong>4GB</strong>，这 4GB
+的内存空间按照 <strong>3:1</strong> 的比例进行分配：用户进程享有 3G
+的空间（0x00000000 ~ 0xBFFFFFFF），内核独自享有剩下的 1G
+空间（0xC0000000 ~ 0xFFFFFFFF）。</p>
+<blockquote>
+<p>💡 注意：4GB
+是<strong>虚拟地址空间</strong>，不是物理内存。进程的虚拟地址会通过硬件
+<strong>MMU（内存管理单元，Memory Management Unit）</strong>
+映射到实际的物理地址空间中：建立虚拟地址到物理地址的映射关系后，对虚拟地址的读写操作实际上就是对物理地址的读写操作（"翻译"由
+MMU 硬件完成）。64 位系统下地址空间更大（x86-64 用户空间约
+128TiB），不再受 3:1 的限制。</p>
+</blockquote>
+<h4 id="为什么要使用虚拟地址">为什么要使用虚拟地址</h4>
+<p><strong>不使用虚拟地址（程序直接访问物理内存）的缺点</strong>：</p>
+<ol type="1">
+<li><strong>内存使用效率低</strong>：应用程序必须加载到内存中才能运行。当多个程序需要运行时，必须保证这些程序用到的内存总量小于计算机实际物理内存的大小；当内存空间不足时，就需要把其它程序暂时拷贝到硬盘中（swap），然后将新程序装入内存。大量数据装入装出，内存的使用效率非常低</li>
+<li><strong>进程地址空间不隔离</strong>：由于程序直接访问物理内存，每一个进程都可以修改其它进程的内存数据，甚至修改内核地址空间中的数据——恶意程序可以随意修改别的进程，造成破坏，系统不安全、不稳定</li>
+<li><strong>无法确定程序的链接地址</strong>：链接地址和运行地址必须一致，否则程序无法运行！因为程序代码加载到内存的地址是由系统随机分配的、无法预知，所以程序的运行地址在编译程序时无法确认</li>
+</ol>
+<p><strong>使用虚拟地址的优点</strong>：</p>
+<ol type="1">
+<li><strong>进程与进程、进程与内核相互隔离</strong>：每个进程都以为自己独占整个地址空间，互不干扰</li>
+<li><strong>每个进程都有自己的映射表</strong>，可以让不同进程的虚拟地址空间映射到<strong>相同的物理地址空间</strong>中——通常，共享内存（shared
+memory）就是利用这一点实现进程间通信（见 IPC 相关笔记）</li>
+<li><strong>便于实现内存保护机制</strong>：多个进程共享内存时，允许每个进程对内存采取不同的保护措施。例如，一个进程可以以只读方式访问内存，而另一进程则能够以可读可写的方式访问</li>
+<li><strong>编译应用程序时，无需关心链接地址</strong>：现代编译器默认生成位置无关/固定虚拟地址布局的可执行文件，运行地址由内核加载时决定，程序内部的链接地址由虚拟地址空间保证一致</li>
+</ol>
+<hr>
+<h2 id="子进程">子进程</h2>
+<h3 id="fork-创建子进程">fork() — 创建子进程</h3>
+<p><strong>作用</strong>::
+创建一个子进程。调用完成后系统中将存在两个进程：一个是原进程（<strong>父进程</strong>），另一个是创建出来的<strong>子进程</strong>，并且每个进程都会从
+<code>fork()</code> 函数的返回处继续执行。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">pid_t</span> <span class="title function_">fork</span><span class="params">(<span class="type">void</span>)</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>返回值</strong>（<code>fork()</code>
+调用一次，返回两次，这是它最特殊的点）：</p>
+<ul>
+<li><strong>父进程中</strong>：返回子进程的 PID（&gt; 0）</li>
+<li><strong>子进程中</strong>：返回 0</li>
+<li><strong>调用失败</strong>：父进程返回 -1，不创建子进程，并设置
+errno</li>
+</ul>
+<p>通过返回值即可区分当前是父进程还是子进程：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">pid_t</span> pid = fork();</span><br><span class="line"><span class="keyword">switch</span> (pid) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">-1</span>:            <span class="comment">/* fork 失败 */</span></span><br><span class="line">        perror(<span class="string">&quot;fork error&quot;</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0</span>:             <span class="comment">/* 子进程 */</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;子进程: pid=%d, ppid=%d\n&quot;</span>, getpid(), getppid());</span><br><span class="line">        _exit(<span class="number">0</span>);       <span class="comment">/* 子进程建议用 _exit 退出 */</span></span><br><span class="line">    <span class="keyword">default</span>:            <span class="comment">/* 父进程，pid 即子进程 PID */</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;父进程: pid=%d, 子进程 pid=%d\n&quot;</span>, getpid(), pid);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);        <span class="comment">/* 父进程用 exit 退出 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>fork 之后进程的状态</strong>：</p>
+<ul>
+<li>子进程是父进程的一个<strong>副本</strong>：子进程<strong>拷贝了父进程的数据段、堆、栈</strong>，以及继承了父进程打开的文件描述符</li>
+<li>父进程与子进程<strong>并不共享这些存储空间</strong>——这是子进程对父进程相应部分存储空间的<strong>完全复制</strong>（现代
+Linux 用<strong>写时复制 COW</strong>
+优化，见文末补充，效果上等价但效率高得多）。执行 <code>fork()</code>
+之后，每个进程均可修改各自的栈数据以及堆段中的变量，而并不影响另一个进程</li>
+<li>对于程序<strong>代码段（文本段）</strong>：两个进程执行相同的代码段，因为代码段是只读的，也就是说<strong>父子进程共享代码段</strong>，内存中只存在一份代码段数据</li>
+<li>子进程被创建出来之后便是一个<strong>独立的进程</strong>：拥有自己独立的进程空间、系统内唯一的进程号、自己独立的
+PCB（进程控制块），会被内核<strong>同等调度</strong>执行，参与到系统的进程调度中</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>C 库函数 <code>exit()</code> 建立在系统调用 <code>_exit()</code>
+之上。在调用了 <code>fork()</code> 之后，父、子进程中一般只有一个会通过
+<code>exit()</code> 退出进程，而另一个则应使用 <code>_exit()</code>
+退出（推荐：<strong>子进程 <code>_exit()</code>，父进程
+<code>exit()</code></strong>，原因见"进程的诞生与终止"）</li>
+<li>调用 <code>fork()</code>
+之后，<strong>无法确定父、子两个进程谁将率先访问 CPU</strong>——这就是
+fork
+之后的竞争条件。如果程序逻辑依赖执行顺序，必须用同步机制（信号/管道等）显式同步，参考
+<code>Processe/src/fork3.cc</code>（子进程 sleep 后发 SIGUSR1，父进程
+sigsuspend 挂起等待）</li>
+</ul>
+<p><strong>fork() 函数的两个典型使用场景</strong>：</p>
+<ol type="1">
+<li><strong>父进程希望子进程复制自己，使父进程和子进程同时执行不同的代码段</strong>：典型如网络服务器——父进程等待客户端的服务请求，接收到客户端请求事件后调用
+<code>fork()</code>
+创建子进程，让子进程去处理此请求，父进程则继续等待下一个服务请求</li>
+<li><strong>一个进程要执行不同的程序</strong>：在程序 app1 中调用
+<code>fork()</code> 创建子进程，子进程再去执行另一个程序 app2（通过 exec
+族，见第七章），子进程将从 app2 程序的 <code>main()</code>
+函数开始运行</li>
+</ol>
+<h3 id="父子进程间的文件共享">父、子进程间的文件共享</h3>
+<p><code>fork()</code>
+之后，父、子进程对应的<strong>文件描述符均指向相同的文件表</strong>（内核的
+open file
+description），也就意味着它们指向了磁盘中<strong>相同的文件</strong>，因而这些文件在父、子进程间实现了<strong>共享</strong>——最典型的体现是：<strong>文件偏移量是共享的</strong>。如果子进程更新了文件偏移量，那么这个改变也会影响到父进程中相应文件描述符的位置偏移量。</p>
+<blockquote>
+<p>🎨 <strong>示意图：Linux文件系统</strong></p>
+<p>本节原配有一张手绘示意图（Excalidraw），博客版暂未提供图片。
+<strong>对照实验</strong>（两个示例一对比就懂了）：</p>
+</blockquote>
+<ul>
+<li><code>Processe/src/fork1.cc</code>：<strong>fork 之前 open</strong>
+同一个文件描述符，父子进程用同一 fd
+写——偏移量共享，数据连续交错写入，谁也不覆盖谁：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ./fork1</span><br><span class="line">这是父进程打印信息&lt;pid: 118552, 子进程 pid: 118553&gt;</span><br><span class="line">--- test.txt 内容 ---</span><br><span class="line">abcdabcdabcdabcd1234123412341234    <span class="comment"># 父先写 4 个 abcd，子接着写 4 个 1234，偏移连续</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>Processe/src/fork2.cc</code>：<strong>fork 之后各自
+open</strong>（且带
+<code>O_TRUNC</code>）——各自拥有独立的文件表、独立的偏移量，后 open
+的一方把先写的内容<strong>截断覆盖</strong>了：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ./fork2</span><br><span class="line">这是父进程打印信息&lt;pid: 118556, 子进程 pid: 118557&gt;</span><br><span class="line">--- test.txt 内容 ---</span><br><span class="line">1234123412341234    <span class="comment"># 子进程后 open，O_TRUNC 把父进程写的 abcd 全部截掉</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>结论：文件描述符（fd）是进程级的，但 fd
+指向的<strong>文件表（打开文件描述）是父子共享的</strong>。fork
+后要不要共享文件偏移，取决于文件是 fork
+之前打开的还是之后各自打开的。</p>
+</blockquote>
+<h3 id="vfork-为立即-exec-而生的创建方式">vfork() — 为立即 exec
+而生的创建方式</h3>
+<p><strong>作用</strong>:: 与 fork()
+类似的子进程创建函数，但<strong>效率更高</strong>，是为"子进程立即执行
+<code>exec()</code> 新程序"这个场景专门设计的（即 fork()
+的第二个使用场景）。</p>
+<p><strong>背景</strong>：<code>fork()</code>
+系统调用会复制父进程数据段和堆栈段中的绝大部分内容，消耗比较多的时间，效率会有所降低，而且太浪费——如果子进程马上要
+exec 换掉整个映像，这些拷贝就全白费了。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">pid_t</span> <span class="title function_">vfork</span><span class="params">(<span class="type">void</span>)</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>与 fork() 的区别</strong>：</p>
+<ol type="1">
+<li><code>vfork()</code>
+<strong>并不会将父进程的地址空间完全复制到子进程中</strong>——因为子进程会立即调用
+<code>exec()</code>（或
+<code>_exit()</code>），于是也就不会引用该地址空间的数据。不过在子进程调用
+<code>exec()</code> 或 <code>_exit()</code>
+<strong>之前</strong>，它在父进程的空间中运行，<strong>子进程共享父进程的内存</strong></li>
+<li><code>vfork()</code> <strong>保证子进程先运行</strong>，子进程调用
+<code>exec()</code> 之后父进程才可能被调度运行</li>
+</ol>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>虽然 <code>vfork()</code> 在效率上优于
+<code>fork()</code>，但它<strong>可能会导致一些难以察觉的程序
+bug</strong>（子进程共享父进程内存，若在 exec
+前修改了变量/返回父进程栈，行为诡异），所以<strong>尽量避免使用
+<code>vfork()</code> 创建子进程</strong></li>
+<li>现代 Linux 的 <code>fork()</code>
+已用写时复制（COW）实现，绝大多数场景直接用 <code>fork()</code>
+即可，不必再纠结 vfork 的性能优势</li>
+</ul>
+<h3 id="fork-之后的竞争条件">fork() 之后的竞争条件</h3>
+<p>调用 <code>fork()</code>
+之后，<strong>无法确定父、子两个进程谁将率先访问
+CPU</strong>，也就是说无法确认谁先被系统调度运行。若程序对执行顺序有要求，属于<strong>竞争条件（race
+condition）</strong>，必须显式同步：</p>
+<ul>
+<li>参考示例 <code>Processe/src/fork3.cc</code>：父进程调用
+<code>sigsuspend()</code> 挂起等待；子进程 sleep 2 秒后
+<code>kill(getppid(), SIGUSR1)</code>
+唤醒父进程——用信号完成"先子后父"的顺序编排：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ ./fork3</span><br><span class="line">接收到信号 10        <span class="comment"># 父进程收到子进程发来的 SIGUSR1 被唤醒</span></span><br><span class="line">这是父进程打印信息&lt;pid: 118559, 子进程 pid: 118560&gt;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="进程的诞生与终止">进程的诞生与终止</h2>
+<p>Linux 系统下的所有进程都是由其<strong>父进程创建</strong>而来的：在
+shell 终端通过命令方式执行 <code>./app</code>，app 进程就是由 shell
+终端进程创建出来的，shell 终端就是该进程的父进程。</p>
+<p><strong>进程号为 1 的进程便是所有进程的父进程</strong>，通常称为
+<strong>init 进程</strong>（现代系统多为 systemd，仍占 PID 1）。它是
+Linux 系统启动之后运行的第一个进程，管理着系统上所有其它进程。init
+进程由内核启动，PID 总是为 1，它是所有孤儿进程的"养父"——一切从 1
+开始、一切从 init 进程开始。</p>
+<h3 id="终止状态termination-status">终止状态（termination status）</h3>
+<p><code>exit()</code> 函数的 <code>status</code>
+参数定义了进程的终止状态，<strong>父进程可以调用 <code>wait()</code>
+函数获取该状态</strong>。虽然参数 <code>status</code> 定义为
+<code>int</code> 类型，但<strong>仅有低 8
+位表示它的终止状态</strong>（所以退出码范围是
+0~255，<code>exit(-1)</code> 实际得到 255）。</p>
+<p>一般来说，<strong>终止状态为 0 表示进程成功终止</strong>，而非 0
+值则表示进程在执行过程中出现了一些错误而终止（惯例：0 成功、非 0
+出错）。</p>
+<h3 id="exit-内部到底做了什么">exit() 内部到底做了什么</h3>
+<p><code>exit()</code> 函数会执行的动作如下：</p>
+<ol type="1">
+<li>如果程序中注册了进程终止处理函数（<code>atexit()</code>），会<strong>逆序调用</strong>这些终止处理函数</li>
+<li><strong>刷新 stdio
+流缓冲区</strong>（把缓冲中的数据真正写出去）</li>
+<li>执行 <code>_exit()</code> 系统调用，真正退出</li>
+</ol>
+<h3 id="为什么-fork-之后父子进程不能用同一个-exit">为什么 fork
+之后父、子进程不能用同一个 exit()</h3>
+<p><strong>父、子进程不应都使用 <code>exit()</code>
+终止</strong>，只能有一个进程使用 <code>exit()</code>、另一个使用
+<code>_exit()</code>（一般推荐：<strong>子进程
+<code>_exit()</code>、父进程 <code>exit()</code></strong>）。</p>
+<p>原因在于 stdio 缓冲区：<code>fork()</code>
+之后创建的子进程<strong>也自然拷贝了父进程的 stdio
+缓冲区数据</strong>。若父子都调用
+<code>exit()</code>，两者都会各自刷新自己那份缓冲区——例如父进程之前在缓冲区里写了一个字符串还没
+flush，fork 后父子各有一份，调用 <code>exit()</code>
+时<strong>两边都把同一份字符串打印一遍</strong>，于是就会看到打印出了两次相同的字符串。</p>
+<p>参考 <code>Processe/src/fork1.cc</code>：父进程
+<code>exit(0)</code>、子进程
+<code>_exit(0)</code>——子进程不刷新自己拷贝来的缓冲区，避免了重复输出。</p>
+<blockquote>
+<p>💡 <strong>容器里的真实坑</strong>：如果容器的 PID 1 进程不是真正的
+init/systemd（比如用 <code>sleep infinity</code> 之类的命令占着 PID
+1），它<strong>不会调用 <code>wait()</code>
+回收子进程</strong>。被它收养的孤儿进程一旦退出就会变成<strong>永远清不掉的僵尸进程</strong>（见下一章
+zombie 演示和文末补充）。生产容器建议用 tini / dumb-init
+之类带回收能力的进程当 PID 1。</p>
+</blockquote>
+<hr>
+<h2 id="监视子进程">监视子进程</h2>
+<h3 id="为什么要-wait">为什么要 wait()</h3>
+<p>父进程创建子进程后，需要知道子进程的终止情况并回收它的资源：</p>
+<ul>
+<li><code>wait()</code>
+可以获取子进程的<strong>终止状态</strong>（正常退出码 /
+被哪个信号杀死等）</li>
+<li>更重要的是<strong>回收子进程的资源</strong>——子进程终止后如果没有父进程调用
+wait
+收尸，会残留为<strong>僵尸进程</strong>（见下文），占用内核进程表项。俗称为子进程"<strong>收尸</strong>"</li>
+</ul>
+<h3 id="wait-等待任意子进程终止">wait() — 等待任意子进程终止</h3>
+<p><strong>作用</strong>::
+阻塞等待<strong>任意一个</strong>子进程终止，获取其终止状态并回收资源。若成功则返回终止的子进程对应的进程号；失败则返回
+-1。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">pid_t</span> <span class="title function_">wait</span><span class="params">(<span class="type">int</span> *status)</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>参数</strong>：<code>status</code>：输出参数，保存子进程的终止状态（可为
+NULL，表示不关心状态，只收尸）</p>
+<p><strong>返回值</strong>：成功返回终止子进程的 PID；失败返回
+-1（并设置 errno）</p>
+<p><strong>wait() 的三种行为</strong>：</p>
+<ol type="1">
+<li>如果其所有子进程都还在运行，<code>wait()</code>
+会<strong>一直阻塞等待</strong>，直到某一个子进程终止</li>
+<li>如果调用 <code>wait()</code>
+的进程<strong>并没有子进程</strong>（没有需要等待的子进程），<code>wait()</code>
+将返回错误 -1，并将 <code>errno</code> 设置为
+<strong><code>ECHILD</code></strong></li>
+<li>如果在调用 <code>wait()</code>
+<strong>之前</strong>，它的子进程当中已经有一个或多个终止了（已处于僵尸状态），那么调用
+<code>wait()</code> <strong>不会阻塞</strong>，立即回收并返回</li>
+</ol>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li><code>wait(&amp;status)</code> 与
+<code>waitpid(-1, &amp;status, 0)</code> <strong>等价</strong></li>
+<li>若父进程有多个子进程，<code>wait()</code>
+回收的是<strong>任意一个</strong>（不指定具体
+PID），返回值告诉你回收的是谁</li>
+</ul>
+<h3 id="终止状态判断宏">终止状态判断宏</h3>
+<p><code>wait()</code> / <code>waitpid()</code> 获取得到的
+<code>status</code> 参数<strong>并不是</strong>子进程调用
+<code>_exit()</code> / <code>exit()</code>
+时指定的那个数值，它是一个编码后的整数，必须通过下面的宏来解读：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">宏</th>
+<th style="text-align: left;">作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>WIFEXITED(status)</code></td>
+<td
+style="text-align: left;">如果子进程<strong>正常终止</strong>（调用了
+exit/_exit 或 main return），返回 true</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>WEXITSTATUS(status)</code></td>
+<td
+style="text-align: left;">返回子进程的<strong>退出状态</strong>（调用
+exit()/_exit() 时指定的值）。需先确认 <code>WIFEXITED</code> 为
+true</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>WIFSIGNALED(status)</code></td>
+<td
+style="text-align: left;">如果子进程<strong>被信号终止</strong>，返回
+true</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>WTERMSIG(status)</code></td>
+<td
+style="text-align: left;">返回<strong>导致子进程终止的信号编号</strong>（配合
+WIFSIGNALED 使用）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>WCOREDUMP(status)</code></td>
+<td
+style="text-align: left;">如果子进程终止时<strong>产生了核心转储文件</strong>（core
+dump），返回 true</td>
+</tr>
+</tbody>
+</table>
+<p>典型用法：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (WIFEXITED(status)) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;正常退出，退出码 %d\n&quot;</span>, WEXITSTATUS(status));</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (WIFSIGNALED(status)) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;被信号 %d 杀死\n&quot;</span>, WTERMSIG(status));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="waitpid-指定子进程等待">waitpid() — 指定子进程等待</h3>
+<p><strong>作用</strong>:: wait()
+的增强版：可以<strong>指定等待哪个子进程</strong>、可以<strong>非阻塞</strong>地查询（WNOHANG），是实际开发中（尤其是信号处理函数里）的首选。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">pid_t</span> <span class="title function_">waitpid</span><span class="params">(<span class="type">pid_t</span> pid, <span class="type">int</span> *status, <span class="type">int</span> options)</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>pid</code>（等待对象）：</li>
+</ul>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">pid 取值</th>
+<th style="text-align: left;">等待对象</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>pid &gt; 0</code></td>
+<td style="text-align: left;">等待进程号为 pid
+的<strong>特定子进程</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pid == 0</code></td>
+<td
+style="text-align: left;">等待与调用进程（父进程）<strong>同一个进程组</strong>的所有子进程</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pid &lt; -1</code></td>
+<td style="text-align: left;">等待进程组标识符与 <code>|pid|</code>
+相等的<strong>进程组</strong>中的所有子进程</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pid == -1</code></td>
+<td style="text-align: left;">等待<strong>任意子进程</strong>（与
+<code>wait(&amp;status)</code> 等价）</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>status</code>：输出参数，保存终止状态（同 wait，可为
+NULL）</li>
+<li><code>options</code>：位掩码，可以是 0 个或多个如下标志：</li>
+</ul>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">标志</th>
+<th style="text-align: left;">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>WNOHANG</code></td>
+<td
+style="text-align: left;">如果子进程没有发生状态改变（终止、暂停），则<strong>立即返回</strong>；返回值等于
+0 表示没有状态改变（非阻塞轮询的关键）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>WUNTRACED</code></td>
+<td
+style="text-align: left;">除了返回终止的子进程状态外，还返回<strong>因信号而停止（暂停运行）</strong>的子进程状态信息</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>WCONTINUED</code></td>
+<td style="text-align: left;">返回那些因收到 <code>SIGCONT</code>
+信号而<strong>恢复运行</strong>的子进程状态信息</td>
+</tr>
+</tbody>
+</table>
+<p><strong>返回值</strong>：成功返回终止子进程的 PID（WNOHANG
+且无状态变化时返回 0）；失败返回 -1（如 <code>errno == ECHILD</code>
+表示没有匹配的子进程）</p>
+<p><strong>参考示例</strong>
+<code>Processe/src/waitpid.cc</code>：父进程连续 fork 3 个子进程（分别睡
+5/7/9 秒后以退出码 0/1/2 退出），然后循环
+<code>waitpid(-1, &amp;status, 0)</code>
+依次回收——观察输出可见回收顺序与子进程终止先后一致：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ ./waitpid</span><br><span class="line">这是进入子进程打印信息&lt;pid: 118562, ...&gt;   <span class="comment"># 3 个子进程同时开工</span></span><br><span class="line">...</span><br><span class="line">回收子进程 &lt;pid: 118562&gt;, &lt;状态: 0&gt;        <span class="comment"># 睡 5s 的先退，先被回收</span></span><br><span class="line">回收子进程 &lt;pid: 118563&gt;, &lt;状态: 1&gt;</span><br><span class="line">回收子进程 &lt;pid: 118564&gt;, &lt;状态: 2&gt;</span><br><span class="line">父进程进程退出</span><br></pre></td></tr></table></figure>
+<h3 id="僵尸进程与孤儿进程">僵尸进程与孤儿进程</h3>
+<p><strong>1. 孤儿进程（父进程先于子进程结束）</strong>：
+父进程先于子进程结束，意味着此时子进程变成了一个"孤儿"，这种进程称为<strong>孤儿进程</strong>。所有的孤儿进程都自动成为
+<strong>init 进程（PID
+1）的子进程</strong>——某一子进程的父进程结束后，该子进程调用
+<code>getppid()</code> 将返回 1，init
+进程变成了孤儿进程的"养父"。这也是判定某一子进程的"生父"是否还"在世"的方法之一。</p>
+<p><strong>2.
+僵尸进程（子进程先于父进程结束，父进程没来得及收尸）</strong>：
+子进程先于父进程结束，此时父进程还未来得及给子进程"收尸"，那么子进程就变成了一个<strong>僵尸进程（Zombie）</strong>。僵尸进程已经终止、不占
+CPU，但仍保留着内核进程表项（PCB
+残留），等待父进程读取退出状态。当父进程调用
+<code>wait()</code>（或其变体）为子进程"收尸"后，僵尸进程就会被内核<strong>彻底删除</strong>。</p>
+<ul>
+<li>如果父进程没有调用 <code>wait()</code> 就退出了，此时 init
+进程将会<strong>接管它的子进程并自动调用
+wait()</strong>，从而从系统中移除僵尸进程（前提是 init 真的会
+wait——见容器 PID 1 的坑）</li>
+<li><strong>如果系统中存在大量的僵尸进程，它们势必会填满内核进程表，从而阻碍新进程的创建</strong>。所以在程序设计中，一定要监视子进程的状态变化：如果子进程终止了，要调用
+<code>wait()</code> 将其回收，避免僵尸进程</li>
+<li>已经产生的僵尸进程无法直接"杀死"（它已经死了），只能<strong>等其父进程终止、或杀死其父进程</strong>，让
+init 进程来处理；杀死父进程之后，僵尸进程也会随之被清理</li>
+</ul>
+<p><strong>演示示例</strong>
+<code>Processe/src/zombie.cc</code>：子进程立即退出，父进程故意睡 20
+秒不 wait。期间在另一个终端执行 <code>ps -ef | grep zombie</code>
+就能看到僵尸状态：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ ./zombie &amp;</span><br><span class="line">[父进程] PID=118517，子进程 118518 已退出，但父进程暂不回收</span><br><span class="line"></span><br><span class="line">$ ps -ef | grep zombie</span><br><span class="line">root  118517  ...  ./zombie 8          <span class="comment"># 父进程，还活着</span></span><br><span class="line">root  118518  ...  [zombie] &lt;defunct&gt;  <span class="comment"># STAT=Z 的僵尸进程！</span></span><br></pre></td></tr></table></figure>
+<p>20 秒后父进程调用 <code>waitpid()</code>
+收尸，僵尸被内核清除，进程表恢复。</p>
+<h3 id="sigchld-信号与漏网之鱼问题">SIGCHLD 信号与"漏网之鱼"问题</h3>
+<p>子进程终止时，内核会向父进程发送
+<strong><code>SIGCHLD</code></strong>
+信号（默认动作是忽略）。父进程可以在 SIGCHLD 处理函数中调用
+<code>wait()</code> 回收子进程，实现"子进程一死就自动收尸"。</p>
+<p>但这里有个<strong>经典陷阱</strong>：当调用信号处理函数时，内核会暂时将引发调用的信号添加到进程的信号掩码中（除非
+<code>sigaction()</code> 指定了 <code>SA_NODEFER</code>）。这样一来，当
+SIGCHLD
+信号处理函数正在为一个终止的子进程"收尸"时，如果相继有两个子进程终止，即使产生了两次
+SIGCHLD 信号，<strong>父进程也只能捕获到一次</strong>。结果是父进程的
+SIGCHLD 处理函数每次只调用一次
+<code>wait()</code>，就会导致<strong>有些僵尸进程成为"漏网之鱼"</strong>。</p>
+<p><strong>解决方案</strong>：在 SIGCHLD
+信号处理函数中<strong>循环以非阻塞方式调用
+<code>waitpid(-1, ..., WNOHANG)</code></strong>，直至再无其它终止的子进程需要处理为止：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">signal_handler</span><span class="params">(<span class="type">int</span> sig)</span> &#123;</span><br><span class="line">    <span class="type">int</span> status, ret;</span><br><span class="line">    <span class="keyword">while</span> ((ret = waitpid(<span class="number">-1</span>, &amp;status, WNOHANG)) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">/* 回收一个子进程，直到回收完为止 */</span></span><br><span class="line">        <span class="keyword">if</span> (WIFEXITED(status))</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;回收子进程 %d, 状态 %d\n&quot;</span>, ret, WEXITSTATUS(status));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* ret == 0: 还有子进程在运行; ret == -1 &amp;&amp; errno == ECHILD: 没有子进程了 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>参考示例 <code>Processe/src/waitpid-signal.cc</code>：3
+个子进程分别睡 0/1/2 秒退出，SIGCHLD 处理函数用 WNOHANG
+循环逐个回收（在终端里跑可以看到完整输出）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ ./waitpid-signal</span><br><span class="line">父进程等待子进程退出</span><br><span class="line">...</span><br><span class="line">接收到信号 17</span><br><span class="line">回收子进程 &lt;pid: 118858&gt;, &lt;状态: 0&gt;</span><br><span class="line">...</span><br><span class="line">接收到信号 17</span><br><span class="line">回收子进程 &lt;pid: 118859&gt;, &lt;状态: 1&gt;</span><br><span class="line">...</span><br><span class="line">接收到信号 17</span><br><span class="line">回收子进程 &lt;pid: 118860&gt;, &lt;状态: 2&gt;</span><br><span class="line">没有子进程了</span><br></pre></td></tr></table></figure>
+<p>信号处理与 SIGCHLD 的更多细节见 <a
+href="/posts/linux-signal.html">信号</a> 笔记。</p>
+<p>本小节函数总览：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">示例代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>wait()</code></td>
+<td style="text-align: left;">阻塞等待任意子进程终止并回收</td>
+<td style="text-align: left;">—（等价 waitpid(-1,...)）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>waitpid()</code></td>
+<td style="text-align: left;">指定子进程/进程组等待，可非阻塞</td>
+<td
+style="text-align: left;"><code>Processe/src/waitpid.cc</code>、<code>waitpid-signal.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>WIFEXITED()</code> 等状态宏</td>
+<td style="text-align: left;">解析 wait 返回的 status</td>
+<td style="text-align: left;"><code>Processe/src/waitpid.cc</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="执行新程序">执行新程序</h2>
+<h3 id="execve-执行新程序的系统调用">execve() —
+执行新程序的系统调用</h3>
+<p><strong>作用</strong>::
+加载并执行一个全新的程序。它会用新程序的代码、数据、堆栈等<strong>完全替换</strong>当前进程的内容，但进程的
+<strong>PID（进程ID）保持不变</strong>——进程还是那个进程，只是"芯"被换掉了。<code>exec</code>
+成功后<strong>不会返回</strong>（成功即"一去不回"），只有失败才返回
+-1。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">execve</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *filename, <span class="type">char</span> *<span class="type">const</span> argv[], <span class="type">char</span> *<span class="type">const</span> envp[])</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>filename</code>：要执行的目标程序的文件路径（可以是二进制可执行文件，也可以是带解释器的脚本）</li>
+<li><code>argv</code>：传给新程序的命令行参数数组，以 <code>NULL</code>
+结尾（其中 <code>argv[0]</code> 通常是程序自身的名称）</li>
+<li><code>envp</code>：传给新程序的环境变量数组，同样以
+<code>NULL</code> 结尾</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>exec 不创建新进程——<strong>PID
+不变</strong>，进程的其它属性（打开的文件描述符中未设 FD_CLOEXEC
+的、进程号、父进程号等）大部分保留</li>
+<li><strong>成功不返回</strong>：exec 之后的代码永远不会执行（除非 exec
+失败）</li>
+<li>从 shell 角度看，<code>fork() + exec()</code>
+的组合就是"运行一个新程序"的标准姿势：fork 出子进程，子进程 exec
+替换成新程序，父进程 wait 回收</li>
+</ul>
+<h3 id="exec-库函数族-六种变体">exec 库函数族 — 六种变体</h3>
+<p>直接使用 <code>execve()</code> 比较繁琐，glibc 在它之上封装了 6
+个库函数，区别全在<strong>函数名后缀的字母</strong>上：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="keyword">extern</span> <span class="type">char</span> **environ;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">execl</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *path, <span class="type">const</span> <span class="type">char</span> *arg, ... <span class="comment">/* (char *) NULL */</span>)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">execlp</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *file, <span class="type">const</span> <span class="type">char</span> *arg, ... <span class="comment">/* (char *) NULL */</span>)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">execle</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *path, <span class="type">const</span> <span class="type">char</span> *arg, ... <span class="comment">/*, (char *) NULL, char * const envp[] */</span>)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">execv</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *path, <span class="type">char</span> *<span class="type">const</span> argv[])</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">execvp</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *file, <span class="type">char</span> *<span class="type">const</span> argv[])</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">execvpe</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *file, <span class="type">char</span> *<span class="type">const</span> argv[], <span class="type">char</span> *<span class="type">const</span> envp[])</span>;</span><br></pre></td></tr></table></figure>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">后缀字母</th>
+<th style="text-align: left;">含义</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>l</code>（list）</td>
+<td
+style="text-align: left;">命令行参数用<strong>列表</strong>方式逐个给出</td>
+<td style="text-align: left;">参数以 <code>(char *)NULL</code> 结尾</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>v</code>（vector）</td>
+<td style="text-align: left;">命令行参数用 <strong>argv
+数组</strong>方式给出</td>
+<td style="text-align: left;">数组以 NULL 结尾</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>p</code>（PATH）</td>
+<td style="text-align: left;">只提供<strong>文件名</strong>即可</td>
+<td style="text-align: left;">系统会在环境变量 <code>PATH</code>
+指定的目录列表中查找可执行文件</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>e</code>（environment）</td>
+<td
+style="text-align: left;">可以<strong>自定义环境变量列表</strong></td>
+<td style="text-align: left;">末尾多一个 <code>envp[]</code>
+参数，不继承原环境</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>execlp()</code> 和 <code>execvp()</code> 带
+<code>p</code>：允许只提供新程序文件名，系统在 <code>PATH</code>
+目录列表中查找</li>
+<li><code>execle()</code> 和 <code>execvpe()</code> 带
+<code>e</code>：可以指定<strong>自定义的环境变量列表</strong>给新程序（否则默认继承
+<code>environ</code>）</li>
+<li>函数名<strong>不带字母 e
+的</strong>（execl/execlp/execv/execvp）都继承调用进程当前的环境变量</li>
+</ul>
+<p><strong>完整示例</strong>
+<code>Processe/src/exec.cc</code>（三种场景）：</p>
+<p>场景 1：默认——<code>execlp("sh", ...)</code> 直接替换当前进程，注意
+exec <strong>前</strong>后 PID 一致：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ./exec</span><br><span class="line">========== <span class="built_in">exec</span> 替换当前进程（PID 不变）==========</span><br><span class="line"><span class="built_in">exec</span> 之前 PID = 118207</span><br><span class="line"><span class="built_in">exec</span> 之后 PID = 118207  （同一个进程，代码已被替换！）</span><br></pre></td></tr></table></figure>
+<p>场景 2：<code>./exec fork</code>——fork + execvp
+组合，父进程等待子进程执行完 echo：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ./exec fork</span><br><span class="line">hello, I am the new program</span><br><span class="line">[父进程] PID=118852，等待子进程 118853 结束...</span><br><span class="line">[父进程] 回收子进程，退出状态 WEXITSTATUS=0</span><br></pre></td></tr></table></figure>
+<p>场景 3：<code>./exec fail</code>——exec 不存在的程序，返回 -1：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ ./exec fail</span><br><span class="line">尝试 <span class="built_in">exec</span> 不存在的程序 /nonexistent/bin/xxx ...</span><br><span class="line"><span class="built_in">exec</span> 失败返回 -1，errno = 2 (No such file or directory)</span><br></pre></td></tr></table></figure>
+<p><strong>注意事项</strong>（实战高频坑）：</p>
+<ul>
+<li><strong>stdio 缓冲区不随 exec 保留</strong>：<code>printf</code>
+的缓冲数据在 exec 时不会自动刷新，未 flush
+的内容会随旧进程映像一起消失。exec 之前要打印信息必须显式
+<code>fflush(stdout)</code>（<code>exec.cc</code>
+里专门演示了这个坑）</li>
+<li>exec 成功后，原进程注册的 <code>atexit()</code>
+处理函数<strong>不会执行</strong>（进程映像已替换）</li>
+<li>exec 后信号处理方式会被重置为默认（<code>fork</code> 不会重置，exec
+会）——因为处理函数地址属于旧映像</li>
+<li>不带 <code>FD_CLOEXEC</code> 标志的已打开文件描述符在 exec
+后保持打开</li>
+</ul>
+<h3 id="system-在程序中执行-shell-命令">system() — 在程序中执行 shell
+命令</h3>
+<p><strong>作用</strong>:: 使用 <code>system()</code>
+函数可以很方便地在程序当中执行任意 shell
+命令，适合简单场景（如调用外部工具、执行命令），不需要自己 fork + exec +
+wait。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">system</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *command)</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>实现原理</strong>：<code>system()</code> 内部通过调用
+<code>fork()</code>、<code>execl()</code> 以及 <code>waitpid()</code>
+三个函数实现：首先 <code>fork()</code> 创建一个子进程来运行
+shell（可以把这个子进程称为 shell 进程），并通过 shell 执行参数
+<code>command</code> 所指定的命令。</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li><strong>效率低</strong>：<code>system()</code> 运行 shell
+命令需要至少创建两个进程——一个进程用于运行
+shell、另外一个或多个进程则用于运行 <code>command</code>
+中解析出来的命令（每一个命令都会调用一次 exec 函数执行）。所以使用
+<code>system()</code>
+效率会大打折扣，<strong>高频路径不要用</strong></li>
+<li><strong>安全（命令注入）</strong>：<code>command</code> 会交给 shell
+解析，如果命令字符串中拼接了外部输入（如用户数据、文件名），可能被注入额外的
+shell 命令——处理不可信输入时<strong>不要</strong>用 system()，优先考虑
+exec 族直接执行程序</li>
+<li><code>command</code> 为 NULL 时，<code>system()</code> 仅检测 shell
+是否可用（可用返回非 0）</li>
+<li>返回值是 waitpid 得到的<strong>编码后状态</strong>，需要用
+WIFEXITED/WEXITSTATUS 等宏解析；它无法区分"命令正常退出"与"shell
+启动失败"</li>
+</ul>
+<p>本小节函数总览：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">示例代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>execve()</code></td>
+<td style="text-align: left;">exec 系统调用本体（指定完整路径 +
+envp）</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>execl()</code> /
+<code>execv()</code></td>
+<td style="text-align: left;">基础变体（列表/数组传参）</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>execlp()</code> /
+<code>execvp()</code></td>
+<td style="text-align: left;">带 PATH 查找</td>
+<td style="text-align: left;"><code>Processe/src/exec.cc</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>execle()</code> /
+<code>execvpe()</code></td>
+<td style="text-align: left;">自定义环境变量</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>system()</code></td>
+<td style="text-align: left;">执行 shell 命令（fork+execl+waitpid
+封装）</td>
+<td style="text-align: left;">—</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="进程的状态与关系">进程的状态与关系</h2>
+<h3 id="linux-进程的-6-种状态">Linux 进程的 6 种状态</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">状态</th>
+<th style="text-align: left;">名称</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>R</strong></td>
+<td style="text-align: left;">Running / TASK_RUNNING</td>
+<td
+style="text-align: left;"><strong>运行或可运行状态</strong>：进程正在
+CPU 上执行，或者在运行队列中等待调度</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>S</strong></td>
+<td style="text-align: left;">Sleeping / TASK_INTERRUPTIBLE</td>
+<td
+style="text-align: left;"><strong>可中断睡眠状态</strong>：进程在等待某个事件完成（如等待资源、I/O
+结束或收到信号），条件达成后会被唤醒</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>D</strong></td>
+<td style="text-align: left;">Disk Sleep / TASK_UNINTERRUPTIBLE</td>
+<td
+style="text-align: left;"><strong>不可中断睡眠状态</strong>：进程通常在等待硬件
+I/O（如磁盘读写），此状态下<strong>不响应外部信号，无法被
+<code>kill</code> 强行杀死</strong>（卡在 D
+状态通常是等慢速磁盘/NFS，只能等它自己完成）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>T / t</strong></td>
+<td style="text-align: left;">Stopped / TASK_STOPPED / tracing stop</td>
+<td
+style="text-align: left;"><strong>暂停或跟踪状态</strong>：进程收到停止信号（如
+<code>SIGSTOP</code>、<code>Ctrl+Z</code> 的
+SIGTSTP）暂停运行，或被调试器（如 gdb）跟踪（小写 t）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Z</strong></td>
+<td style="text-align: left;">Zombie / EXIT_ZOMBIE</td>
+<td
+style="text-align: left;"><strong>僵尸状态</strong>：进程已终止运行，但父进程尚未通过
+<code>wait()</code> 等系统调用回收其资源和退出信息</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>X</strong></td>
+<td style="text-align: left;">Dead / EXIT_DEAD</td>
+<td
+style="text-align: left;"><strong>死亡状态</strong>：进程的最终状态，资源已被完全释放，在
+<code>ps</code> 输出中很难直接看到</td>
+</tr>
+</tbody>
+</table>
+<p><strong>查看进程状态</strong>：<code>ps aux</code> /
+<code>ps -ef</code> 的 <strong>STAT</strong> 列就是进程状态。STAT
+列除了主状态字母，还常带附加字符：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">附加字符</th>
+<th style="text-align: left;">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>s</code></td>
+<td style="text-align: left;">会话首领（session leader，如
+<code>Ss</code>）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>+</code></td>
+<td style="text-align: left;">位于前台进程组（如 <code>S+</code>）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>l</code></td>
+<td style="text-align: left;">多线程进程</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>&lt;</code></td>
+<td style="text-align: left;">高优先级</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>N</code></td>
+<td style="text-align: left;">低优先级（nice）</td>
+</tr>
+</tbody>
+</table>
+<p>以容器里的真实输出为例（<code>ps -ef</code> 与
+<code>ps aux</code>）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ ps -ef</span><br><span class="line">UID          PID    PPID  C STIME TTY          TIME CMD</span><br><span class="line">root           1       0  0 Jul02 ?        00:00:00 <span class="built_in">sleep</span> infinity</span><br><span class="line">root          15       1  0 Jul02 ?        00:00:00 sshd: /usr/sbin/sshd [listener] ...</span><br><span class="line">sshd          17       1  0 Jul04 ?        00:00:00 [sshd] &lt;defunct&gt;</span><br><span class="line"></span><br><span class="line">$ ps aux</span><br><span class="line">USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND</span><br><span class="line">root           1  0.0  0.0   2792     0 ?        Ss   Jul02   0:00 <span class="built_in">sleep</span> infinity</span><br><span class="line">root          15  0.0  0.0  15432  1056 ?        Ss   Jul02   0:00 sshd: /usr/sbin/sshd [listener] ...</span><br><span class="line">sshd          17  0.0  0.0      0     0 ?        Z    Jul04   0:00 [sshd] &lt;defunct&gt;</span><br></pre></td></tr></table></figure>
+<p>解读：PID
+1（<code>sleep infinity</code>）是容器的第一个进程（STAT=<code>Ss</code>：可中断睡眠
++ 会话首领）；PID 15 是 sshd 监听进程；PID 17 是某个 sshd
+会话子进程，早已退出但 PPID 是 1——它的父进程（或收养者 PID 1）没有调用
+wait() 收尸，所以一直以 <strong>Z /
+<code>&lt;defunct&gt;</code></strong> 僵尸状态挂在进程表里。这正是"容器
+PID 1 不回收子进程"的典型现场（见文末补充）。</p>
+<h3 id="进程关系">进程关系</h3>
+<p>进程之间的关系从简单到复杂分为三种：<strong>无关系、父子进程关系、进程组与会话</strong>。</p>
+<p><strong>进程组（Process
+Group）</strong>：设计进程组实质上是为了方便对进程进行管理。假设为了完成一个任务需要并发运行
+100 个进程，当处于某种场景需要终止这 100
+个进程时，若没有进程组就需要一个一个去终止，非常麻烦且容易出现一些问题；有了进程组的概念之后，就可以将这
+100 个进程设置为一个进程组，这些进程共享一个进程组 ID（PGID），终止这
+100 个进程只需要<strong>终止该进程组</strong>（<code>kill -PID</code> 或
+<code>kill -- -PGID</code>）。</p>
+<p>进程组的基本规则：</p>
+<ol type="1">
+<li>每个进程必定属于某一个进程组、且只能属于一个进程组</li>
+<li>每一个进程组有一个<strong>组长进程</strong>，组长进程的 ID
+就等于进程组 ID</li>
+<li>在组长进程的 ID 前面加上一个负号即是操作进程组（如
+<code>kill -TERM -PGID</code>）</li>
+<li>组长进程不能再创建新的进程组</li>
+<li>只要进程组中还存在一个进程，则该进程组就存在——<strong>这与其组长进程是否终止无关</strong></li>
+<li>一个进程组可以包含一个或多个进程；进程组的生命周期从被创建开始，到其内所有进程终止或离开该进程组</li>
+<li>默认情况下，<strong>新创建的进程会继承父进程的进程组
+ID</strong></li>
+</ol>
+<p><strong>会话（Session）</strong>：会话是一个或多个进程组的集合。一个会话可包含一个或多个进程组，但<strong>只能有一个前台进程组</strong>，其它的是后台进程组；每个会话都有一个<strong>会话首领（session
+leader）</strong>，即创建会话的进程。一个会话可以有控制终端、也可没有控制终端；在有控制终端的情况下也只能连接一个控制终端（通常是登录到其上的终端设备）。</p>
+<ul>
+<li>会话的首领进程连接一个终端之后，该终端就成为会话的<strong>控制终端</strong>；与控制终端建立连接的会话首领进程被称为<strong>控制进程</strong></li>
+<li>将产生在终端上的<strong>输入和信号将发送给会话的前台进程组中的所有进程</strong>（所以只有前台进程组能收到
+<code>Ctrl+C</code>）</li>
+<li>会话的首领进程的进程组 ID 将作为该会话的标识，也就是<strong>会话
+ID（sid）</strong>；默认情况下，新创建的进程会继承父进程的会话 ID</li>
+</ul>
+<p>本小节函数总览：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">示例代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>getpgrp()</code> /
+<code>getpgid()</code></td>
+<td style="text-align: left;">获取进程组 ID</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>setpgid()</code> /
+<code>setpgrp()</code></td>
+<td style="text-align: left;">加入/创建进程组</td>
+<td style="text-align: left;">—（守护进程常配合用）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>getsid()</code></td>
+<td style="text-align: left;">获取会话 ID</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>setsid()</code></td>
+<td style="text-align: left;">创建新会话（脱离控制终端）</td>
+<td style="text-align: left;"><code>Processe/src/daemon.cc</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="getpgrp-getpgid-获取进程组-id">getpgrp() / getpgid() —
+获取进程组 ID</h3>
+<p><strong>作用</strong>:: 获取进程对应的进程组 ID（PGID）。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">pid_t</span> <span class="title function_">getpgrp</span><span class="params">(<span class="type">void</span>)</span>;            <span class="comment">/* 获取调用进程的 PGID */</span></span><br><span class="line"><span class="type">pid_t</span> <span class="title function_">getpgid</span><span class="params">(<span class="type">pid_t</span> pid)</span>;       <span class="comment">/* 获取指定进程的 PGID */</span></span><br></pre></td></tr></table></figure></p>
+<p><strong>参数</strong>：<code>pid</code>：目标进程 PID；传 0
+表示调用进程自身</p>
+<p><strong>返回值</strong>：成功返回进程组 ID；失败返回
+-1（getpgid）</p>
+<h3 id="setpgid-setpgrp-加入或创建进程组">setpgid() / setpgrp() —
+加入或创建进程组</h3>
+<p><strong>作用</strong>:: 将参数 <code>pid</code>
+指定的进程加入一个现有的进程组，或创建一个新的进程组。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">setpgid</span><span class="params">(<span class="type">pid_t</span> pid, <span class="type">pid_t</span> pgid)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">setpgrp</span><span class="params">(<span class="type">void</span>)</span>;              <span class="comment">/* Linux 上等价于 setpgid(0, 0) */</span></span><br></pre></td></tr></table></figure></p>
+<p><strong>参数语义</strong>：</p>
+<ul>
+<li>如果 <code>pid == pgid</code>：由 <code>pid</code>
+指定的进程变成为进程组的<strong>组长进程</strong>（创建了一个新的进程组）</li>
+<li>如果 <code>pid == 0</code>：使用调用者的进程 ID</li>
+<li>如果 <code>pgid == 0</code>：创建一个新的进程组，由 <code>pid</code>
+指定的进程作为进程组组长进程（即 <code>pgid = pid</code>）</li>
+</ul>
+<p><strong>返回值</strong>：成功返回 0；失败返回 -1</p>
+<p><strong>注意事项</strong>：<code>setpgid()</code> 常用于 shell
+的作业控制（把后台任务放进新进程组）；它要求目标进程与调用者同属一个会话，且目标进程不能是会话首领。实际应用场景较少，了解即可。</p>
+<h3 id="getsid-setsid-会话相关">getsid() / setsid() — 会话相关</h3>
+<p><strong>作用</strong>:: <code>getsid()</code> 获取进程的会话
+ID；<code>setsid()</code>
+创建一个新的会话（并顺带创建新进程组），是守护进程"脱离终端"的关键调用。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">pid_t</span> <span class="title function_">getsid</span><span class="params">(<span class="type">pid_t</span> pid)</span>;   <span class="comment">/* pid=0 表示调用进程；返回会话 ID(sid) */</span></span><br><span class="line"><span class="type">pid_t</span> <span class="title function_">setsid</span><span class="params">(<span class="type">void</span>)</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>setsid() 的调用前提与效果</strong>：</p>
+<ul>
+<li><strong>前提</strong>：调用进程<strong>不能是进程组组长</strong>（否则返回
+-1，errno = EPERM）——所以守护进程第一步要先
+fork，让子进程必然不是组长</li>
+<li><strong>效果</strong>（三步合一）：①
+调用进程成为<strong>新会话的首领</strong>；②
+调用进程成为<strong>新进程组的组长</strong>；③
+新会话<strong>没有控制终端</strong>——彻底摆脱原会话、原进程组、原控制终端</li>
+</ul>
+<hr>
+<h2 id="守护进程">守护进程</h2>
+<p><strong>守护进程（Daemon）</strong>是运行在后台的一种特殊进程，它<strong>独立于控制终端</strong>并且周期性地执行某种任务或等待处理某些事情的发生。</p>
+<p>守护进程的特点：</p>
+<ol type="1">
+<li>一般在系统启动时开始运行，除非强行终止，否则直到系统关机都会保持运行</li>
+<li>普通进程与运行它的终端<strong>相绑定</strong>：当控制终端被关闭时，该会话就会退出，由控制终端运行的所有进程都会被终止。而守护进程能突破这种限制——它<strong>脱离终端并且在后台运行</strong></li>
+<li>守护进程通常称为 Daemon，一般进程名后面带 <code>d</code>
+就表示它是一个守护进程（sshd、crond、mysqld……）</li>
+<li>守护进程<strong>自成进程组、自成会话</strong>，即
+<code>pid == gid == sid</code></li>
+</ol>
+<h3 id="编写守护进程的标准步骤">编写守护进程的标准步骤</h3>
+<p>以 <code>Processe/src/daemon.cc</code> 为参考，标准流程如下：</p>
+<p><strong>① 创建子进程、终止父进程</strong> 子进程继承了父进程的进程组
+ID，但它有自己独立的进程
+ID，这保证了<strong>子进程不是一个进程组的组长进程</strong>——这是下面调用
+<code>setsid()</code> 的先决条件。父进程直接退出（终端上立刻回到 shell
+提示符，给人"程序已经启动完了"的反馈）。</p>
+<p><strong>② 子进程调用 setsid() 创建新会话</strong>
+因为子进程不是进程组组长，所以 <code>setsid()</code>
+会成功：子进程创建新的会话并成为<strong>会话首领进程</strong>，同时创建新的进程组并成为<strong>组长进程</strong>，且新会话<strong>没有控制终端</strong>。这一步有三个作用：让子进程摆脱原会话的控制、摆脱原进程组的控制、摆脱原控制终端的控制。</p>
+<p><strong>③ 将工作目录更改为根目录（或其它固定目录）</strong> 让
+<code>/</code>
+作为守护进程的当前目录（避免占用某个被卸载的挂载点；也可以像 daemon.cc
+一样 chdir 到自己的日志目录，保证相对路径日志可写）。</p>
+<p><strong>④ 重设文件权限掩码 umask</strong> <code>fork()</code>
+新建的子进程继承了父进程的文件权限掩码，这可能给子进程创建文件带来麻烦。把文件权限掩码设置为
+<strong>0</strong>，确保子进程有最大操作权限，大大增强守护进程的灵活性。</p>
+<p><strong>⑤ 关闭不再需要的文件描述符</strong>
+子进程继承了父进程的所有文件描述符，这些被打开的文件可能永远不会被守护进程读或写，但它们一样消耗系统资源、可能导致所在文件系统无法卸载，所以必须关闭（daemon.cc
+中用循环关闭 0 到 <code>getdtablesize()</code> 的所有 fd）。</p>
+<p><strong>⑥ 将文件描述符 0、1、2 定位到 /dev/null</strong>
+守护进程的标准输入、标准输出、标准错误重定向到
+<code>/dev/null</code>——它的输出无处显示，也无处从交互式用户那里接收输入（同时也避免后续
+open 时误占 0/1/2 导致 printf 输出跑到奇怪的文件里）。</p>
+<p><strong>⑦ 其它可选收尾</strong>：忽略 <code>SIGCHLD</code>
+信号（<code>signal(SIGCHLD, SIG_IGN)</code>）——让内核将孙进程的僵尸转交给
+init
+进程处理，既不会产生僵尸进程，又省去了服务器进程回收子进程所占用的时间。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 运行守护进程（父进程立刻返回终端）</span></span><br><span class="line">$ ./daemon</span><br><span class="line">父进程退出，守护进程已启动, 日志文件: /root/linux/output/Processe/daemon.log, 子进程 pid: 118532</span><br><span class="line"></span><br><span class="line"><span class="comment"># 观察日志，守护进程每秒写一条心跳</span></span><br><span class="line">$ <span class="built_in">cat</span> /root/linux/output/Processe/daemon.log</span><br><span class="line">[2026-09-02 17:24:24] 守护进程启动</span><br><span class="line">[2026-09-02 17:24:24] setsid / <span class="built_in">chdir</span> / <span class="built_in">umask</span> / 重定向标准流完成</span><br><span class="line">[2026-09-02 17:24:25] 守护进程运行中...</span><br><span class="line">[2026-09-02 17:24:26] 守护进程运行中...</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>💡 <strong>二次 fork 的传统</strong>：老教材常写"fork 两次"。其实在
+Linux 上，单次 fork 后子进程 PID 必然不等于其 PGID（PGID 是父进程
+PID），子进程<strong>必然不是组长</strong>，<code>setsid()</code>
+必然成功，所以一次 fork 就够（daemon.cc 就是单 fork）。二次 fork 是 SVR4
+时代的习惯（防止进程日后重新获得控制终端等边缘场景），了解即可。</p>
+</blockquote>
+<h3 id="daemon-库函数一键变守护进程">daemon() —
+库函数一键变守护进程</h3>
+<p>glibc 提供了 <code>daemon()</code>
+库函数，内部封装了上述全部步骤（fork + setsid + chdir("/") + 重定向
+0/1/2 到 /dev/null）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">daemon</span><span class="params">(<span class="type">int</span> nochdir, <span class="type">int</span> noclose)</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>nochdir</code>：非 0 表示不把工作目录改成 <code>/</code></li>
+<li><code>noclose</code>：非 0 表示不把 0/1/2 重定向到 /dev/null</li>
+</ul>
+<p><strong>返回值</strong>：成功返回 0；失败返回 -1</p>
+<p><strong>注意事项</strong>：glibc 的 <code>daemon()</code>
+内部使用<strong>两次 fork</strong>（第一次 fork 后由子进程再 fork
+一次，然后第一个子进程退出），保证最终进程不是会话首领、不会重新获得控制终端。用它虽省事，但"步骤不可见、不便定制"（如无法自定义日志目录、无法保留部分
+fd），教学和定制场景手写步骤更清晰。</p>
+<h3 id="sighup-信号">SIGHUP 信号</h3>
+<p><strong>作用</strong>：当用户准备退出会话时，系统向该会话发出
+<strong><code>SIGHUP</code></strong> 信号；会话将 SIGHUP
+信号发送给所有子进程，子进程接收到 SIGHUP
+信号后便会自动终止；当所有会话中的所有进程都退出时，会话也就终止了。</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>因为程序当中一般不会对 SIGHUP
+信号进行处理，所以对应的处理方式为系统<strong>默认方式</strong>——SIGHUP
+信号的系统默认处理方式便是<strong>终止进程</strong>（终端关闭时，前台进程组里没做防护的程序就被"挂断"杀掉了）</li>
+<li>守护进程通过 <code>setsid()</code>
+脱离了控制终端，<strong>不在任何会收到 SIGHUP
+的会话/终端里</strong>，因此终端关闭不影响它——这是守护进程能长期存活的关键</li>
+<li>有些守护进程（如 sshd、nginx master）会用 SIGHUP
+作为"<strong>重载配置</strong>"的触发信号（捕获后重新读配置而非退出），这是对默认行为的自定义覆盖</li>
+</ul>
+<hr>
+<h2 id="单例模式运行">单例模式运行</h2>
+<p>通常情况下，一个程序可以被多次执行——程序在还没结束的情况下又再次执行，系统中同时存在多个该程序的实例化对象（进程）。<strong>当程序只能被执行一次，只要该程序没有结束就无法再次运行</strong>，我们把这种情况称为<strong>单例模式运行</strong>（singleton）。典型场景：守护进程、独占资源的服务（如只允许一个实例操作某硬件设备）。</p>
+<h3 id="文件锁方案flock-pid-文件">文件锁方案（flock + pid 文件）</h3>
+<p>实现单例最稳健的方式是<strong>文件锁 + pid 文件</strong>：</p>
+<ol type="1">
+<li>程序启动之后，首先打开（必要时创建）锁文件。<code>open</code>
+时一般使用 <code>O_WRONLY | O_CREAT</code>（注意<strong>不要带
+O_TRUNC</strong>——若加锁失败，不能把别的实例写入的内容截掉）</li>
+<li>尝试去获取文件锁（<code>flock</code> +
+<code>LOCK_EX | LOCK_NB</code>
+非阻塞互斥锁）。<strong>加锁成功</strong>：说明没有其它实例在运行，将程序的进程号（PID）写入该文件，然后<strong>不要关闭文件或解锁</strong>，保证进程一直持有该文件锁</li>
+<li><strong>加锁失败</strong>（errno ==
+EWOULDBLOCK）：说明程序已经被运行，本次启动直接退出</li>
+<li>进程退出（无论正常退出还是崩溃）时，内核会<strong>自动释放</strong>该进程持有的
+flock——所以即使程序崩溃，锁也会自动消失，不会出现"锁残留导致永远无法再启动"的问题</li>
+</ol>
+<p><strong>参考示例</strong> <code>Processe/src/flock.cc</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 终端 1：启动第一个实例，持锁运行</span></span><br><span class="line">$ ./flock</span><br><span class="line">第 1 个实例启动成功，PID=118174，持有文件锁中...（再运行一次 ./flock 试试）</span><br><span class="line">[118174] 心跳：仍在运行，持有锁...</span><br><span class="line"></span><br><span class="line"><span class="comment"># 终端 2：再启动一次，加锁失败，自动退出</span></span><br><span class="line">$ ./flock</span><br><span class="line">已有实例在运行 (pid=118174)，本实例退出</span><br><span class="line"></span><br><span class="line"><span class="comment"># pid 文件内容（供人查看是谁在运行）</span></span><br><span class="line">$ <span class="built_in">cat</span> /tmp/flock_singleton.pid</span><br><span class="line">118174</span><br></pre></td></tr></table></figure>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>锁文件的放置位置：如果实现一个以单例模式运行的守护进程，<strong>应该将这个特定文件放置于
+Linux 系统的 <code>/var/run/</code> 目录下</strong>（现代 Linux
+<code>/var/run</code> 是 <code>/run</code>
+的符号链接），并且文件的命名方式为
+<strong><code>name.pid</code></strong>（name 表示进程名），如
+<code>/var/run/sshd.pid</code></li>
+<li><code>flock()</code>
+是<strong>咨询锁（建议锁）</strong>：它只对"同样遵守 flock
+协议"的进程生效，不能阻止不配合的进程访问文件——单例场景下所有实例都是我们自己写的程序，都遵守协议，所以没问题</li>
+<li>与 <code>fcntl()</code> 记录锁的区别：flock 与打开的文件描述（open
+file description）关联，fcntl 锁与进程关联，两者不互通；flock
+语义简单、进程退出自动释放，做单例足够</li>
+<li>传统上还有"只用 pid 文件 + 检查进程是否存在"的做法，但进程崩溃后 pid
+文件会残留、PID 可能被复用，不可靠——<strong>文件锁方案更稳</strong></li>
+</ul>
+<h3 id="flock-文件加锁">flock() — 文件加锁</h3>
+<p><strong>作用</strong>::
+对打开的文件施加/释放建议性锁，是"单例模式运行"最常用的实现手段。同时只能有一个进程持有互斥锁（LOCK_EX），其它进程加锁会失败或阻塞。</p>
+<p><strong>用法</strong>： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/file.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">flock</span><span class="params">(<span class="type">int</span> fd, <span class="type">int</span> operation)</span>;</span><br></pre></td></tr></table></figure></p>
+<p><strong>参数</strong>：</p>
+<ul>
+<li><code>fd</code>：已打开的文件描述符</li>
+<li><code>operation</code>：
+<ul>
+<li><code>LOCK_SH</code>：加<strong>共享锁</strong>（多个进程可同时持有）</li>
+<li><code>LOCK_EX</code>：加<strong>互斥锁</strong>（同时只能一个进程持有）</li>
+<li><code>LOCK_UN</code>：解锁</li>
+<li><code>LOCK_NB</code>：<strong>非阻塞</strong>标志，可与上面按位或（<code>LOCK_EX | LOCK_NB</code>）——加不上锁时立即返回错误而不是阻塞等待</li>
+</ul></li>
+</ul>
+<p><strong>返回值</strong>：成功返回 0；失败返回 -1（非阻塞加锁失败时
+errno 为 <code>EWOULDBLOCK</code> / <code>EAGAIN</code>）</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>锁与<strong>打开的文件描述</strong>关联：<code>close(fd)</code>
+或进程退出时锁自动释放；fork 出的子进程会继承父进程的 flock
+锁（共享同一打开文件描述）</li>
+<li>用 <code>LOCK_NB</code>
+尝试加锁失败即代表"已有实例在运行"，是单例检测的核心逻辑</li>
+<li>参考示例：<code>Processe/src/flock.cc</code></li>
+</ul>
+<h3 id="示例">示例</h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/file.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;errno.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 单例模式锁文件：演示用放 /tmp，真实守护进程应放 /var/run/xxx.pid */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LOCK_FILE <span class="string">&quot;/tmp/flock_singleton.pid&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">volatile</span> <span class="type">sig_atomic_t</span> g_running = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">static</span> <span class="type">void</span> <span class="title">sig_handler</span><span class="params">(<span class="type">int</span> sig)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    (<span class="type">void</span>)sig;</span><br><span class="line">    g_running = <span class="number">0</span>;   <span class="comment">/* Ctrl+C / kill 时优雅退出，进程退出后锁自动释放 */</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">sigaction</span> sa;</span><br><span class="line">    <span class="type">int</span> fd;</span><br><span class="line">    <span class="type">char</span> pid_buf[<span class="number">32</span>];</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 注册 SIGINT/SIGTERM，方便演示优雅退出 */</span></span><br><span class="line">    <span class="built_in">memset</span>(&amp;sa, <span class="number">0</span>, <span class="built_in">sizeof</span>(sa));</span><br><span class="line">    sa.sa_handler = sig_handler;</span><br><span class="line">    <span class="built_in">sigaction</span>(SIGINT, &amp;sa, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="built_in">sigaction</span>(SIGTERM, &amp;sa, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 1. 打开（必要时创建）锁文件。</span></span><br><span class="line"><span class="comment">     *    注意不能用 O_TRUNC：若加锁失败，不能把别人的 pid 内容截掉 */</span></span><br><span class="line">    fd = <span class="built_in">open</span>(LOCK_FILE, O_RDWR | O_CREAT, <span class="number">0644</span>);</span><br><span class="line">    <span class="keyword">if</span> (fd &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;open error&quot;</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 2. 尝试加互斥锁（非阻塞）：</span></span><br><span class="line"><span class="comment">     *    加锁成功 -&gt; 说明程序尚未运行，继续往下走；</span></span><br><span class="line"><span class="comment">     *    加锁失败(EWOULDBLOCK) -&gt; 已有实例持有锁，本次启动退出 */</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">flock</span>(fd, LOCK_EX | LOCK_NB) == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (errno == EWOULDBLOCK) &#123;</span><br><span class="line">            <span class="type">char</span> buf[<span class="number">32</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">            <span class="type">ssize_t</span> n = <span class="built_in">pread</span>(fd, buf, <span class="built_in">sizeof</span>(buf) - <span class="number">1</span>, <span class="number">0</span>);</span><br><span class="line">            <span class="keyword">if</span> (n &gt; <span class="number">0</span>)</span><br><span class="line">                buf[n] = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;已有实例在运行 (pid=%s)，本实例退出\n&quot;</span>, buf);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="built_in">perror</span>(<span class="string">&quot;flock error&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">close</span>(fd);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 3. 加锁成功：把自己的 PID 写入锁文件（文件内容仅作提示用） */</span></span><br><span class="line">    <span class="built_in">snprintf</span>(pid_buf, <span class="built_in">sizeof</span>(pid_buf), <span class="string">&quot;%d\n&quot;</span>, <span class="built_in">getpid</span>());</span><br><span class="line">    <span class="built_in">ftruncate</span>(fd, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">write</span>(fd, pid_buf, <span class="built_in">strlen</span>(pid_buf)) == <span class="number">-1</span>)</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;write error&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;第 1 个实例启动成功，PID=%d，持有文件锁中...（再运行一次 ./flock 试试）\n&quot;</span>,</span><br><span class="line">           <span class="built_in">getpid</span>());</span><br><span class="line">    <span class="keyword">while</span> (g_running) &#123;</span><br><span class="line">        <span class="built_in">sleep</span>(<span class="number">2</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;[%d] 心跳：仍在运行，持有锁...\n&quot;</span>, <span class="built_in">getpid</span>());</span><br><span class="line">        <span class="built_in">fflush</span>(stdout);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;实例退出，文件锁自动释放\n&quot;</span>);</span><br><span class="line">    <span class="comment">/* 持锁期间不能 close(fd)，否则锁会被释放；</span></span><br><span class="line"><span class="comment">     * 进程退出时内核会自动释放 flock，无需手动解锁 */</span></span><br><span class="line">    <span class="built_in">close</span>(fd);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="补充进程编程实战要点">补充：进程编程实战要点</h2>
+<h3 id="fork-与写时复制copy-on-write-cow">fork
+与写时复制（Copy-on-Write, COW）</h3>
+<p>早期 UNIX 的 <code>fork()</code>
+确实把父进程的地址空间<strong>完整复制</strong>一份给子进程，代价高昂。现代
+Linux 的 fork 采用<strong>写时复制</strong>优化：</p>
+<ul>
+<li>fork
+时父子进程<strong>共享</strong>同一份物理内存页，页表标记为只读</li>
+<li>只要双方都只读，就零拷贝、零开销</li>
+<li>一旦某一方要<strong>写</strong>某个页，触发缺页异常，内核才真正复制该页再允许写</li>
+</ul>
+<p>所以 fork
+的开销与"父进程地址空间大小"无关，只与实际写入的页面数量有关——这也是
+fork + exec 组合（子进程几乎不写内存就换程序）非常高效的原因。</p>
+<h3 id="进程数量上限">进程数量上限</h3>
+<ul>
+<li>每个用户的进程数上限：<code>ulimit -u</code> 查看（fork 失败 errno =
+EAGAIN 常与此有关）</li>
+<li>系统全局 PID 上限：<code>/proc/sys/kernel/pid_max</code>（默认通常
+32768 或 4194304，超出后 PID 回绕复用）</li>
+<li>排查"fork 不了新进程"：<code>ps -eLf | wc -l</code>
+看进程/线程总数，检查是否被僵尸进程堆满，或触达 ulimit</li>
+</ul>
+<h3 id="用-proc-观察进程">用 /proc 观察进程</h3>
+<p>Linux 把每个进程的信息都暴露在 <code>/proc/&lt;pid&gt;/</code>
+下，调试进程问题时比 ps 更底层：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">路径</th>
+<th style="text-align: left;">内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/proc/&lt;pid&gt;/status</code></td>
+<td style="text-align: left;">进程状态、PPID、内存、线程数等汇总（含
+State 字段）</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>/proc/&lt;pid&gt;/cmdline</code></td>
+<td style="text-align: left;">进程的完整命令行（参数以 <code>\0</code>
+分隔）</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>/proc/&lt;pid&gt;/environ</code></td>
+<td style="text-align: left;">进程的环境变量（以 <code>\0</code>
+分隔）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/&lt;pid&gt;/fd/</code></td>
+<td
+style="text-align: left;">进程打开的所有文件描述符（符号链接指向具体文件）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/&lt;pid&gt;/maps</code></td>
+<td
+style="text-align: left;">进程虚拟内存布局（对应第三章内存布局，可实地验证）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/&lt;pid&gt;/stat</code></td>
+<td style="text-align: left;">内核视角的进程原始信息</td>
+</tr>
+</tbody>
+</table>
+<p>常用命令：<code>ps -ef</code> /
+<code>ps aux</code>（进程快照）、<code>top</code> /
+<code>htop</code>（动态）、<code>pstree -p</code>（进程树，直观看到父子关系）、<code>pidof &lt;name&gt;</code>（按名字查
+PID）。</p>
+<h3 id="容器-pid-1-不回收僵尸的坑">容器 PID 1 不回收僵尸的坑</h3>
+<p>容器里 PID 1 如果不是 init/systemd/tini 这类会 <code>wait()</code>
+的进程（比如直接
+<code>sleep infinity</code>、<code>bash</code>），那么所有被它收养的孤儿进程退出后都<strong>无人收尸</strong>，会永久变成僵尸（实测：容器里反复启动/杀掉
+daemon 后，<code>ps -ef</code> 能看到一串 PPID=1 的
+<code>[daemon] &lt;defunct&gt;</code>，怎么 kill
+都清不掉，只能重启容器）。</p>
+<ul>
+<li>表现：<code>ps -ef | grep defunct</code> 出现 PPID=1 的僵尸</li>
+<li>危害：僵尸填满进程表（默认上限
+<code>/proc/sys/kernel/pid_max</code>），最终导致无法创建新进程</li>
+<li>解法：生产容器把 PID 1 换成 tini / dumb-init（或在 entrypoint 里
+exec 真正的 init）；自己写容器内常驻服务时，要么妥善 wait
+子进程，要么忽略 SIGCHLD 让内核自动回收</li>
+</ul>
+<h3 id="stdio-缓冲区在-fork-exec-信号下的行为">stdio 缓冲区在 fork /
+exec / 信号下的行为</h3>
+<p>同样是 printf 没
+flush，三种场景三种命运，是进程编程最容易踩的坑：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">场景</th>
+<th style="text-align: left;">后果</th>
+<th style="text-align: left;">对策</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>fork()</code> 后父子都
+<code>exit()</code></td>
+<td
+style="text-align: left;">拷贝来的缓冲区被<strong>刷两次</strong>，同一内容打印两遍</td>
+<td style="text-align: left;">子进程用 <code>_exit()</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>exec()</code> 替换映像</td>
+<td style="text-align: left;">未 flush
+的缓冲随旧映像<strong>直接消失</strong></td>
+<td style="text-align: left;">exec 前 <code>fflush(stdout)</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">信号处理函数里 <code>printf</code></td>
+<td
+style="text-align: left;">输出可能<strong>长期滞留在缓冲区</strong>（管道重定向时尤其隐蔽，进程被
+kill 时直接丢失）</td>
+<td style="text-align: left;">处理函数里用 <code>write()</code>，或至少
+<code>fflush</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="退出码只有-8-位">退出码只有 8 位</h3>
+<p><code>exit()</code> / <code>_exit()</code> / <code>main()</code>
+return 的状态<strong>只有低 8 位有效</strong>（0~255）：</p>
+<ul>
+<li><code>exit(-1)</code> → 父进程 <code>WEXITSTATUS</code> 拿到
+255</li>
+<li><code>exit(256)</code> → 拿到 0（低 8 位被截断）</li>
+<li>约定：0 成功，非 0 失败；进程被信号杀死时没有退出码，用
+<code>WIFSIGNALED</code> + <code>WTERMSIG</code> 判断</li>
+<li>shell 里看上一个命令的退出状态：<code>echo $?</code></li>
+</ul>
+<hr>
+<h2 id="附本笔记涉及的函数速查">附：本笔记涉及的函数速查</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">所属章节</th>
+<th style="text-align: left;">一句话作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>getpid()</code> /
+<code>getppid()</code></td>
+<td style="text-align: left;">进程与程序</td>
+<td style="text-align: left;">获取本进程 / 父进程的 PID</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>atexit()</code></td>
+<td style="text-align: left;">进程与程序</td>
+<td style="text-align: left;">注册正常终止时要调用的函数</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>exit()</code></td>
+<td style="text-align: left;">进程与程序 / 诞生与终止</td>
+<td style="text-align: left;">正常终止：执行 atexit + 刷新 stdio +
+_exit</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_exit()</code></td>
+<td style="text-align: left;">进程与程序 / 诞生与终止</td>
+<td style="text-align: left;">立即终止（系统调用，不刷新缓冲）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>environ</code></td>
+<td style="text-align: left;">环境变量</td>
+<td style="text-align: left;">全局变量，指向整个环境列表</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>getenv()</code></td>
+<td style="text-align: left;">环境变量</td>
+<td style="text-align: left;">获取环境变量的值</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>setenv()</code></td>
+<td style="text-align: left;">环境变量</td>
+<td style="text-align: left;">添加/修改环境变量（可控制覆盖）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>putenv()</code></td>
+<td style="text-align: left;">环境变量</td>
+<td style="text-align: left;">添加/修改环境变量（不复制字符串）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>unsetenv()</code></td>
+<td style="text-align: left;">环境变量</td>
+<td style="text-align: left;">删除环境变量</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>clearenv()</code></td>
+<td style="text-align: left;">环境变量</td>
+<td style="text-align: left;">清空全部环境变量（有内存泄漏坑）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fork()</code></td>
+<td style="text-align: left;">子进程</td>
+<td style="text-align: left;">创建子进程（调用一次返回两次）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>vfork()</code></td>
+<td style="text-align: left;">子进程</td>
+<td style="text-align: left;">为立即 exec 而生（共享内存，慎用）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>wait()</code></td>
+<td style="text-align: left;">监视子进程</td>
+<td style="text-align: left;">阻塞等待任意子进程终止并回收</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>waitpid()</code></td>
+<td style="text-align: left;">监视子进程</td>
+<td style="text-align: left;">指定子进程等待，支持 WNOHANG 非阻塞</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>WIFEXITED()</code> 等宏</td>
+<td style="text-align: left;">监视子进程</td>
+<td style="text-align: left;">解析 wait 的 status</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>execve()</code></td>
+<td style="text-align: left;">执行新程序</td>
+<td style="text-align: left;">exec 系统调用本体</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>execl/execlp/execle/execv/execvp/execvpe</code></td>
+<td style="text-align: left;">执行新程序</td>
+<td style="text-align: left;">exec 库函数六变体（l/v/p/e 后缀规则）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>system()</code></td>
+<td style="text-align: left;">执行新程序</td>
+<td style="text-align: left;">执行 shell 命令（fork+execl+waitpid）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>getpgrp()</code> /
+<code>getpgid()</code></td>
+<td style="text-align: left;">进程组</td>
+<td style="text-align: left;">获取进程组 ID</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>setpgid()</code> /
+<code>setpgrp()</code></td>
+<td style="text-align: left;">进程组</td>
+<td style="text-align: left;">加入/创建进程组</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>getsid()</code> /
+<code>setsid()</code></td>
+<td style="text-align: left;">会话 / 守护进程</td>
+<td style="text-align: left;">获取/创建会话（脱离控制终端）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>daemon()</code></td>
+<td style="text-align: left;">守护进程</td>
+<td style="text-align: left;">glibc 一键变守护进程</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>flock()</code></td>
+<td style="text-align: left;">单例模式</td>
+<td style="text-align: left;">文件加锁（LOCK_EX/LOCK_NB 实现单例）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="参考">参考</h2>
+<ul>
+<li>《Linux 应用编程》进程章节（本文摘抄来源）</li>
+<li><code>man 2 fork</code> / <code>man 2 vfork</code> /
+<code>man 2 wait</code> / <code>man 2 waitpid</code> /
+<code>man 2 execve</code> / <code>man 3 system</code> /
+<code>man 2 setsid</code> / <code>man 3 daemon</code> /
+<code>man 2 flock</code></li>
+<li><code>man 7 signal</code>：信号总览（含 SIGCHLD、SIGHUP 语义）</li>
+<li>配套示例代码：<code>Processe/src/</code>（fork1/fork2/fork3、waitpid、waitpid-signal、daemon、environ、exec、flock、zombie）</li>
+</ul>
+<hr />
+<h2 id="本系列文章">📚 本系列文章</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">#</th>
+<th style="text-align: left;">文章</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: left;"><a href="/posts/linux-stdio.html">Linux
+应用编程：标准文件 IO</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: left;"><a
+href="/posts/linux-file-attr.html">Linux
+应用编程：文件属性与目录</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: left;"><a href="/posts/linux-string.html">Linux
+应用编程：字符串处理函数全解</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td style="text-align: left;"><a href="/posts/linux-sysinfo.html">Linux
+应用编程：系统信息与资源</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td style="text-align: left;"><a href="/posts/linux-signal.html">Linux
+应用编程：信号</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">6</td>
+<td style="text-align: left;"><a href="/posts/linux-process.html">Linux
+应用编程：进程基础</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">7</td>
+<td style="text-align: left;"><a href="/posts/linux-thread.html">Linux
+应用编程：线程基本概念</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">8</td>
+<td style="text-align: left;"><a
+href="/posts/linux-thread-sync.html">Linux 应用编程：线程同步</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">9</td>
+<td style="text-align: left;"><a
+href="/posts/linux-advanced-io.html">Linux 应用编程：高级 IO</a></td>
+</tr>
+</tbody>
+</table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xxh123.online">Kikyo</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xxh123.online/posts/linux-process.html">https://xxh123.online/posts/linux-process.html</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://xxh123.online" target="_blank">Kikyo</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Linux/">Linux</a><a class="post-meta__tags" href="/tags/%E8%BF%9B%E7%A8%8B/">进程</a><a class="post-meta__tags" href="/tags/fork/">fork</a><a class="post-meta__tags" href="/tags/%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B/">守护进程</a></div><div class="post_share"><div class="social-share" data-image="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/08_photo_2026-11-15_15-33-19.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/posts/linux-thread.html" title="Linux 应用编程：线程基本概念"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/11_photo_2026-11-15_15-33-36.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Linux 应用编程：线程基本概念</div></div></a></div><div class="next-post pull-right"><a href="/posts/linux-signal.html" title="Linux 应用编程：信号"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/07_photo_2026-11-15_15-33-22.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Linux 应用编程：信号</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/posts/linux-signal.html" title="Linux 应用编程：信号"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/07_photo_2026-11-15_15-33-22.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-15</div><div class="title">Linux 应用编程：信号</div></div></a></div><div><a href="/posts/af-unix-ipc.html" title="Unix域套接字（AF_UNIX）实现进程间双向通信"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260828001706915.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-28</div><div class="title">Unix域套接字（AF_UNIX）实现进程间双向通信</div></div></a></div><div><a href="/posts/jsoncpp-guide.html" title="JSONcpp 完整使用指南"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260716232238119.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-16</div><div class="title">JSONcpp 完整使用指南</div></div></a></div><div><a href="/posts/79494db.html" title="Docker 使用手册"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260705232331789.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-05</div><div class="title">Docker 使用手册</div></div></a></div><div><a href="/posts/86a23c4b.html" title="CMake 的使用方法"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260705235814295.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-07</div><div class="title">CMake 的使用方法</div></div></a></div><div><a href="/posts/697f8e4b.html" title="shell 语法"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260707000813836.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-07</div><div class="title">shell 语法</div></div></a></div></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/202405192117137.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Kikyo</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">51</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">58</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ywj77"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon faa-parent animated-hover" href="https://github.com/ywj77" target="_blank" title="Github"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-github"></use></svg></a><a class="social-icon faa-parent animated-hover" href="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&amp;email=3442237157@qq.com" target="_blank" title="Email"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-youjian1"></use></svg></a><a class="social-icon faa-parent animated-hover" href="/atom.xml" target="_blank" title="RSS"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-rss"></use></svg></a><a class="social-icon faa-parent animated-hover" href="https://space.bilibili.com/3546385680959950" target="_blank" title="BiliBili"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-wf_Bzhan"></use></svg></a><a class="social-icon faa-parent animated-hover" href="tencent://Message/?Uin=3442237157&amp;amp;websiteName=local.edu.com:8888=&amp;amp;Menu=yes" target="_blank" title="QQ"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-qq"></use></svg></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8Bprocess"><span class="toc-number">1.</span> <span class="toc-text">进程（Process）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.1.</span> <span class="toc-text">进程与程序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A8%8B%E5%BA%8F%E6%98%AF%E5%A6%82%E4%BD%95%E8%A2%AB%E6%89%A7%E8%A1%8C%E8%B5%B7%E6%9D%A5%E7%9A%84"><span class="toc-number">1.1.1.</span> <span class="toc-text">程序是如何被执行起来的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A8%8B%E5%BA%8F%E7%9A%84%E7%BB%93%E6%9D%9F"><span class="toc-number">1.1.2.</span> <span class="toc-text">程序的结束</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E5%8F%B7"><span class="toc-number">1.1.3.</span> <span class="toc-text">进程号</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#getpid-%E8%8E%B7%E5%8F%96%E6%9C%AC%E8%BF%9B%E7%A8%8B%E7%9A%84%E8%BF%9B%E7%A8%8B%E5%8F%B7"><span class="toc-number">1.1.4.</span> <span class="toc-text">getpid() — 获取本进程的进程号</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#getppid-%E8%8E%B7%E5%8F%96%E7%88%B6%E8%BF%9B%E7%A8%8B%E7%9A%84%E8%BF%9B%E7%A8%8B%E5%8F%B7"><span class="toc-number">1.1.5.</span> <span class="toc-text">getppid() — 获取父进程的进程号</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#atexit-%E6%B3%A8%E5%86%8C%E8%BF%9B%E7%A8%8B%E7%BB%88%E6%AD%A2%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0"><span class="toc-number">1.1.6.</span> <span class="toc-text">atexit() —
+注册进程终止处理函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#exit-%E6%AD%A3%E5%B8%B8%E7%BB%88%E6%AD%A2%E8%BF%9B%E7%A8%8B%E5%BA%93%E5%87%BD%E6%95%B0"><span class="toc-number">1.1.7.</span> <span class="toc-text">exit() — 正常终止进程（库函数）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#exit-%E7%AB%8B%E5%8D%B3%E7%BB%88%E6%AD%A2%E8%BF%9B%E7%A8%8B%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8"><span class="toc-number">1.1.8.</span> <span class="toc-text">_exit() —
+立即终止进程（系统调用）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#abort-%E5%BC%82%E5%B8%B8%E7%BB%88%E6%AD%A2%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.1.9.</span> <span class="toc-text">abort() — 异常终止进程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">1.2.</span> <span class="toc-text">进程的环境变量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#environ-%E5%85%A8%E5%B1%80%E5%8F%98%E9%87%8F"><span class="toc-number">1.2.1.</span> <span class="toc-text">environ 全局变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#getenv-%E8%8E%B7%E5%8F%96%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">1.2.2.</span> <span class="toc-text">getenv() — 获取环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#setenv-%E6%B7%BB%E5%8A%A0%E6%88%96%E4%BF%AE%E6%94%B9%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">1.2.3.</span> <span class="toc-text">setenv() — 添加或修改环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#putenv-%E6%B7%BB%E5%8A%A0%E6%88%96%E4%BF%AE%E6%94%B9%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">1.2.4.</span> <span class="toc-text">putenv() — 添加或修改环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#unsetenv-%E5%88%A0%E9%99%A4%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">1.2.5.</span> <span class="toc-text">unsetenv() — 删除环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#clearenv-%E6%B8%85%E7%A9%BA%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">1.2.6.</span> <span class="toc-text">clearenv() — 清空环境变量</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80%E4%B8%8E%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4"><span class="toc-number">1.3.</span> <span class="toc-text">进程的内存布局与虚拟地址空间</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="toc-number">1.3.1.</span> <span class="toc-text">进程的内存布局</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4"><span class="toc-number">1.3.2.</span> <span class="toc-text">虚拟地址空间</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BD%BF%E7%94%A8%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80"><span class="toc-number">1.3.2.1.</span> <span class="toc-text">为什么要使用虚拟地址</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%90%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.4.</span> <span class="toc-text">子进程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#fork-%E5%88%9B%E5%BB%BA%E5%AD%90%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.4.1.</span> <span class="toc-text">fork() — 创建子进程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%88%B6%E5%AD%90%E8%BF%9B%E7%A8%8B%E9%97%B4%E7%9A%84%E6%96%87%E4%BB%B6%E5%85%B1%E4%BA%AB"><span class="toc-number">1.4.2.</span> <span class="toc-text">父、子进程间的文件共享</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#vfork-%E4%B8%BA%E7%AB%8B%E5%8D%B3-exec-%E8%80%8C%E7%94%9F%E7%9A%84%E5%88%9B%E5%BB%BA%E6%96%B9%E5%BC%8F"><span class="toc-number">1.4.3.</span> <span class="toc-text">vfork() — 为立即 exec
+而生的创建方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fork-%E4%B9%8B%E5%90%8E%E7%9A%84%E7%AB%9E%E4%BA%89%E6%9D%A1%E4%BB%B6"><span class="toc-number">1.4.4.</span> <span class="toc-text">fork() 之后的竞争条件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E8%AF%9E%E7%94%9F%E4%B8%8E%E7%BB%88%E6%AD%A2"><span class="toc-number">1.5.</span> <span class="toc-text">进程的诞生与终止</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%88%E6%AD%A2%E7%8A%B6%E6%80%81termination-status"><span class="toc-number">1.5.1.</span> <span class="toc-text">终止状态（termination status）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#exit-%E5%86%85%E9%83%A8%E5%88%B0%E5%BA%95%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88"><span class="toc-number">1.5.2.</span> <span class="toc-text">exit() 内部到底做了什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-fork-%E4%B9%8B%E5%90%8E%E7%88%B6%E5%AD%90%E8%BF%9B%E7%A8%8B%E4%B8%8D%E8%83%BD%E7%94%A8%E5%90%8C%E4%B8%80%E4%B8%AA-exit"><span class="toc-number">1.5.3.</span> <span class="toc-text">为什么 fork
+之后父、子进程不能用同一个 exit()</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%91%E8%A7%86%E5%AD%90%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.6.</span> <span class="toc-text">监视子进程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81-wait"><span class="toc-number">1.6.1.</span> <span class="toc-text">为什么要 wait()</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#wait-%E7%AD%89%E5%BE%85%E4%BB%BB%E6%84%8F%E5%AD%90%E8%BF%9B%E7%A8%8B%E7%BB%88%E6%AD%A2"><span class="toc-number">1.6.2.</span> <span class="toc-text">wait() — 等待任意子进程终止</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%88%E6%AD%A2%E7%8A%B6%E6%80%81%E5%88%A4%E6%96%AD%E5%AE%8F"><span class="toc-number">1.6.3.</span> <span class="toc-text">终止状态判断宏</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#waitpid-%E6%8C%87%E5%AE%9A%E5%AD%90%E8%BF%9B%E7%A8%8B%E7%AD%89%E5%BE%85"><span class="toc-number">1.6.4.</span> <span class="toc-text">waitpid() — 指定子进程等待</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%83%B5%E5%B0%B8%E8%BF%9B%E7%A8%8B%E4%B8%8E%E5%AD%A4%E5%84%BF%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.6.5.</span> <span class="toc-text">僵尸进程与孤儿进程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sigchld-%E4%BF%A1%E5%8F%B7%E4%B8%8E%E6%BC%8F%E7%BD%91%E4%B9%8B%E9%B1%BC%E9%97%AE%E9%A2%98"><span class="toc-number">1.6.6.</span> <span class="toc-text">SIGCHLD 信号与&quot;漏网之鱼&quot;问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%A7%E8%A1%8C%E6%96%B0%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.7.</span> <span class="toc-text">执行新程序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#execve-%E6%89%A7%E8%A1%8C%E6%96%B0%E7%A8%8B%E5%BA%8F%E7%9A%84%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8"><span class="toc-number">1.7.1.</span> <span class="toc-text">execve() —
+执行新程序的系统调用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#exec-%E5%BA%93%E5%87%BD%E6%95%B0%E6%97%8F-%E5%85%AD%E7%A7%8D%E5%8F%98%E4%BD%93"><span class="toc-number">1.7.2.</span> <span class="toc-text">exec 库函数族 — 六种变体</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#system-%E5%9C%A8%E7%A8%8B%E5%BA%8F%E4%B8%AD%E6%89%A7%E8%A1%8C-shell-%E5%91%BD%E4%BB%A4"><span class="toc-number">1.7.3.</span> <span class="toc-text">system() — 在程序中执行 shell
+命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E7%8A%B6%E6%80%81%E4%B8%8E%E5%85%B3%E7%B3%BB"><span class="toc-number">1.8.</span> <span class="toc-text">进程的状态与关系</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#linux-%E8%BF%9B%E7%A8%8B%E7%9A%84-6-%E7%A7%8D%E7%8A%B6%E6%80%81"><span class="toc-number">1.8.1.</span> <span class="toc-text">Linux 进程的 6 种状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E5%85%B3%E7%B3%BB"><span class="toc-number">1.8.2.</span> <span class="toc-text">进程关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#getpgrp-getpgid-%E8%8E%B7%E5%8F%96%E8%BF%9B%E7%A8%8B%E7%BB%84-id"><span class="toc-number">1.8.3.</span> <span class="toc-text">getpgrp() &#x2F; getpgid() —
+获取进程组 ID</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#setpgid-setpgrp-%E5%8A%A0%E5%85%A5%E6%88%96%E5%88%9B%E5%BB%BA%E8%BF%9B%E7%A8%8B%E7%BB%84"><span class="toc-number">1.8.4.</span> <span class="toc-text">setpgid() &#x2F; setpgrp() —
+加入或创建进程组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#getsid-setsid-%E4%BC%9A%E8%AF%9D%E7%9B%B8%E5%85%B3"><span class="toc-number">1.8.5.</span> <span class="toc-text">getsid() &#x2F; setsid() — 会话相关</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.9.</span> <span class="toc-text">守护进程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E5%86%99%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B%E7%9A%84%E6%A0%87%E5%87%86%E6%AD%A5%E9%AA%A4"><span class="toc-number">1.9.1.</span> <span class="toc-text">编写守护进程的标准步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#daemon-%E5%BA%93%E5%87%BD%E6%95%B0%E4%B8%80%E9%94%AE%E5%8F%98%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.9.2.</span> <span class="toc-text">daemon() —
+库函数一键变守护进程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sighup-%E4%BF%A1%E5%8F%B7"><span class="toc-number">1.9.3.</span> <span class="toc-text">SIGHUP 信号</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F%E8%BF%90%E8%A1%8C"><span class="toc-number">1.10.</span> <span class="toc-text">单例模式运行</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E9%94%81%E6%96%B9%E6%A1%88flock-pid-%E6%96%87%E4%BB%B6"><span class="toc-number">1.10.1.</span> <span class="toc-text">文件锁方案（flock + pid 文件）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#flock-%E6%96%87%E4%BB%B6%E5%8A%A0%E9%94%81"><span class="toc-number">1.10.2.</span> <span class="toc-text">flock() — 文件加锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.10.3.</span> <span class="toc-text">示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A1%A5%E5%85%85%E8%BF%9B%E7%A8%8B%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98%E8%A6%81%E7%82%B9"><span class="toc-number">1.11.</span> <span class="toc-text">补充：进程编程实战要点</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#fork-%E4%B8%8E%E5%86%99%E6%97%B6%E5%A4%8D%E5%88%B6copy-on-write-cow"><span class="toc-number">1.11.1.</span> <span class="toc-text">fork
+与写时复制（Copy-on-Write, COW）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E6%95%B0%E9%87%8F%E4%B8%8A%E9%99%90"><span class="toc-number">1.11.2.</span> <span class="toc-text">进程数量上限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%A8-proc-%E8%A7%82%E5%AF%9F%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.11.3.</span> <span class="toc-text">用 &#x2F;proc 观察进程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%B9%E5%99%A8-pid-1-%E4%B8%8D%E5%9B%9E%E6%94%B6%E5%83%B5%E5%B0%B8%E7%9A%84%E5%9D%91"><span class="toc-number">1.11.4.</span> <span class="toc-text">容器 PID 1 不回收僵尸的坑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#stdio-%E7%BC%93%E5%86%B2%E5%8C%BA%E5%9C%A8-fork-exec-%E4%BF%A1%E5%8F%B7%E4%B8%8B%E7%9A%84%E8%A1%8C%E4%B8%BA"><span class="toc-number">1.11.5.</span> <span class="toc-text">stdio 缓冲区在 fork &#x2F;
+exec &#x2F; 信号下的行为</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%80%E5%87%BA%E7%A0%81%E5%8F%AA%E6%9C%89-8-%E4%BD%8D"><span class="toc-number">1.11.6.</span> <span class="toc-text">退出码只有 8 位</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E6%9C%AC%E7%AC%94%E8%AE%B0%E6%B6%89%E5%8F%8A%E7%9A%84%E5%87%BD%E6%95%B0%E9%80%9F%E6%9F%A5"><span class="toc-number">1.12.</span> <span class="toc-text">附：本笔记涉及的函数速查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">1.13.</span> <span class="toc-text">参考</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AC%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0"><span class="toc-number">1.14.</span> <span class="toc-text">📚 本系列文章</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-advanced-io.html" title="Linux 应用编程：高级 IO"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/13_photo_2026-11-15_15-33-42.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：高级 IO"/></a><div class="content"><a class="title" href="/posts/linux-advanced-io.html" title="Linux 应用编程：高级 IO">Linux 应用编程：高级 IO</a><time datetime="2026-11-15T09:00:00.000Z" title="发表于 2026-11-15 17:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-thread-sync.html" title="Linux 应用编程：线程同步"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/12_photo_2026-11-15_15-33-39.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：线程同步"/></a><div class="content"><a class="title" href="/posts/linux-thread-sync.html" title="Linux 应用编程：线程同步">Linux 应用编程：线程同步</a><time datetime="2026-11-15T08:00:00.000Z" title="发表于 2026-11-15 16:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-thread.html" title="Linux 应用编程：线程基本概念"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/11_photo_2026-11-15_15-33-36.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：线程基本概念"/></a><div class="content"><a class="title" href="/posts/linux-thread.html" title="Linux 应用编程：线程基本概念">Linux 应用编程：线程基本概念</a><time datetime="2026-11-15T07:00:00.000Z" title="发表于 2026-11-15 15:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-process.html" title="Linux 应用编程：进程基础"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/08_photo_2026-11-15_15-33-19.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：进程基础"/></a><div class="content"><a class="title" href="/posts/linux-process.html" title="Linux 应用编程：进程基础">Linux 应用编程：进程基础</a><time datetime="2026-11-15T06:00:00.000Z" title="发表于 2026-11-15 14:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-signal.html" title="Linux 应用编程：信号"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/07_photo_2026-11-15_15-33-22.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：信号"/></a><div class="content"><a class="title" href="/posts/linux-signal.html" title="Linux 应用编程：信号">Linux 应用编程：信号</a><time datetime="2026-11-15T05:00:00.000Z" title="发表于 2026-11-15 13:00:00">2026-11-15</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2026 By Kikyo</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>if (!window.MathJax) {
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      tags: 'ams'
+    },
+    chtml: {
+      scale: 1.1
+    },
+    options: {
+      renderActions: {
+        findScript: [10, doc => {
+          for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+            const display = !!node.type.match(/; *mode=display/)
+            const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+            const text = document.createTextNode('')
+            node.parentNode.replaceChild(text, node)
+            math.start = {node: text, delim: '', n: 0}
+            math.end = {node: text, delim: '', n: 0}
+            doc.math.push(math)
+          }
+        }, '']
+      }
+    }
+  }
+  
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js'
+  script.id = 'MathJax-script'
+  script.async = true
+  document.head.appendChild(script)
+} else {
+  MathJax.startup.document.state(0)
+  MathJax.texReset()
+  MathJax.typesetPromise()
+}</script><script>(() => {
+  const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaid.length === 0) return
+  const runMermaid = () => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    Array.from($mermaid).forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+      const mermaidID = 'mermaid-' + index
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+
+      const renderV10 = () => {
+        renderFn.then(({svg}) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svg)
+        })
+      }
+
+      const renderV9 = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      typeof renderFn === 'string' ? renderV9(renderFn) : renderV10()
+    })
+  }
+
+  const loadMermaid = () => {
+    window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js').then(runMermaid)
+  }
+
+  btf.addGlobalFn('themeChange', runMermaid, 'mermaid')
+
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://twikoo.xxh123.online/',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = () => {
+    twikoo.init(Object.assign({
+      el: '#twikoo-wrap',
+      envId: 'https://twikoo.xxh123.online/',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      }
+    }, null))
+
+    
+  }
+
+  const loadTwikoo = () => {
+    if (typeof twikoo === 'object') setTimeout(init,0)
+    else getScript('https://cdn.jsdelivr.net/npm/twikoo@1.6.31/dist/twikoo.all.min.js').then(init)
+  }
+
+  if ('Twikoo' === 'Twikoo' || !true) {
+    if (true) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script></div><div class="aplayer no-destroy" data-id="10081861680" data-server="netease" data-type="playlist"   data-order="list" data-fixed="true" data-preload="auto" data-autoplay="false" data-mutex="true" ></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener
+  btf.removeGlobalFnEvent('pjax')
+  btf.removeGlobalFnEvent('themeChange')
+
+  document.getElementById('rightside').classList.remove('rightside-show')
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', e => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><div class="app-refresh" id="app-refresh" style="position: fixed;top: -2.2rem;left: 0;right: 0;z-index: 99999;padding: 0 1rem;font-size: 15px;height: 2.2rem;transition: all 0.3s ease;"><div class="app-refresh-wrap" style=" display: flex;color: #fff;height: 100%;align-items: center;justify-content: center;"><label>✨ 有新文章啦！ 👉</label><a href="javascript:void(0)" onclick="location.reload()"><span style="color: #fff;text-decoration: underline;cursor: pointer;">🍗点击食用🍔</span></a></div></div><script>if ('serviceWorker' in navigator) {
+if (navigator.serviceWorker.controller) {
+navigator.serviceWorker.addEventListener('controllerchange', function() {
+showNotification()
+})
+}
+window.addEventListener('load', function() {
+navigator.serviceWorker.register('/sw.js')
+})
+}
+function showNotification() {
+if (GLOBAL_CONFIG.Snackbar) {
+var snackbarBg =
+document.documentElement.getAttribute('data-theme') === 'light' ?
+GLOBAL_CONFIG.Snackbar.bgLight :
+GLOBAL_CONFIG.Snackbar.bgDark
+var snackbarPos = GLOBAL_CONFIG.Snackbar.position
+Snackbar.show({
+text: '✨ 有新文章啦！ 👉',
+backgroundColor: snackbarBg,
+duration: 500000,
+pos: snackbarPos,
+actionText: '🍗点击食用🍔',
+actionTextColor: '#fff',
+onActionClick: function(e) {
+location.reload()
+},
+})
+} else {
+var showBg =
+document.documentElement.getAttribute('data-theme') === 'light' ?
+'#3b70fc' :
+'#1f1f1f'
+var cssText = `top: 0; background: ${showBg};`
+document.getElementById('app-refresh').style.cssText = cssText
+}
+}</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_footer_beautify_injector_config(){
+    var parent_div_git = document.getElementById('footer-wrap');
+    var item_html = '<div id="workboard"></div><p id="ghbdages"><a class="github-badge" target="_blank" href="https://hexo.io/" style="margin-inline:5px" data-title="博客框架为Hexo_v5.4.0" title=""><img src="https://img.shields.io/badge/Frame-Hexo-blue?style=flat&amp;logo=hexo" alt=""/></a><a class="github-badge" target="_blank" href="https://butterfly.js.org/" style="margin-inline:5px" data-title="主题版本Butterfly_v4.2.2" title=""><img src="https://img.shields.io/badge/Theme-Butterfly-6513df?style=flat&amp;logo=bitdefender" alt=""/></a><a class="github-badge" target="_blank" href="https://www.jsdelivr.com/" style="margin-inline:5px" data-title="本站使用JsDelivr为静态资源提供CDN加速" title=""><img src="https://img.shields.io/badge/CDN-jsDelivr-orange?style=flat&amp;logo=jsDelivr" alt=""/></a><a class="github-badge" target="_blank" href="https://beian.miit.gov.cn/#/Integrated/index" style="margin-inline:5px" data-title="本站已在湘进行备案" title=""><img src="https://img.shields.io/badge/湘ICP备-2022004213号-e1d492?style=flat&amp;logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAdCAYAAAC9pNwMAAABS2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDIgNzkuMTYwOTI0LCAyMDE3LzA3LzEzLTAxOjA2OjM5ICAgICAgICAiPgogPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIi8+CiA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgo8P3hwYWNrZXQgZW5kPSJyIj8+nhxg7wAACNlJREFUSInF1mmMVeUdx/Hv2e+5+519mJWBYQZkGxZZxLKJqBXGoLS1iXWrmihotFXaJiTWWlsbl6q1aetWd5u0VkKjNG4YEJSlOCibDLMwM8x679z9nnPP1jcVJUxf+7z6J8+LT37/Z4VvaQhfFS8+sBXbctCDGrVTKlBUH4mxAbI9Hfj0IJLsp6paJ5/tmn20N/D0wKDRMq9F/c3M2U1/V0vDfWMFh+tv/Ig1zYPMabDImPJ52OaXO87W580KggCiiOsJOJ6I3wcNFaaeNKxrt72f2fLGu4FpJ/sDQABRzD22fH7/Yze069vGc6mrDLNIJCDik10sxz2by3VdPM87xzkP9jwPTZFRVI1YUJKH+oy7n3tbvv/P2wW/UQxRWe6w4ZJRptYLHDoCuz8v5cP92XbI762O+h6UVWHnUFbPpU0fEb2A60mMJ7MUi9b/b7UgKhiZMaIxm8YLplLMDPz8hl/EH+rs8TNlUpFf32uyZJGLPDwCiTGUyTWodTN49eUCdz2YwXb9NNcObp1X98WDoufynzMVCEKGn27ayPTWBi5ad8P5iQUkJEnFLjqM9Z+hrVX0vfDe6K2dPRWsW2bwyp9EUifSJB84gdxrkR0eRgv1o/3I4fbbprJ6scqamzVO9pffec1S5ZWY2Nfz5qEy/FqOC2Y3s3j53HMSi18VRjFPwSwg+1RfVbl115vvJrsfej7UGIsYPPGgQ7JXoO+Xx5B3dHEomyJ9x1qiQozkr95h5937aFnVyouPlgJK+Ss7Fxz64OTSxSX+LHYxT2IsRW5kbGI4oHcR0jqoqTjV9se3I7/f8rS/ClS23GxSXhph6L5d9Akm7qqZhHWBQGUJ+CWGFzcg7e7m6D3/ZuW1Ea5YKdA3EojuONi813TqNi+YPYOKUhXDtCeGL26/hakLLiEcdsaHRkRAoLRc4fJrmhnekyF0apgZowWSwwkaa+rw3f8WA1GZZsPP5JEChX8dhZTN6iU6kAcs5s+dHd183SJ0VVKL57pfw6YdRQw23aeWTns47DPTALWlRTR7kMLew6hGgYqUhWXYFFUdPZ6lUBahLA8hVcOftckfi7No7VRAAQqsX1dybfvG1qwriM9mM5mJ4e4jO5Cc01dPqixbr8tWGBQUL4vjGigEEShi+xUmZ2RiR/sJ1pbS8NkgZrKAGw0TsgQsQyFaF/nfYTGprAlMFysbA1pI3mhkR6snhGsaymYGvPyFEb9IdbUE2AzFFTwpRqCtBY0wmdER+hZW4j63gcJj38V+/ErSUZXsYBfjIZHIRW0c2Z8BskCAqN+CbBJBFnyyKjR+Ez57nBxLqpfMUeSISElMBFz6x2Q6OxzWrYjyxWVzEewioU3LCS5vQY6nMUrLwNaxXvoQ59IloFSx54PPAZtQLExVZZDxsVE8J4dn6v4JYatgbSjk0owPw7RGH2ADMo88Z7L20ip8f7gC7fAo0q4+0rt7kEQDvaghVZbiPHUHcyeXcfLjT3jmpR7AYsnSScya3UR8bARVMck7Y/cB75/X6rDf3Fg2dw2jKZm5dXGm1LuAzO5DCo9v6aT0ibco5kzOvLOP+NGTFJtDpPYeZKijk/Rn3QxsfZV7txwhX7ABiZUXBsGvIvguQApNQQva9RMmTvZ2dpVUls+tX/UD7GN/Y8Ws05w6rQF+9vyzg1vZjbvMRJhXiRSU8DpTFFe0QE8S6SfPkOkZoktrB2oAhZWrwljxOPmchiSMYOWNoxNuruFU5vWeXdsojiUon345113dBBQBmTYlTimgdB8nfPo4WjaNFgN9OMEkJ02dnadVt5ki54Esqy+bzKJltVhSPbI3iN2zCyMTeXNCuG7Omm2Zok7PR2+R7jvD8ouruHhmCrB5jVZeYxLdrTP4sr4Vtd9g4MA4qc4c+6cu5NPamfw4P59t2WrA4YdXKkASf7SFivo6PDdEPmf1fRM++zp1bH/0r4I1dD1ODtOWaW4IsvPjL7nqXhloQiSPwjjgMYkMASyGEBkjhISCQwkwzve/18AbT+pk8pVY4UacQi9y+gyZ0eRAw4qHa89LXEx1LXMSPfhDJYRb59BtlLKg2WPT2l6qYl1svtGkrLYckyA1S+t5+2ATm37WCui0LSynsckDNH5zTxAchbQtkx08hDHYiW6NgC0enHBzEZ102UDH8QORdEckjEzZrNWkRydzyx17uGnDXqbUnGZ6dRPjSY91q2TqwjFuvTxLo5Zn5Qo/pumRSFcTLQtybEhGE0fQrDhhJ0VvH2lTnnHPhGtsmWan469apERjI2MH3qN7+7MEfH6ql29CbV7PvsMG32k6yU2XDhEKyZw66eJaRdrXR7CzCcqUNC3zwgymPJRCH4KRRLINimpL14A5Y4GDeOqbsPRVcfuN7Xj44pav/hFfrNT2kr2rsqf2Ibp5pEA14ZIImUyW3t5REkkTXRGQ/DGGhtLginhqCWknQDE5hKf5UFSF9Lj020Q2ul5V1AR2hr+8vuP8Vlc2zMPRxoSjnx7XBC14sDoydahSGq7KdO/HFyrBchxCVfX4fDKp4T7SCQejYODZLrYgIqgKFsNIgQqEYob8mW6yiUyb7Z64LVK/+B85xznnJ3AWzqTzuIX46mr5wLs+UUTyIriBCjRNxguHMJIFDLEEvXEOVRWnSJ0+jCd4CJoGjoedM1CLcXQziW3nMV2TSMBeOx7vWZvPt1r+cMPzE8KunaUkFn0vNrvtqXj34c1W6gzxlEQ6naIoBahtnkMwoFMwIVzSRNguMt53Aj2s4nkSlgPoGqLkICsRNF0gl8rYWuP8+11/w/OOJDEhHPKLCIpOXmi+M9AgP+maiesLifF2T1Rn5ZNj5Lo/Qc/GcPMmhdoqlEgIGzCK4PiCmJKK68p4KfF3qYGuF0qCRUkJTzleUbvQyWRTuE5xYthxQbBs7EISAbkzUFG3VfXXbK2YFi3X/eryfKKnqVBItNjJxDzH8erddC4SqWwcN5WyTtlyO1RP/Lh3eHD76MB40swmiDVJyDLYRhpc5+ub6tse/wWKbvSQEAw1awAAAABJRU5ErkJggg==" alt=""/></a><a class="github-badge" target="_blank" href="https://github.com/" style="margin-inline:5px" data-title="本站项目由Github托管" title=""><img src="https://img.shields.io/badge/Source-Github-d021d6?style=flat&amp;logo=GitHub" alt=""/></a><a class="github-badge" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" style="margin-inline:5px" data-title="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可" title=""><img src="https://img.shields.io/badge/Copyright-BY--NC--SA%204.0-d42328?style=flat&amp;logo=Claris" alt=""/></a></p>';
+    console.log('已挂载butterfly_footer_beautify')
+    parent_div_git.insertAdjacentHTML("beforeend",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_footer_beautify_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_footer_beautify_injector_config();
+  }
+  </script><script async src="/js/runtime/runtime.js"></script><script async src="/js/ali_font.js"></script><div class="js-pjax"><script async="async">var arr = document.getElementsByClassName('recent-post-item');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__zoomIn');
+    arr[i].setAttribute('data-wow-duration', '1.5s');
+    arr[i].setAttribute('data-wow-delay', '200ms');
+    arr[i].setAttribute('data-wow-offset', '30');
+    arr[i].setAttribute('data-wow-iteration', '1');
+  }</script><script async="async">var arr = document.getElementsByClassName('card-widget');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__zoomIn');
+    arr[i].setAttribute('data-wow-duration', '');
+    arr[i].setAttribute('data-wow-delay', '200ms');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('flink-list-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__flipInY');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('flink-list-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__animated');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('article-sort-item');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__slideInRight');
+    arr[i].setAttribute('data-wow-duration', '1.5s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('site-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__flipInY');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('site-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__animated');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script></div><script defer src="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/wow.min.js"></script><script defer src="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/wow_init.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"position":"left","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script></body></html>

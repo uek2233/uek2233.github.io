@@ -1,0 +1,2058 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Linux 应用编程：系统信息与资源 | Kikyo</title><meta name="author" content="Kikyo"><meta name="copyright" content="Kikyo"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="系统信息与资源  学习 Linux 应用编程时整理的笔记，涵盖：系统信息获取（uname&#x2F;sysinfo&#x2F;sysconf）、时间与时钟、进程时间、随机数、休眠、堆内存分配与内存对齐、proc 文件系统。 阅读建议：先搞清楚「系统是什么」（系统信息），再知道「现在几点」（时间），接着看「程序跑了多久」（进程时间），然后是「随机与等待」（随机数 &#x2F; 休眠），最后掌握「内存怎么拿」（堆内存 &#x2F; 对齐）与">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux 应用编程：系统信息与资源">
+<meta property="og:url" content="https://xxh123.online/posts/linux-sysinfo.html">
+<meta property="og:site_name" content="Kikyo">
+<meta property="og:description" content="系统信息与资源  学习 Linux 应用编程时整理的笔记，涵盖：系统信息获取（uname&#x2F;sysinfo&#x2F;sysconf）、时间与时钟、进程时间、随机数、休眠、堆内存分配与内存对齐、proc 文件系统。 阅读建议：先搞清楚「系统是什么」（系统信息），再知道「现在几点」（时间），接着看「程序跑了多久」（进程时间），然后是「随机与等待」（随机数 &#x2F; 休眠），最后掌握「内存怎么拿」（堆内存 &#x2F; 对齐）与">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/06_photo_2026-11-15_15-33-25.jpg">
+<meta property="article:published_time" content="2026-11-15T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-11-15T07:47:15.179Z">
+<meta property="article:author" content="Kikyo">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="系统调用">
+<meta property="article:tag" content="时间">
+<meta property="article:tag" content="proc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/06_photo_2026-11-15_15-33-25.jpg"><link rel="shortcut icon" href="/img/Rocket.png"><link rel="canonical" href="https://xxh123.online/posts/linux-sysinfo.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="manifest" href="/manifest.json"/><meta name="msapplication-TileColor" content="#40B2E6"/><link rel="apple-touch-icon" sizes="180x180" href="/img/siteicon/128.png"/><link rel="icon" type="image/png" sizes="32x32" href="/img/siteicon/32.png"/><link rel="icon" type="image/png" sizes="16x16" href="/img/siteicon/16.png"/><link rel="mask-icon" href="/img/siteicon/128.png" color="#5bbad5"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Linux 应用编程：系统信息与资源',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-11-15 15:47:15'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css" media="defer" onload="this.media='all'"><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/runtime/runtime.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/assets/font-awesome-animation.min.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/tag_plugins.css" media="defer" onload="this.media='all'"><script src="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/assets/carousel-touch.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/animate.min.css" media="print" onload="this.media='screen'"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.2.0"><link rel="alternate" href="/atom.xml" title="Kikyo" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/202405192117137.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">51</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">58</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/"><i class="fa-fw fas fa-home faa-tada"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/archives/"><i class="fa-fw fas fa-archive faa-tada"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/artitalk/"><i class="fa-fw fas fa-comment-dots faa-tada"></i><span> 闲言碎语</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/music/"><i class="fa-fw fas fa-music faa-tada"></i><span> 音乐馆</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/categories/"><i class="fa-fw fas fa-folder-open faa-tada"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/wallpapers/"><i class="fa-fw fab fa-artstation faa-tada"></i><span> 壁纸</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/comments/"><i class="fa-fw fas fa-envelope faa-tada"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/link/"><i class="fa-fw fas fa-link faa-tada"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/bangumis/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-hecha"></use></svg><span> 追番</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/about/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-zhifeiji"></use></svg><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/06_photo_2026-11-15_15-33-25.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Kikyo"><span class="site-name">Kikyo</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/"><i class="fa-fw fas fa-home faa-tada"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/archives/"><i class="fa-fw fas fa-archive faa-tada"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/artitalk/"><i class="fa-fw fas fa-comment-dots faa-tada"></i><span> 闲言碎语</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/music/"><i class="fa-fw fas fa-music faa-tada"></i><span> 音乐馆</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/categories/"><i class="fa-fw fas fa-folder-open faa-tada"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/wallpapers/"><i class="fa-fw fab fa-artstation faa-tada"></i><span> 壁纸</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/comments/"><i class="fa-fw fas fa-envelope faa-tada"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/link/"><i class="fa-fw fas fa-link faa-tada"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/bangumis/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-hecha"></use></svg><span> 追番</span></a></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/about/"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-zhifeiji"></use></svg><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Linux 应用编程：系统信息与资源</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-11-15T04:00:00.000Z" title="发表于 2026-11-15 12:00:00">2026-11-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-11-15T07:47:15.179Z" title="更新于 2026-11-15 15:47:15">2026-11-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Linux/">Linux</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Linux/%E5%BA%94%E7%94%A8%E7%BC%96%E7%A8%8B/">应用编程</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">12.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>45分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Linux 应用编程：系统信息与资源"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="系统信息与资源">系统信息与资源</h1>
+<blockquote>
+<p>学习 Linux
+应用编程时整理的笔记，涵盖：系统信息获取（<code>uname</code>/<code>sysinfo</code>/<code>sysconf</code>）、时间与时钟、进程时间、随机数、休眠、堆内存分配与内存对齐、proc
+文件系统。</p>
+<p>阅读建议：先搞清楚「系统是什么」（系统信息），再知道「现在几点」（时间），接着看「程序跑了多久」（进程时间），然后是「随机与等待」（随机数
+/ 休眠），最后掌握「内存怎么拿」（堆内存 / 对齐）与「内核怎么问」（proc
+文件系统）。</p>
+</blockquote>
+<hr>
+<h2 id="系统信息">系统信息</h2>
+<p>Linux 提供了几个系统调用 / C
+库函数用于获取系统信息：操作系统名称、内核版本、主机名、硬件架构，以及各种运行时可配置的限额（页面大小、CPU
+数量、节拍率等）。命令行中对应的查看工具是
+<code>uname -a</code>、<code>hostname</code> 等。</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>uname()</code></td>
+<td
+style="text-align: left;">获取操作系统名称、主机名、内核版本、硬件架构等</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;"><code>-1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sysinfo()</code></td>
+<td
+style="text-align: left;">获取系统总体信息（运行时间、内存、负载、进程数等）</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;"><code>-1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gethostname()</code></td>
+<td style="text-align: left;">获取主机名</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;"><code>-1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sysconf()</code></td>
+<td style="text-align: left;">获取运行时系统限制 / 配置值（页面大小、CPU
+数、节拍率等）</td>
+<td style="text-align: left;">配置值</td>
+<td style="text-align: left;"><code>-1</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="uname-获取系统基本信息">uname() — 获取系统基本信息</h3>
+<p><strong>作用</strong>::
+将操作系统名称、主机名、内核发行版本、内核版本、硬件架构等系统信息填入
+<code>struct utsname</code> 结构体。<code>uname -a</code>
+命令内部就是调用它。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/utsname.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">uname</span><span class="params">(<span class="keyword">struct</span> utsname *buf)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">utsname</span> &#123;</span></span><br><span class="line">    <span class="type">char</span> sysname[];    <span class="comment">/* 操作系统名称，如 &quot;Linux&quot; */</span></span><br><span class="line">    <span class="type">char</span> nodename[];   <span class="comment">/* 主机名（网络节点名） */</span></span><br><span class="line">    <span class="type">char</span> release[];    <span class="comment">/* 内核发行版本号，如 &quot;5.15.0&quot; */</span></span><br><span class="line">    <span class="type">char</span> version[];    <span class="comment">/* 内核版本（含编译信息） */</span></span><br><span class="line">    <span class="type">char</span> machine[];    <span class="comment">/* 硬件架构类型，如 &quot;x86_64&quot; */</span></span><br><span class="line">    <span class="type">char</span> domainname[]; <span class="comment">/* 域名（NIS/YP 域名） */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>buf</code>：指向 <code>struct utsname</code>
+的指针，函数将信息写入其中</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><code>uname()</code> 与 <code>uname</code>
+命令的选项对应关系：<code>-s</code>→<code>sysname</code>、<code>-n</code>→<code>nodename</code>、<code>-r</code>→<code>release</code>、<code>-v</code>→<code>version</code>、<code>-m</code>→<code>machine</code></li>
+<li><code>nodename</code> 通常与 <code>gethostname()</code>
+得到的主机名一致</li>
+<li><code>struct utsname</code> 中的数组长度由实现定义（Linux 上各字段为
+65 字节），不可假设固定值</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/utsname.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">utsname</span> <span class="title">buf</span>;</span></span><br><span class="line"><span class="keyword">if</span> (uname(&amp;buf) == <span class="number">-1</span>) &#123;</span><br><span class="line">    perror(<span class="string">&quot;uname&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;System   : %s\n&quot;</span>, buf.sysname);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;Node     : %s\n&quot;</span>, buf.nodename);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;Release  : %s\n&quot;</span>, buf.release);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;Version  : %s\n&quot;</span>, buf.version);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;Machine  : %s\n&quot;</span>, buf.machine);</span><br></pre></td></tr></table></figure>
+<h3 id="sysinfo-获取系统总体信息">sysinfo() — 获取系统总体信息</h3>
+<p><strong>作用</strong>::
+获取系统运行时间、平均负载、内存使用情况、进程数等总体信息，填入
+<code>struct sysinfo</code> 结构体。比逐一读取
+<code>/proc/meminfo</code>、<code>/proc/loadavg</code> 更方便。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/sysinfo.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">sysinfo</span><span class="params">(<span class="keyword">struct</span> sysinfo *info)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sysinfo</span> &#123;</span></span><br><span class="line">    <span class="type">long</span>            uptime;     <span class="comment">/* 系统启动至今经过的秒数 */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span>   loads[<span class="number">3</span>];   <span class="comment">/* 1、5、15 分钟平均负载（需除以 65536） */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span>   totalram;   <span class="comment">/* 物理内存总量（字节） */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span>   freeram;    <span class="comment">/* 完全空闲的内存（字节） */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span>   sharedram;  <span class="comment">/* 共享内存总量（字节） */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span>   bufferram;  <span class="comment">/* 缓冲区（buffer）占用的内存（字节） */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span>   totalswap;  <span class="comment">/* 交换分区总量（字节） */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span>   freeswap;   <span class="comment">/* 空闲交换分区（字节） */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">short</span>  procs;      <span class="comment">/* 当前系统中的进程数 */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span>   totalhigh;  <span class="comment">/* 高端内存总量（字节） */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span>   freehigh;   <span class="comment">/* 空闲高端内存（字节） */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span>    mem_unit;   <span class="comment">/* 内存单位（字节），通常为 1 */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>info</code>：指向 <code>struct sysinfo</code>
+的指针，函数将信息写入其中</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong><code>loads[]</code> 不是浮点数</strong>：它是整数，需要除以
+<code>65536.0</code> 才是熟悉的负载值（如 1.5）</li>
+<li><strong>内存字段单位是字节</strong>：字段值与 <code>mem_unit</code>
+的乘积才是真实字节数（Linux 上 <code>mem_unit</code> 通常为 1）</li>
+<li><code>freeram</code>
+是"完全空闲"的内存，<strong>实际可用内存</strong>还要算上
+buffer/cache，判断系统内存是否够用建议看 <code>/proc/meminfo</code> 中的
+<code>MemAvailable</code> 字段</li>
+<li><code>uptime</code> 与 <code>cat /proc/uptime</code>
+的第一个数字一致</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/sysinfo.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sysinfo</span> <span class="title">info</span>;</span></span><br><span class="line"><span class="keyword">if</span> (sysinfo(&amp;info) == <span class="number">-1</span>) &#123;</span><br><span class="line">    perror(<span class="string">&quot;sysinfo&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;uptime      : %ld s (%.2f days)\n&quot;</span>, info.uptime, info.uptime / <span class="number">86400.0</span>);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;loadavg 1m  : %.2f\n&quot;</span>, info.loads[<span class="number">0</span>] / <span class="number">65536.0</span>);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;total ram   : %lu MB\n&quot;</span>, info.totalram / <span class="number">1024</span> / <span class="number">1024</span>);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;free  ram   : %lu MB\n&quot;</span>, info.freeram  / <span class="number">1024</span> / <span class="number">1024</span>);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;processes   : %u\n&quot;</span>, info.procs);</span><br></pre></td></tr></table></figure>
+<h3 id="gethostname-获取主机名">gethostname() — 获取主机名</h3>
+<p><strong>作用</strong>::
+获取当前系统的主机名，写入调用者提供的缓冲区。对应 <code>hostname</code>
+命令。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">gethostname</span><span class="params">(<span class="type">char</span> *name, <span class="type">size_t</span> len)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>name</code>：存放主机名的缓冲区</li>
+<li><code>len</code>：缓冲区 <code>name</code> 的大小（字节）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>Linux 上主机名最大长度为 <code>HOST_NAME_MAX</code>（64 字节，含
+<code>'\0'</code>），缓冲区给 64 字节以上即可</li>
+<li><strong>Linux 上若 <code>len</code> 太小</strong>，函数会返回 -1
+并设置 <code>errno = ENAMETOOLONG</code>（POSIX 允许静默截断，但 Linux
+不会）</li>
+<li>结果<strong>不保证以 <code>'\0'</code>
+结尾</strong>（若缓冲区刚好装满），保险起见可手动
+<code>name[len-1] = '\0'</code></li>
+<li>与 <code>uname()</code> 的 <code>nodename</code> 字段含义相同</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> hostname[<span class="number">64</span>];</span><br><span class="line"><span class="keyword">if</span> (gethostname(hostname, <span class="keyword">sizeof</span>(hostname)) == <span class="number">-1</span>) &#123;</span><br><span class="line">    perror(<span class="string">&quot;gethostname&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;hostname: %s\n&quot;</span>, hostname);</span><br></pre></td></tr></table></figure>
+<h3 id="sysconf-获取运行时系统限制">sysconf() — 获取运行时系统限制</h3>
+<p><strong>作用</strong>::
+在<strong>运行时</strong>查询系统的各种限制和配置值，如页面大小、在线
+CPU 数量、时钟节拍率、可打开文件描述符上限等。编译期已知的常量可用宏（如
+<code>PAGE_SIZE</code>），但运行时值一律用 <code>sysconf()</code>
+获取，保证可移植性。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">long</span> <span class="title function_">sysconf</span><span class="params">(<span class="type">int</span> name)</span>;</span><br><span class="line"><span class="comment">// 成功：返回对应的配置值</span></span><br><span class="line"><span class="comment">// 失败：返回 -1</span></span><br></pre></td></tr></table></figure>
+<p>常用 <code>name</code> 参数：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">name 参数</th>
+<th style="text-align: left;">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>_SC_PAGESIZE</code></td>
+<td style="text-align: left;">内存页面大小（字节），如 4096</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_SC_NPROCESSORS_ONLN</code></td>
+<td style="text-align: left;">当前在线的 CPU 数量</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_SC_NPROCESSORS_CONF</code></td>
+<td style="text-align: left;">系统配置的 CPU 数量</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_SC_CLK_TCK</code></td>
+<td style="text-align: left;">系统时钟节拍率（每秒时钟滴答数，通常为
+100）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_SC_OPEN_MAX</code></td>
+<td style="text-align: left;">单个进程可打开文件描述符的最大数量</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_SC_ARG_MAX</code></td>
+<td style="text-align: left;">exec 时命令行参数 +
+环境变量的最大总长度</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_SC_HOST_NAME_MAX</code></td>
+<td style="text-align: left;">主机名最大长度</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_SC_CHILD_MAX</code></td>
+<td style="text-align: left;">单个用户可同时拥有的最大进程数</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>返回 -1 的两种含义</strong>：若 <code>errno</code> 变为
+<code>EINVAL</code>，说明 <code>name</code> 参数无效；若
+<code>errno</code>
+未变，说明该项在当前系统上<strong>值不确定</strong></li>
+<li>判断失败前先清空
+<code>errno</code>：<code>errno = 0; v = sysconf(name); if (v == -1 &amp;&amp; errno != 0) &#123; /* 出错 */ &#125;</code></li>
+<li><code>sysconf(_SC_CLK_TCK)</code> 返回的节拍率是
+<code>times()</code> 等函数的换算依据（见「进程时间」章节）</li>
+<li>不要在编译期用 <code>#define PAGE_SIZE</code>
+之类的硬编码，不同架构/内核配置可能不同</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;page size        : %ld bytes\n&quot;</span>, sysconf(_SC_PAGESIZE));</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;online CPUs      : %ld\n&quot;</span>,      sysconf(_SC_NPROCESSORS_ONLN));</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;clock ticks/sec  : %ld\n&quot;</span>,      sysconf(_SC_CLK_TCK));</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;open files limit : %ld\n&quot;</span>,      sysconf(_SC_OPEN_MAX));</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="时间">时间</h2>
+<h3 id="基本概念">基本概念</h3>
+<p><strong>GMT 时间</strong>：格林威治标准时间（Greenwich Mean
+Time），以英国格林威治天文台所在地的平太阳时为基准。 <strong>UTC
+时间</strong>：世界协调时间（Coordinated Universal
+Time），原子钟基准，与 GMT 在民用上几乎等价，是国际标准时间。命令
+<code>date -u</code> 可查看当前的 UTC 时间。</p>
+<p><strong>系统时钟 vs 实时时钟（RTC）</strong>：</p>
+<p>操作系统中一般有两个时钟：</p>
+<ul>
+<li><strong>实时时钟（RTC，硬件时钟）</strong>：由主板上的电池供电的硬件芯片维护，<strong>系统关机后仍在走</strong>。</li>
+<li><strong>系统时钟（软件时钟）</strong>：由内核维护，开机后从 0
+开始计数。</li>
+</ul>
+<p>Linux 系统开机启动后，会<strong>首先读取一次 RTC</strong>
+获取实时时钟作为系统时钟的初始值，之后内核便开始维护自己的系统时钟。所以
+RTC
+硬件只在<strong>系统开机启动时读取一次</strong>，用于对系统时钟进行初始化，之后运行过程中便不再读取它了。<code>hwclock</code>
+命令用于查看/设置硬件时钟。</p>
+<p><strong>jiffies（系统节拍）</strong>：</p>
+<p><code>jiffies</code>
+是内核中定义的一个全局变量，内核使用它记录<strong>系统从启动以来的节拍数</strong>，用来记录以系统节拍时间为单位的时间长度。节拍率（每秒节拍数）就是
+<code>HZ</code>，可由 <code>sysconf(_SC_CLK_TCK)</code> 获取（通常为
+100）。</p>
+<p>当需要获取当前时间点时，可以使用 <code>jiffies</code>
+去换算，当然并不需要手动计算——Linux 提供了相应的系统调用 / C
+库函数用于获取当前时间，如
+<code>time()</code>、<code>gettimeofday()</code>、<code>clock_gettime()</code>，其实质上就是通过
+<code>jiffies</code> 换算得到的。</p>
+<p><strong>Epoch（日历时间的起点）</strong>：<code>1970-01-01 00:00:00 +0000 (UTC)</code>。从该时刻到现在的秒数称为<strong>日历时间</strong>（calendar
+time），数据类型为 <code>time_t</code>。</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>time()</code></td>
+<td style="text-align: left;">获取日历时间（秒级）</td>
+<td style="text-align: left;">秒数</td>
+<td style="text-align: left;"><code>(time_t)-1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gettimeofday()</code></td>
+<td style="text-align: left;">获取日历时间（微秒级）</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;"><code>-1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>clock_gettime()</code></td>
+<td style="text-align: left;">获取指定时钟的时间（纳秒级）</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;"><code>-1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ctime()</code> /
+<code>ctime_r()</code></td>
+<td style="text-align: left;">将 <code>time_t</code>
+转为固定格式字符串</td>
+<td style="text-align: left;">字符串指针</td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>localtime()</code> /
+<code>localtime_r()</code></td>
+<td style="text-align: left;">将 <code>time_t</code> 转为本地时间的
+<code>struct tm</code></td>
+<td style="text-align: left;"><code>struct tm</code> 指针</td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gmtime()</code> /
+<code>gmtime_r()</code></td>
+<td style="text-align: left;">将 <code>time_t</code> 转为 UTC 时间的
+<code>struct tm</code></td>
+<td style="text-align: left;"><code>struct tm</code> 指针</td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>asctime()</code> /
+<code>asctime_r()</code></td>
+<td style="text-align: left;">将 <code>struct tm</code>
+转为固定格式字符串</td>
+<td style="text-align: left;">字符串指针</td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>strftime()</code></td>
+<td style="text-align: left;">按自定义格式格式化
+<code>struct tm</code></td>
+<td style="text-align: left;">写入字符数</td>
+<td style="text-align: left;"><code>0</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>mktime()</code></td>
+<td style="text-align: left;">将 <code>struct tm</code> 转为
+<code>time_t</code>（与 <code>localtime()</code> 相反）</td>
+<td style="text-align: left;">秒数</td>
+<td style="text-align: left;"><code>(time_t)-1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>settimeofday()</code></td>
+<td style="text-align: left;">设置系统本地时间</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;"><code>-1</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="time-获取日历时间">time() — 获取日历时间</h3>
+<p><strong>作用</strong>:: 得到从
+<code>1970-01-01 00:00:00 +0000 (UTC)</code>（即
+Epoch）到现在所经过的<strong>秒数</strong>，即日历时间。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">time_t</span> <span class="title function_">time</span><span class="params">(<span class="type">time_t</span> *tloc)</span>;</span><br><span class="line"><span class="comment">// 成功：返回自 Epoch 以来的秒数</span></span><br><span class="line"><span class="comment">// 失败：返回 (time_t)-1</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>tloc</code>：若不为 <code>NULL</code>，函数还会把结果写入
+<code>*tloc</code>（可传 <code>NULL</code> 只取返回值）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>精度只有<strong>秒级</strong>，需要更高精度用
+<code>gettimeofday()</code> 或 <code>clock_gettime()</code></li>
+<li><code>time_t</code> 在 32 位系统上是 32 位有符号整数，<strong>2038
+年问题</strong>（溢出）；64 位系统无此问题</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">time_t</span> t = time(<span class="literal">NULL</span>);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%ld\n&quot;</span>, (<span class="type">long</span>)t);</span><br></pre></td></tr></table></figure>
+<h3 id="gettimeofday-获取日历时间微秒级">gettimeofday() —
+获取日历时间（微秒级）</h3>
+<p><strong>作用</strong>:: 得到从 Epoch 到现在所经过的秒数 +
+微秒数，即<strong>微秒级</strong>的日历时间。结果存入
+<code>struct timeval</code>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">gettimeofday</span><span class="params">(<span class="keyword">struct</span> timeval *tv, <span class="keyword">struct</span> timezone *tz)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timeval</span> &#123;</span></span><br><span class="line">    <span class="type">time_t</span>      tv_sec;  <span class="comment">/* 秒 */</span></span><br><span class="line">    <span class="type">suseconds_t</span> tv_usec; <span class="comment">/* 微秒 */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>tv</code>：存放结果的 <code>struct timeval</code></li>
+<li><code>tz</code>：时区参数，<strong>已废弃</strong>，一律传
+<code>NULL</code></li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><code>tz</code> 参数已废弃，传
+<code>NULL</code>（历史原因保留签名）</li>
+<li>精度受内核时钟分辨率限制（实际约微秒级，并不保证精确到 1 微秒）</li>
+<li>POSIX.1-2008 已将 <code>gettimeofday()</code>
+标记为<strong>过时（legacy）</strong>，新代码推荐
+<code>clock_gettime()</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timeval</span> <span class="title">tv</span>;</span></span><br><span class="line">gettimeofday(&amp;tv, <span class="literal">NULL</span>);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%ld.%06ld\n&quot;</span>, (<span class="type">long</span>)tv.tv_sec, (<span class="type">long</span>)tv.tv_usec);</span><br></pre></td></tr></table></figure>
+<h3 id="clock_gettime-获取指定时钟时间纳秒级-推荐">clock_gettime() —
+获取指定时钟时间（纳秒级）⭐ 推荐</h3>
+<p><strong>作用</strong>::
+获取指定时钟（clockid）的当前时间，纳秒级精度，存入
+<code>struct timespec</code>。它是现代 Linux
+下获取时间<strong>最推荐</strong>的方式。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">clock_gettime</span><span class="params">(<span class="type">clockid_t</span> clockid, <span class="keyword">struct</span> timespec *tp)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timespec</span> &#123;</span></span><br><span class="line">    <span class="type">time_t</span> tv_sec;  <span class="comment">/* 秒 */</span></span><br><span class="line">    <span class="type">long</span>   tv_nsec; <span class="comment">/* 纳秒 */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>常用 <code>clockid</code>：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">clockid</th>
+<th style="text-align: left;">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>CLOCK_REALTIME</code></td>
+<td style="text-align: left;">墙上时钟（系统时间），可被
+<code>settimeofday()</code> / NTP 修改，可能向前或向后跳变</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>CLOCK_MONOTONIC</code></td>
+<td
+style="text-align: left;">单调时钟，不受系统时间修改影响，<strong>适合测量时间间隔</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>CLOCK_PROCESS_CPUTIME_ID</code></td>
+<td style="text-align: left;">当前进程消耗的 CPU 时间</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>CLOCK_THREAD_CPUTIME_ID</code></td>
+<td style="text-align: left;">当前线程消耗的 CPU 时间</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>测量耗时用 <code>CLOCK_MONOTONIC</code></strong>，不要用
+<code>CLOCK_REALTIME</code>——系统时间被 NTP
+校准或用户修改时，<code>CLOCK_REALTIME</code>
+会跳变，导致测出的间隔不准甚至为负</li>
+<li>老系统（glibc &lt; 2.17）编译需链接
+<code>-lrt</code>，新系统不需要</li>
+<li>对应设置时间的函数是 <code>clock_settime()</code>（需 root
+权限）</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timespec</span> <span class="title">start</span>, <span class="title">end</span>;</span></span><br><span class="line">clock_gettime(CLOCK_MONOTONIC, &amp;start);</span><br><span class="line"><span class="comment">/* ... 要计时的代码 ... */</span></span><br><span class="line">clock_gettime(CLOCK_MONOTONIC, &amp;end);</span><br><span class="line"></span><br><span class="line"><span class="type">double</span> elapsed = (end.tv_sec - start.tv_sec)</span><br><span class="line">               + (end.tv_nsec - start.tv_nsec) / <span class="number">1e9</span>;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;elapsed: %.6f s\n&quot;</span>, elapsed);</span><br></pre></td></tr></table></figure>
+<h3 id="ctime-ctime_r-将日历时间转为字符串">ctime() &amp; ctime_r() —
+将日历时间转为字符串</h3>
+<p><strong>作用</strong>:: 将 <code>time_t</code>
+日历时间转换为<strong>固定格式</strong>的可打印字符串，格式如：<code>Wed Jun 30 21:49:08 1993\n</code>（带换行符）。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *<span class="title function_">ctime</span><span class="params">(<span class="type">const</span> <span class="type">time_t</span> *timep)</span>;</span><br><span class="line"><span class="comment">// 成功：返回指向静态字符串的指针</span></span><br><span class="line"><span class="comment">// 失败：返回 NULL</span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *<span class="title function_">ctime_r</span><span class="params">(<span class="type">const</span> <span class="type">time_t</span> *timep, <span class="type">char</span> *buf)</span>;            <span class="comment">/* POSIX 版本 */</span></span><br><span class="line"><span class="comment">// glibc 还提供带缓冲区长度的变体（需 _GNU_SOURCE）：</span></span><br><span class="line"><span class="comment">// char *ctime_r(const time_t *timep, char *buf, size_t buflen);</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>timep</code>：指向 <code>time_t</code> 时间的指针</li>
+<li><code>buf</code>：调用者提供的缓冲区，至少 <strong>26
+字节</strong>（含 <code>'\0'</code>）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><code>ctime()</code>
+返回指向<strong>静态存储区</strong>的指针，<strong>线程不安全</strong>；多线程程序用
+<code>ctime_r()</code></li>
+<li><code>ctime()</code> 等价于
+<code>asctime(localtime(timep))</code>——它内部按<strong>本地时区</strong>转换</li>
+<li>字符串末尾自带 <code>'\n'</code>，打印时不用再换行</li>
+<li>格式固定不可定制，需要自定义格式用 <code>strftime()</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">time_t</span> t = time(<span class="literal">NULL</span>);</span><br><span class="line"><span class="type">char</span> buf[<span class="number">32</span>];</span><br><span class="line">ctime_r(&amp;t, buf);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%s&quot;</span>, buf);   <span class="comment">/* 例如: Sun Aug 23 10:30:00 2026 */</span></span><br></pre></td></tr></table></figure>
+<h3 id="localtime-localtime_r-转为本地时间结构体">localtime() &amp;
+localtime_r() — 转为本地时间结构体</h3>
+<p><strong>作用</strong>:: 把 <code>time()</code> /
+<code>gettimeofday()</code> 得到的秒数（<code>time_t</code>
+日历时间）变成一个 <code>struct tm</code>
+结构体表示的<strong>本地时间</strong>（受时区 <code>TZ</code> 环境变量和
+<code>/etc/localtime</code> 影响）。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> tm *<span class="title function_">localtime</span><span class="params">(<span class="type">const</span> <span class="type">time_t</span> *timep)</span>;</span><br><span class="line"><span class="comment">// 成功：返回指向静态 struct tm 的指针</span></span><br><span class="line"><span class="comment">// 失败：返回 NULL</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> tm *<span class="title function_">localtime_r</span><span class="params">(<span class="type">const</span> <span class="type">time_t</span> *timep, <span class="keyword">struct</span> tm *result)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 result（非 NULL）</span></span><br><span class="line"><span class="comment">// 失败：返回 NULL</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>timep</code>：指向 <code>time_t</code> 时间的指针</li>
+<li><code>result</code>：调用者提供的 <code>struct tm</code>
+缓冲区（线程安全版本用）</li>
+</ul>
+<p><code>struct tm</code> 结构体：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tm</span> &#123;</span></span><br><span class="line">    <span class="type">int</span> tm_sec;   <span class="comment">// 秒，范围 0 到 59（允许跳秒最高 60）</span></span><br><span class="line">    <span class="type">int</span> tm_min;   <span class="comment">// 分，范围 0 到 59</span></span><br><span class="line">    <span class="type">int</span> tm_hour;  <span class="comment">// 小时，范围 0 到 23</span></span><br><span class="line">    <span class="type">int</span> tm_mday;  <span class="comment">// 一个月中的第几天，范围 1 到 31</span></span><br><span class="line">    <span class="type">int</span> tm_mon;   <span class="comment">// 月份，范围 0 到 11（0 代表 1 月）</span></span><br><span class="line">    <span class="type">int</span> tm_year;  <span class="comment">// 年份，其值等于实际年份减去 1900</span></span><br><span class="line">    <span class="type">int</span> tm_wday;  <span class="comment">// 星期中的第几天，范围 0 到 6（0 代表星期日）</span></span><br><span class="line">    <span class="type">int</span> tm_yday;  <span class="comment">// 一年中的第几天，范围 0 到 365</span></span><br><span class="line">    <span class="type">int</span> tm_isdst; <span class="comment">// 夏令时标识符（大于 0 表示夏令时，0 表示非夏令时，小于 0 表示信息不可用）</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><code>localtime()</code>
+返回指向<strong>静态存储区</strong>的指针，<strong>线程不安全</strong>；多线程用
+<code>localtime_r()</code></li>
+<li><code>tm_year</code> 是<strong>实际年份减 1900</strong>（如 2026 年
+→ 126），<code>tm_mon</code> 从 <strong>0</strong> 开始（0 代表 1
+月）——打印时记得 +1900、+1，这是最常见的出错点</li>
+<li>转换时若 <code>timep</code> 对应的时间超出 <code>struct tm</code>
+可表示范围，返回 <code>NULL</code></li>
+<li>第一次调用会读取时区文件，可能较慢；之后有缓存</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">time_t</span> t = time(<span class="literal">NULL</span>);</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tm</span> <span class="title">tm_buf</span>;</span></span><br><span class="line">localtime_r(&amp;t, &amp;tm_buf);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%d-%02d-%02d %02d:%02d:%02d\n&quot;</span>,</span><br><span class="line">       tm_buf.tm_year + <span class="number">1900</span>, tm_buf.tm_mon + <span class="number">1</span>, tm_buf.tm_mday,</span><br><span class="line">       tm_buf.tm_hour, tm_buf.tm_min, tm_buf.tm_sec);</span><br></pre></td></tr></table></figure>
+<h3 id="gmtime-gmtime_r-转为-utc-时间结构体">gmtime() &amp; gmtime_r() —
+转为 UTC 时间结构体</h3>
+<p><strong>作用</strong>:: 把 <code>time_t</code> 时间变成一个
+<code>struct tm</code> 结构体表示的时间，与 <code>localtime()</code>
+不同的是：<code>gmtime()</code> 得到的是 <strong>UTC
+国际标准时间</strong>，并不是计算机的本地时间。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> tm *<span class="title function_">gmtime</span><span class="params">(<span class="type">const</span> <span class="type">time_t</span> *timep)</span>;</span><br><span class="line"><span class="keyword">struct</span> tm *<span class="title function_">gmtime_r</span><span class="params">(<span class="type">const</span> <span class="type">time_t</span> *timep, <span class="keyword">struct</span> tm *result)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 struct tm 指针；失败：返回 NULL</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>timep</code>：指向 <code>time_t</code> 时间的指针</li>
+<li><code>result</code>：调用者提供的 <code>struct tm</code>
+缓冲区（线程安全版本用）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>与 <code>localtime()</code>
+的唯一区别是<strong>时区基准</strong>：<code>gmtime()</code> 用
+UTC，<code>localtime()</code> 用本地时区</li>
+<li>同样存在<strong>线程安全</strong>问题，多线程用
+<code>gmtime_r()</code></li>
+<li>北京时间（UTC+8）比 UTC 早 8 小时，<code>gmtime()</code>
+得到的小时数比 <code>localtime()</code> 少 8</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">time_t</span> t = time(<span class="literal">NULL</span>);</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tm</span> <span class="title">gtm</span>;</span></span><br><span class="line">gmtime_r(&amp;t, &amp;gtm);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;UTC: %d-%02d-%02d %02d:%02d:%02d\n&quot;</span>,</span><br><span class="line">       gtm.tm_year + <span class="number">1900</span>, gtm.tm_mon + <span class="number">1</span>, gtm.tm_mday,</span><br><span class="line">       gtm.tm_hour, gtm.tm_min, gtm.tm_sec);</span><br></pre></td></tr></table></figure>
+<h3 id="asctime-asctime_r-将-struct-tm-转为字符串">asctime() &amp;
+asctime_r() — 将 struct tm 转为字符串</h3>
+<p><strong>作用</strong>:: <code>ctime()</code> 是将 <code>time_t</code>
+时间转换为固定格式字符串，而 <code>asctime()</code> 则是将
+<code>struct tm</code> 表示的分解时间转换为固定格式的字符串（格式与
+<code>ctime()</code> 相同）。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *<span class="title function_">asctime</span><span class="params">(<span class="type">const</span> <span class="keyword">struct</span> tm *tm)</span>;</span><br><span class="line"><span class="comment">// 成功：返回指向静态字符串的指针</span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *<span class="title function_">asctime_r</span><span class="params">(<span class="type">const</span> <span class="keyword">struct</span> tm *tm, <span class="type">char</span> *buf)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 buf</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>tm</code>：指向 <code>struct tm</code> 分解时间的指针</li>
+<li><code>buf</code>：调用者提供的缓冲区，至少 26 字节</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>关系：<code>ctime(t) == asctime(localtime(t))</code>——<code>ctime()</code>
+内部先 <code>localtime()</code> 再调 <code>asctime()</code></li>
+<li>同样<strong>线程不安全</strong>，多线程用
+<code>asctime_r()</code></li>
+<li>该函数已被 POSIX.1-2008
+标记为<strong>过时</strong>，新代码建议直接用 <code>strftime()</code>
+定制格式</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">time_t</span> t = time(<span class="literal">NULL</span>);</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tm</span> <span class="title">tm_buf</span>;</span></span><br><span class="line">localtime_r(&amp;t, &amp;tm_buf);</span><br><span class="line"><span class="type">char</span> buf[<span class="number">32</span>];</span><br><span class="line">asctime_r(&amp;tm_buf, buf);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%s&quot;</span>, buf);</span><br></pre></td></tr></table></figure>
+<h3 id="strftime-自定义时间格式">strftime() — 自定义时间格式</h3>
+<p><strong>作用</strong>:: 根据自己<strong>自定义的格式</strong>将
+<code>struct tm</code>
+分解时间格式化为字符串，是格式化时间最灵活、最常用的函数。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">size_t</span> <span class="title function_">strftime</span><span class="params">(<span class="type">char</span> *s, <span class="type">size_t</span> max, <span class="type">const</span> <span class="type">char</span> *format, <span class="type">const</span> <span class="keyword">struct</span> tm *tm)</span>;</span><br><span class="line"><span class="comment">// 成功：返回写入 s 的字符数（不含 &#x27;\0&#x27;）</span></span><br><span class="line"><span class="comment">// 失败/空间不足：返回 0</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>s</code>：输出缓冲区</li>
+<li><code>max</code>：缓冲区大小（字节）</li>
+<li><code>format</code>：格式字符串，<code>%</code>
+开头的转换说明会被替换</li>
+<li><code>tm</code>：指向 <code>struct tm</code> 分解时间</li>
+</ul>
+<p>常用格式说明符：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">说明符</th>
+<th style="text-align: left;">含义</th>
+<th style="text-align: left;">示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>%Y</code></td>
+<td style="text-align: left;">四位年份</td>
+<td style="text-align: left;">2026</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%m</code></td>
+<td style="text-align: left;">月份（01-12）</td>
+<td style="text-align: left;">08</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%d</code></td>
+<td style="text-align: left;">日（01-31）</td>
+<td style="text-align: left;">23</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%H</code></td>
+<td style="text-align: left;">小时（00-23，24 小时制）</td>
+<td style="text-align: left;">14</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%M</code></td>
+<td style="text-align: left;">分钟（00-59）</td>
+<td style="text-align: left;">05</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%S</code></td>
+<td style="text-align: left;">秒（00-59）</td>
+<td style="text-align: left;">09</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%A</code> / <code>%a</code></td>
+<td style="text-align: left;">星期全名 / 缩写</td>
+<td style="text-align: left;">Sunday / Sun</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%B</code> / <code>%b</code></td>
+<td style="text-align: left;">月份全名 / 缩写</td>
+<td style="text-align: left;">August / Aug</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%F</code></td>
+<td style="text-align: left;">等价 <code>%Y-%m-%d</code></td>
+<td style="text-align: left;">2026-08-23</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%T</code></td>
+<td style="text-align: left;">等价 <code>%H:%M:%S</code></td>
+<td style="text-align: left;">14:05:09</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%z</code> / <code>%Z</code></td>
+<td style="text-align: left;">时区偏移 / 时区名</td>
+<td style="text-align: left;">+0800 / CST</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>%%</code></td>
+<td style="text-align: left;">字面 <code>%</code></td>
+<td style="text-align: left;">%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>返回 0
+表示<strong>空间不足或出错</strong>（注意：格式化结果恰好为空时也会返回
+0，需要结合 <code>errno</code> 区分）</li>
+<li>返回的字符数<strong>不包含 <code>'\0'</code></strong></li>
+<li>先 <code>localtime_r()</code> / <code>gmtime_r()</code> 得到
+<code>struct tm</code>，再交给 <code>strftime()</code> 格式化</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">time_t</span> t = time(<span class="literal">NULL</span>);</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tm</span> <span class="title">tm_buf</span>;</span></span><br><span class="line">localtime_r(&amp;t, &amp;tm_buf);</span><br><span class="line"></span><br><span class="line"><span class="type">char</span> buf[<span class="number">64</span>];</span><br><span class="line">strftime(buf, <span class="keyword">sizeof</span>(buf), <span class="string">&quot;%Y-%m-%d %H:%M:%S %A&quot;</span>, &amp;tm_buf);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%s\n&quot;</span>, buf);   <span class="comment">/* 例如: 2026-08-23 14:05:09 Sunday */</span></span><br></pre></td></tr></table></figure>
+<h3 id="mktime-将-struct-tm-转为-time_t">mktime() — 将 struct tm 转为
+time_t</h3>
+<p><strong>作用</strong>:: 与 <code>localtime()</code>
+相反：<code>mktime()</code> 将使用 <code>struct tm</code>
+结构体表示的分解时间转换为 <code>time_t</code>
+日历时间（秒数）。同样是一个 C 库函数。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">time_t</span> <span class="title function_">mktime</span><span class="params">(<span class="keyword">struct</span> tm *tm)</span>;</span><br><span class="line"><span class="comment">// 成功：返回自 Epoch 以来的秒数</span></span><br><span class="line"><span class="comment">// 失败：返回 (time_t)-1</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>tm</code>：指向 <code>struct tm</code>
+分解时间（<strong>按本地时区解释</strong>），函数会修正其中的
+<code>tm_wday</code>、<code>tm_yday</code> 字段</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>输入只需设置年、月、日、时、分、秒即可，<code>tm_wday</code> /
+<code>tm_yday</code> 会被函数<strong>自动修正</strong></li>
+<li><code>tm_isdst</code> 要正确设置：大于 0 表示夏令时，0
+表示非夏令时，<strong>小于 0
+表示未知</strong>（让系统根据时区规则自行判断，一般传 -1 最省心）</li>
+<li><code>mktime()</code> 按<strong>本地时区</strong>解释
+<code>tm</code>；若想按 UTC 解释，可用 GNU 扩展
+<code>timegm()</code>，或临时设置 <code>TZ=UTC</code></li>
+<li>输入时间超出 <code>time_t</code> 可表示范围时返回
+<code>(time_t)-1</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tm</span> <span class="title">tm_buf</span> =</span> &#123;<span class="number">0</span>&#125;;</span><br><span class="line">tm_buf.tm_year = <span class="number">2026</span> - <span class="number">1900</span>;   <span class="comment">/* 年份要减 1900 */</span></span><br><span class="line">tm_buf.tm_mon  = <span class="number">8</span> - <span class="number">1</span>;         <span class="comment">/* 月份从 0 开始 */</span></span><br><span class="line">tm_buf.tm_mday = <span class="number">23</span>;</span><br><span class="line">tm_buf.tm_hour = <span class="number">14</span>;</span><br><span class="line">tm_buf.tm_min  = <span class="number">5</span>;</span><br><span class="line">tm_buf.tm_sec  = <span class="number">9</span>;</span><br><span class="line">tm_buf.tm_isdst = <span class="number">-1</span>;           <span class="comment">/* 未知，让系统判断 */</span></span><br><span class="line"></span><br><span class="line"><span class="type">time_t</span> t = mktime(&amp;tm_buf);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;timestamp: %ld\n&quot;</span>, (<span class="type">long</span>)t);</span><br></pre></td></tr></table></figure>
+<h3 id="settimeofday-设置系统时间">settimeofday() — 设置系统时间</h3>
+<p><strong>作用</strong>:: 设置系统的<strong>本地时间</strong>（即
+<code>CLOCK_REALTIME</code> 墙上时钟）。对应 <code>date -s</code>
+命令。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">settimeofday</span><span class="params">(<span class="type">const</span> <span class="keyword">struct</span> timeval *tv, <span class="type">const</span> <span class="keyword">struct</span> timezone *tz)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>tv</code>：要设置的时间（秒 + 微秒）</li>
+<li><code>tz</code>：时区参数，<strong>已废弃</strong>，传
+<code>NULL</code></li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>需要 root 权限</strong>（或 <code>CAP_SYS_TIME</code>
+能力），普通用户调用返回 -1，<code>errno = EPERM</code></li>
+<li><code>tz</code> 已废弃，传 <code>NULL</code></li>
+<li>现代替代：<code>clock_settime(CLOCK_REALTIME, &amp;ts)</code>（纳秒精度）</li>
+<li><strong>慎用</strong>：修改 <code>CLOCK_REALTIME</code>
+会影响系统上所有依赖墙上时钟的程序、日志时间戳、定时器等；由 NTP
+自动同步的系统不要手动设置，会造成时间跳变</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timeval</span> <span class="title">tv</span>;</span></span><br><span class="line">tv.tv_sec  = <span class="number">1777000000</span>;   <span class="comment">/* 要设置的秒数 */</span></span><br><span class="line">tv.tv_usec = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">if</span> (settimeofday(&amp;tv, <span class="literal">NULL</span>) == <span class="number">-1</span>) &#123;</span><br><span class="line">    perror(<span class="string">&quot;settimeofday&quot;</span>);   <span class="comment">/* 非 root 会打印: Operation not permitted */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="时间转换关系小结">时间转换关系小结</h3>
+<p><code>time_t</code>（秒）、<code>struct tm</code>（分解时间）、字符串三者之间的转换关系如下：</p>
+<p><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260823162748938.png" width="408" alt="image.png"></p>
+<ul>
+<li><code>time_t</code> →
+<code>struct tm</code>：<code>localtime()</code> /
+<code>gmtime()</code></li>
+<li><code>struct tm</code> →
+<code>time_t</code>：<code>mktime()</code>（本地时区）/
+<code>timegm()</code>（UTC，GNU 扩展）</li>
+<li><code>time_t</code> → 字符串：<code>ctime()</code></li>
+<li><code>struct tm</code> → 字符串：<code>asctime()</code>（固定格式）/
+<code>strftime()</code>（自定义格式）</li>
+<li>字符串 →
+<code>time_t</code>：<code>strptime()</code>（<code>strftime()</code>
+的逆函数，GNU/POSIX 扩展）</li>
+</ul>
+<hr>
+<h2 id="进程时间">进程时间</h2>
+<p>进程时间指的是进程从创建后（也就是程序运行后）到目前为止这段时间内<strong>使用
+CPU 资源的时间总数</strong>。出于记录的目的，内核把 CPU
+时间（进程时间）分为以下两个部分：</p>
+<ul>
+<li><strong>用户 CPU
+时间</strong>：进程在用户空间（用户态）下运行所花费的 CPU
+时间，有时也称为虚拟时间（virtual time）</li>
+<li><strong>系统 CPU
+时间</strong>：进程在内核空间（内核态）下运行所花费的 CPU
+时间，这是内核执行系统调用或代表进程执行的其它任务（如服务页错误）所花费的时间</li>
+</ul>
+<p><strong>进程时间 = 用户 CPU 时间 + 系统 CPU 时间</strong>，也就是总的
+CPU 时间。</p>
+<blockquote>
+<p>⚠️ 注意区分：进程时间（CPU 时间）是"程序占用了 CPU
+多久"，与墙上时间（wall clock，程序从启动到结束过了多久）不同——程序
+sleep 或等待 I/O 时不消耗 CPU 时间，但墙上时间在走。</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>times()</code></td>
+<td style="text-align: left;">获取进程时间（用户/系统 CPU
+时间，含子进程），以节拍为单位</td>
+<td style="text-align: left;">节拍数</td>
+<td style="text-align: left;"><code>(clock_t)-1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>clock()</code></td>
+<td style="text-align: left;">获取总的进程 CPU 时间，以
+<code>CLOCKS_PER_SEC</code> 为单位</td>
+<td style="text-align: left;">CPU 时间</td>
+<td style="text-align: left;"><code>(clock_t)-1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>getrusage()</code></td>
+<td style="text-align: left;">获取进程资源使用统计（含用户/系统 CPU
+时间、最大 RSS 等）</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;"><code>-1</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="times-获取进程时间">times() — 获取进程时间</h3>
+<p><strong>作用</strong>::
+获取当前进程时间，返回从过去任意一个时间点（譬如系统启动时间）所经过的<strong>时钟滴答数</strong>（其实就是系统节拍数），将（节拍数
+/ 节拍率）便可得到秒数。同时通过 <code>struct tms</code> 返回用户/系统
+CPU 时间（含已终止子进程）。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/times.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">clock_t</span> <span class="title function_">times</span><span class="params">(<span class="keyword">struct</span> tms *buf)</span>;</span><br><span class="line"><span class="comment">// 成功：返回自过去任意时间点（如系统启动）以来的时钟滴答数</span></span><br><span class="line"><span class="comment">// 失败：返回 (clock_t)-1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tms</span> &#123;</span></span><br><span class="line">    <span class="type">clock_t</span> tms_utime;  <span class="comment">/* 用户 CPU 时间 */</span></span><br><span class="line">    <span class="type">clock_t</span> tms_stime;  <span class="comment">/* 系统 CPU 时间 */</span></span><br><span class="line">    <span class="type">clock_t</span> tms_cutime; <span class="comment">/* 已终止子进程的用户 CPU 时间 */</span></span><br><span class="line">    <span class="type">clock_t</span> tms_cstime; <span class="comment">/* 已终止子进程的系统 CPU 时间 */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>buf</code>：指向 <code>struct tms</code> 的指针，函数将各 CPU
+时间（以节拍为单位）写入其中</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>返回值是墙上时间（wall clock）的节拍数</strong>，不是 CPU
+时间；CPU 时间要看 <code>struct tms</code> 的四个字段</li>
+<li><strong>节拍率</strong>（每秒节拍数）用
+<code>sysconf(_SC_CLK_TCK)</code> 获取（通常为 100），秒数 = 节拍数 /
+节拍率</li>
+<li><code>tms_cutime</code> / <code>tms_cstime</code>
+只统计<strong>已终止</strong>（被 <code>wait()</code>
+回收过）的子进程</li>
+<li>用 <code>times()</code> 测代码耗时：前后各调一次，差值 / 节拍率 =
+墙上秒数</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/times.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tms</span> <span class="title">tms_buf</span>;</span></span><br><span class="line"><span class="type">clock_t</span> start = times(&amp;tms_buf);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* ... 要计时的代码 ... */</span></span><br><span class="line"></span><br><span class="line"><span class="type">clock_t</span> end = times(&amp;tms_buf);</span><br><span class="line"><span class="type">long</span> clk_tck = sysconf(_SC_CLK_TCK);</span><br><span class="line"></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;wall time     : %.2f s\n&quot;</span>, (<span class="type">double</span>)(end - start) / clk_tck);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;user CPU time : %.2f s\n&quot;</span>, (<span class="type">double</span>)(tms_buf.tms_utime) / clk_tck);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;system CPU    : %.2f s\n&quot;</span>, (<span class="type">double</span>)(tms_buf.tms_stime) / clk_tck);</span><br></pre></td></tr></table></figure>
+<h3 id="clock-获取总进程-cpu-时间">clock() — 获取总进程 CPU 时间</h3>
+<p><strong>作用</strong>:: <code>clock()</code>
+函数虽然可以很方便地获取总的进程时间（用户 + 系统 CPU
+时间之和），但<strong>不能</strong>获取到单独的用户 CPU 时间和系统 CPU
+时间。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">clock_t</span> <span class="title function_">clock</span><span class="params">(<span class="type">void</span>)</span>;</span><br><span class="line"><span class="comment">// 成功：返回进程使用的 CPU 时间（以 CLOCKS_PER_SEC 为单位）</span></span><br><span class="line"><span class="comment">// 失败：返回 (clock_t)-1</span></span><br></pre></td></tr></table></figure>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><code>clock()</code> 返回的是 <strong>CPU
+时间</strong>，不是墙上时间！测 sleep 的耗时用它会得到 0</li>
+<li>单位是 <code>CLOCKS_PER_SEC</code>：Linux 上该值为
+<strong>1000000</strong>（微秒粒度），秒数 = 返回值 /
+<code>CLOCKS_PER_SEC</code></li>
+<li>不能区分用户态 / 内核态时间，需要区分用 <code>times()</code> 或
+<code>getrusage()</code></li>
+<li>32 位系统上 <code>clock_t</code> 溢出周期约 72 分钟（2147483647 /
+1000000 秒），长时运行程序注意</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">clock_t</span> start = clock();</span><br><span class="line"><span class="comment">/* ... 要计时的 CPU 密集代码 ... */</span></span><br><span class="line"><span class="type">clock_t</span> end = clock();</span><br><span class="line"></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;CPU time: %.6f s\n&quot;</span>, (<span class="type">double</span>)(end - start) / CLOCKS_PER_SEC);</span><br></pre></td></tr></table></figure>
+<h3 id="getrusage-获取进程资源使用情况-补充">getrusage() —
+获取进程资源使用情况 ⭐ 补充</h3>
+<p><strong>作用</strong>::
+获取当前进程（或已终止子进程）的资源使用统计：用户/系统 CPU
+时间、最大常驻内存（RSS）、页错误次数、上下文切换次数等。shell 内置命令
+<code>time</code> 统计资源消耗就是基于它。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/resource.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">getrusage</span><span class="params">(<span class="type">int</span> who, <span class="keyword">struct</span> rusage *usage)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>who</code>：统计对象</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">who 取值</th>
+<th style="text-align: left;">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>RUSAGE_SELF</code></td>
+<td style="text-align: left;">当前进程自身</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>RUSAGE_CHILDREN</code></td>
+<td style="text-align: left;">所有已终止且被 <code>wait()</code>
+回收的子进程</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>RUSAGE_THREAD</code></td>
+<td style="text-align: left;">当前线程（Linux 专有）</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">rusage</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">timeval</span> <span class="title">ru_utime</span>;</span>  <span class="comment">/* 用户 CPU 时间 */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">timeval</span> <span class="title">ru_stime</span>;</span>  <span class="comment">/* 系统 CPU 时间 */</span></span><br><span class="line">    <span class="type">long</span>   ru_maxrss;         <span class="comment">/* 最大常驻内存集大小（KB） */</span></span><br><span class="line">    <span class="type">long</span>   ru_minflt;         <span class="comment">/* 缺页（无需从磁盘读）次数 */</span></span><br><span class="line">    <span class="type">long</span>   ru_majflt;         <span class="comment">/* 缺页（需从磁盘读）次数 */</span></span><br><span class="line">    <span class="type">long</span>   ru_nvcsw;          <span class="comment">/* 主动上下文切换次数 */</span></span><br><span class="line">    <span class="type">long</span>   ru_nivcsw;         <span class="comment">/* 被动上下文切换次数 */</span></span><br><span class="line">    <span class="comment">/* ... 还有更多字段 ... */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><code>ru_utime</code> / <code>ru_stime</code> 是
+<code>struct timeval</code>（秒 + 微秒），与 <code>times()</code>
+的节拍单位不同</li>
+<li><code>RUSAGE_CHILDREN</code>
+只统计已终止的子进程，且是<strong>所有已终止子进程的累计值</strong></li>
+<li><code>ru_maxrss</code> 单位是 KB（Linux）</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/resource.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">rusage</span> <span class="title">usage</span>;</span></span><br><span class="line">getrusage(RUSAGE_SELF, &amp;usage);</span><br><span class="line"></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;user CPU  : %ld.%06ld s\n&quot;</span>,</span><br><span class="line">       (<span class="type">long</span>)usage.ru_utime.tv_sec, (<span class="type">long</span>)usage.ru_utime.tv_usec);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;sys  CPU  : %ld.%06ld s\n&quot;</span>,</span><br><span class="line">       (<span class="type">long</span>)usage.ru_stime.tv_sec, (<span class="type">long</span>)usage.ru_stime.tv_usec);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;max RSS   : %ld KB\n&quot;</span>, usage.ru_maxrss);</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="随机数">随机数</h2>
+<p>C
+库提供伪随机数生成器（PRNG）。所谓"伪"随机，是因为它们由<strong>确定的算法</strong>生成，给定相同种子（seed）就产生相同的序列——所以种子不同，序列才不同。</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>rand()</code> /
+<code>srand()</code></td>
+<td style="text-align: left;">获取伪随机数 / 设置随机数种子</td>
+<td style="text-align: left;"><code>[0, RAND_MAX]</code> 的整数</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>random()</code> /
+<code>srandom()</code></td>
+<td style="text-align: left;">更高质量的伪随机数 / 设置种子</td>
+<td style="text-align: left;"><code>[0, 2^31-1]</code> 的整数</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>getrandom()</code></td>
+<td style="text-align: left;">内核熵池真随机数（安全场景）</td>
+<td style="text-align: left;">写入字节数</td>
+<td style="text-align: left;"><code>-1</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="rand-srand-伪随机数与种子">rand() &amp; srand() —
+伪随机数与种子</h3>
+<p><strong>作用</strong>:: <code>rand()</code> 获取随机数，返回一个介于
+0 到 <code>RAND_MAX</code>（包含）之间的值，也就是数学上的
+<code>[0, RAND_MAX]</code>；<code>srand()</code>
+设置随机数种子，一般常常将当前时间作为随机数种子赋值给参数
+<code>seed</code>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span>  <span class="title function_">rand</span><span class="params">(<span class="type">void</span>)</span>;              <span class="comment">/* 返回 [0, RAND_MAX] 的伪随机整数 */</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">srand</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> seed)</span>; <span class="comment">/* 设置随机数种子 */</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>seed</code>：随机数种子</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>没有调用 <code>srand()</code> 的情况下，<code>rand()</code>
+会将 <code>1</code>
+作为随机数种子</strong>；如果随机数种子相同，那么每一次启动应用程序所得到的随机数序列就是一样的</li>
+<li>常见用法
+<code>srand(time(NULL))</code>：种子是秒级的，<strong>同一秒内启动的多个进程会得到相同序列</strong>；可改进为
+<code>srand(time(NULL) ^ getpid())</code></li>
+<li>Linux 上 <code>RAND_MAX = 2147483647</code>（标准只要求至少
+32767）</li>
+<li><code>rand()</code>
+是线性同余类算法，<strong>质量不高且可预测，绝不能用于密码、密钥、令牌等安全场景</strong></li>
+<li>取某个范围：<code>rand() % n</code>
+有轻微分布偏差（<code>rand() % n</code> 使小余数略多），对质量要求高可用
+<code>rand() / (RAND_MAX / n + 1)</code> 或直接用
+<code>random()</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line">srand(time(<span class="literal">NULL</span>) ^ getpid());   <span class="comment">/* 更好的种子 */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span>; i++)</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>, rand() % <span class="number">100</span>);   <span class="comment">/* 0 ~ 99 */</span></span><br></pre></td></tr></table></figure>
+<h3 id="random-srandom-更高质量的伪随机数-补充">random() &amp; srandom()
+— 更高质量的伪随机数 ⭐ 补充</h3>
+<p><strong>作用</strong>:: 与 <code>rand()</code> / <code>srand()</code>
+类似，但采用更优秀的算法（非线性加扰），生成 <strong>31
+位</strong>的伪随机数，质量明显优于 <code>rand()</code>，是 GNU/Linux
+下普通场景的推荐选择。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">long</span>  <span class="title function_">random</span><span class="params">(<span class="type">void</span>)</span>;               <span class="comment">/* 返回 [0, 2^31-1] 的伪随机整数 */</span></span><br><span class="line"><span class="type">void</span>  <span class="title function_">srandom</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> seed)</span>; <span class="comment">/* 设置种子 */</span></span><br></pre></td></tr></table></figure>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>与 <code>rand()</code> 不同：<code>random()</code> 默认（未调用
+<code>srandom()</code>
+时）使用<strong>随机初始化</strong>（自动从熵源取种子），序列不可预测</li>
+<li>种子是 32 位的，<code>srandom(time(NULL) ^ getpid())</code>
+仍是常用写法</li>
+<li>同样<strong>不是加密安全</strong>的，安全场景用
+<code>getrandom()</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">srandom(time(<span class="literal">NULL</span>) ^ getpid());</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%ld\n&quot;</span>, random() % <span class="number">1000</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="getrandom-内核真随机数-补充">getrandom() — 内核真随机数 ⭐
+补充</h3>
+<p><strong>作用</strong>::
+直接从内核熵池获取随机数，用于密码学安全场景（密钥、令牌、salt
+等）。可以理解为"打开 <code>/dev/urandom</code> 读取"的现代替代。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/random.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">ssize_t</span> <span class="title function_">getrandom</span><span class="params">(<span class="type">void</span> *buf, <span class="type">size_t</span> buflen, <span class="type">unsigned</span> <span class="type">int</span> flags)</span>;</span><br><span class="line"><span class="comment">// 成功：返回写入 buf 的字节数</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>buf</code>：存放随机数的缓冲区</li>
+<li><code>buflen</code>：请求的字节数</li>
+<li><code>flags</code>：<code>0</code> 即可；需要时可用
+<code>GRND_NONBLOCK</code>（非阻塞，熵池未就绪时返回
+<code>EAGAIN</code>）、<code>GRND_RANDOM</code>（使用
+<code>/dev/random</code> 阻塞源）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>Linux 3.17+ 提供</li>
+<li>与 <code>rand()</code> 的本质区别：<code>rand()</code>
+是<strong>算法生成</strong>的伪随机数（可预测），<code>getrandom()</code>
+来自<strong>内核收集的环境噪声</strong>（真随机），不可预测</li>
+<li>普通场景（洗牌、抽样）用 <code>random()</code>
+即可，性能更好；安全场景才需要 <code>getrandom()</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/random.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">unsigned</span> <span class="type">char</span> key[<span class="number">16</span>];</span><br><span class="line"><span class="keyword">if</span> (getrandom(key, <span class="keyword">sizeof</span>(key), <span class="number">0</span>) == <span class="number">-1</span>) &#123;</span><br><span class="line">    perror(<span class="string">&quot;getrandom&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">16</span>; i++)</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%02x&quot;</span>, key[i]);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="休眠">休眠</h2>
+<p>休眠（sleep）是让进程/线程<strong>主动让出
+CPU</strong>，进入等待状态一段时间。休眠期间进程不消耗 CPU
+时间，内核会在时间到后将其唤醒。注意：休眠只是"至少"睡够请求的时间，实际唤醒可能因调度略有延迟，但<strong>不会提前</strong>返回（除非被信号中断）。</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>sleep()</code></td>
+<td style="text-align: left;">秒级休眠</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;">剩余秒数（被信号中断时）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>usleep()</code></td>
+<td style="text-align: left;">微秒级休眠（已过时）</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;"><code>-1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>nanosleep()</code></td>
+<td style="text-align: left;">纳秒级高精度休眠</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;"><code>-1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>clock_nanosleep()</code></td>
+<td style="text-align: left;">指定时钟的纳秒级休眠（支持绝对时间）</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;">错误码（直接返回，不设置 errno）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sleep-秒级休眠">sleep() — 秒级休眠</h3>
+<p><strong>作用</strong>::
+让当前进程休眠指定的<strong>秒数</strong>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> <span class="title function_">sleep</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> seconds)</span>;</span><br><span class="line"><span class="comment">// 成功（睡满时间）：返回 0</span></span><br><span class="line"><span class="comment">// 被信号中断：返回未睡完的剩余秒数</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>seconds</code>：要休眠的秒数</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>精度只有秒级，需要更高精度用 <code>nanosleep()</code></li>
+<li><strong>被信号中断时</strong>返回剩余秒数（不是
+-1！），调用方可根据返回值决定是否继续休眠</li>
+<li>底层基于 <code>nanosleep()</code> 实现</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sleep(<span class="number">2</span>);   <span class="comment">/* 休眠 2 秒 */</span></span><br></pre></td></tr></table></figure>
+<h3 id="usleep-微秒级休眠">usleep() — 微秒级休眠</h3>
+<p><strong>作用</strong>::
+让当前进程休眠指定的<strong>微秒数</strong>（1 秒 = 1,000,000
+微秒）。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">usleep</span><span class="params">(<span class="type">useconds_t</span> usec)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：返回 -1，并设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>usec</code>：要休眠的微秒数（POSIX 规定范围 0 ~
+1,000,000，即不超过 1 秒）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>POSIX.1-2001
+已将该函数标记为<strong>过时（LEGACY）</strong>，新代码推荐
+<code>nanosleep()</code></li>
+<li>参数类型 <code>useconds_t</code>
+是无符号整数，传负数会被当成很大的正数</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">usleep(<span class="number">500000</span>);   <span class="comment">/* 休眠 0.5 秒 */</span></span><br></pre></td></tr></table></figure>
+<h3 id="nanosleep-高精度休眠">nanosleep() — 高精度休眠</h3>
+<p><strong>作用</strong>:: 以纳秒精度休眠指定的时间，是 Linux
+下<strong>最常用</strong>的高精度休眠函数。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">nanosleep</span><span class="params">(<span class="type">const</span> <span class="keyword">struct</span> timespec *req, <span class="keyword">struct</span> timespec *rem)</span>;</span><br><span class="line"><span class="comment">// 成功（休眠达到请求的时间间隔）：返回 0</span></span><br><span class="line"><span class="comment">// 被信号中断或出错：返回 -1，并设置 errno（通常为 EINTR）</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>req</code>：请求的休眠时间（秒 + 纳秒）</li>
+<li><code>rem</code>：<strong>被信号中断时</strong>，剩余未休眠的时间会写入
+<code>rem</code> 指向的 <code>struct timespec</code>（传
+<code>NULL</code> 表示不接收剩余时间）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>返回值：成功休眠达到请求的时间间隔后返回
+<code>0</code>；如果中途被信号中断或遇到错误，则返回
+<code>-1</code>，并将剩余时间记录在 <code>rem</code> 指向的
+<code>struct timespec</code> 结构体变量中（<code>rem</code> 不为
+<code>NULL</code> 的情况下，如果为 <code>NULL</code>
+表示不接收剩余时间），还会设置 <code>errno</code> 标识错误类型</li>
+<li><strong>信号中断后的正确处理</strong>：不能直接放弃，应把
+<code>rem</code> 中的剩余时间重新作为 <code>req</code> 继续休眠</li>
+<li><code>req-&gt;tv_nsec</code> 取值范围 0 ~ 999,999,999（超出返回
+<code>EINVAL</code>）</li>
+<li>休眠的是<strong>当前线程</strong>，多线程程序中只挂起调用线程</li>
+<li>实际休眠时间可能因内核调度略长于请求值（四舍五入到下一个时钟节拍）</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;errno.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timespec</span> <span class="title">req</span> =</span> &#123;<span class="number">0</span>, <span class="number">500000000</span>&#125;;   <span class="comment">/* 0.5 秒 = 5 亿纳秒 */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timespec</span> <span class="title">rem</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (nanosleep(&amp;req, &amp;rem) == <span class="number">-1</span> &amp;&amp; errno == EINTR) &#123;</span><br><span class="line">    req = rem;   <span class="comment">/* 被信号打断，继续睡完剩余时间 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="clock_nanosleep-指定时钟的高精度休眠-补充">clock_nanosleep() —
+指定时钟的高精度休眠 ⭐ 补充</h3>
+<p><strong>作用</strong>:: <code>nanosleep()</code>
+的增强版：可以指定使用哪个时钟（<code>CLOCK_REALTIME</code> /
+<code>CLOCK_MONOTONIC</code>），并且支持<strong>绝对时间</strong>休眠（休眠到某个绝对时刻为止），适合实时任务。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">clock_nanosleep</span><span class="params">(<span class="type">clockid_t</span> clockid, <span class="type">int</span> flags,</span></span><br><span class="line"><span class="params">                    <span class="type">const</span> <span class="keyword">struct</span> timespec *request,</span></span><br><span class="line"><span class="params">                    <span class="keyword">struct</span> timespec *remain)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0</span></span><br><span class="line"><span class="comment">// 失败：直接返回错误码（正数，如 EINTR），不会设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>clockid</code>：时钟，常用
+<code>CLOCK_REALTIME</code>（墙上时钟）或
+<code>CLOCK_MONOTONIC</code>（单调时钟）</li>
+<li><code>flags</code>：<code>0</code> 表示<strong>相对休眠</strong>（睡
+request 那么久）；<code>TIMER_ABSTIME</code>
+表示<strong>绝对休眠</strong>（直到时钟到达 request
+指定的绝对时刻）</li>
+<li><code>request</code>：相对休眠时为休眠时长；绝对休眠时为目标绝对时间</li>
+<li><code>remain</code>：相对休眠且被信号中断时，剩余时间写入这里（绝对休眠模式该参数无意义）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>返回错误码而不是设置 errno</strong>：判断失败用
+<code>if (ret != 0)</code>，其中 <code>ret == EINTR</code>
+表示被信号中断</li>
+<li>绝对休眠（<code>TIMER_ABSTIME</code>）的好处：被信号中断后<strong>重新调用即可</strong>（目标时刻不变），无需计算剩余时间，非常适合周期性的实时任务（不累积漂移）</li>
+<li>相对休眠的时钟建议用
+<code>CLOCK_MONOTONIC</code>，避免系统时间被修改影响休眠</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 绝对休眠：睡到指定的绝对时刻（如当前时间 + 1 秒） */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timespec</span> <span class="title">target</span>;</span></span><br><span class="line">clock_gettime(CLOCK_MONOTONIC, &amp;target);</span><br><span class="line">target.tv_sec += <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> ret;</span><br><span class="line"><span class="keyword">do</span> &#123;</span><br><span class="line">    ret = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &amp;target, <span class="literal">NULL</span>);</span><br><span class="line">&#125; <span class="keyword">while</span> (ret == EINTR);   <span class="comment">/* 被信号打断就重新睡到同一时刻 */</span></span><br><span class="line"><span class="keyword">if</span> (ret != <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;clock_nanosleep error: %d\n&quot;</span>, ret);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="申请堆内存">申请堆内存</h2>
+<p>进程的虚拟地址空间中，<strong>堆（heap）</strong>
+是用于动态内存分配的区域，向上（高地址）增长。C 语言通过
+<code>malloc()</code>
+系列函数从堆上分配内存。堆内存的生命周期由程序员管理：分配后必须记得释放，否则会造成<strong>内存泄漏</strong>。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>malloc()</code></td>
+<td style="text-align: left;">分配 size 字节（不初始化）</td>
+<td style="text-align: left;">内存指针</td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>free()</code></td>
+<td style="text-align: left;">释放堆内存</td>
+<td style="text-align: left;">—</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>calloc()</code></td>
+<td style="text-align: left;">分配 nmemb × size 字节并清零</td>
+<td style="text-align: left;">内存指针</td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>realloc()</code></td>
+<td style="text-align: left;">调整已分配内存的大小</td>
+<td style="text-align: left;">新内存指针</td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="malloc-free-分配与释放堆内存">malloc() &amp; free() —
+分配与释放堆内存</h3>
+<p><strong>作用</strong>:: <code>malloc()</code>
+在堆区分配一块指定大小的连续内存空间，用来存放数据。这块内存空间在函数执行完成后<strong>不会被初始化</strong>，它们的值是未知的。<code>free()</code>
+释放之前由 <code>malloc()</code> / <code>calloc()</code> /
+<code>realloc()</code> 分配的内存。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> *<span class="title function_">malloc</span><span class="params">(<span class="type">size_t</span> size)</span>;</span><br><span class="line"><span class="type">void</span>  <span class="title function_">free</span><span class="params">(<span class="type">void</span> *ptr)</span>;</span><br><span class="line"><span class="comment">// malloc 成功：返回指向 size 字节内存的指针</span></span><br><span class="line"><span class="comment">// malloc 失败：返回 NULL</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>size</code>：要分配的字节数</li>
+<li><code>ptr</code>：要释放的内存指针（必须是
+<code>malloc</code>/<code>calloc</code>/<code>realloc</code>
+返回的指针）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>必须检查返回值</strong>：<code>malloc()</code> 失败返回
+<code>NULL</code>，不检查就使用会导致空指针解引用崩溃</li>
+<li><code>free()</code>
+只接受<strong>堆上</strong>由分配函数返回的指针：不能 free
+栈上/静态变量指针，不能<strong>重复 free</strong>
+同一指针（行为未定义，可能崩溃）</li>
+<li>释放后建议将指针置
+<code>NULL</code>（<code>free(p); p = NULL;</code>），防止"悬空指针"被二次使用</li>
+<li><strong>内存泄漏</strong>：当进程终止时，内核会将其占用的所有内存都返还给操作系统，这包括在堆内存中由
+<code>malloc()</code>
+函数所分配的内存空间，但最好能够在程序中<strong>显式调用
+<code>free()</code> 释放内存</strong>：
+<ul>
+<li>显式调用 <code>free()</code> 能使程序具有更好的可读性和可维护性</li>
+<li>对于很多程序来说，申请的内存并不是在程序的生命周期中一直需要，大多数情况下都是根据代码需求动态申请、释放的；如果申请的内存对程序来说已经不再需要了，就应该把它释放、归还给操作系统，如果持续占用，将会导致内存泄漏</li>
+</ul></li>
+<li><code>malloc(0)</code> 行为是实现定义的：可能返回 <code>NULL</code>
+或一个可以 <code>free()</code> 的唯一指针，都不算错误</li>
+<li>底层实现：小块内存基于 <code>brk</code>/<code>sbrk</code>
+扩展堆，大块（默认 &gt; 128KB）直接用 <code>mmap</code>
+映射，<code>free()</code> 时归还给内核</li>
+<li>检测内存问题：<code>valgrind</code>、GCC/Clang 的
+<code>-fsanitize=address</code>（ASan）</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> *arr = <span class="built_in">malloc</span>(<span class="number">10</span> * <span class="keyword">sizeof</span>(<span class="type">int</span>));</span><br><span class="line"><span class="keyword">if</span> (arr == <span class="literal">NULL</span>) &#123;</span><br><span class="line">    perror(<span class="string">&quot;malloc&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* 注意：内存未初始化，使用前应先赋值 */</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++)</span><br><span class="line">    arr[i] = i;</span><br><span class="line"></span><br><span class="line"><span class="built_in">free</span>(arr);</span><br><span class="line">arr = <span class="literal">NULL</span>;   <span class="comment">/* 防止悬空指针 */</span></span><br></pre></td></tr></table></figure>
+<h3 id="calloc-分配并清零">calloc() — 分配并清零</h3>
+<p><strong>作用</strong>:: 在堆中动态地分配 <code>nmemb</code> 个长度为
+<code>size</code> 的连续空间，并将<strong>每一个字节都初始化为
+0</strong>。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> *<span class="title function_">calloc</span><span class="params">(<span class="type">size_t</span> nmemb, <span class="type">size_t</span> size)</span>;</span><br><span class="line"><span class="comment">// 成功：返回指向 nmemb × size 字节已清零内存的指针</span></span><br><span class="line"><span class="comment">// 失败：返回 NULL</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>nmemb</code>：元素个数</li>
+<li><code>size</code>：每个元素的字节数</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>与 <code>malloc(nmemb * size)</code> 的区别：
+<ul>
+<li><code>calloc()</code> 会<strong>清零</strong>；<code>malloc()</code>
+不初始化</li>
+<li><code>calloc()</code> 内部会<strong>检测 <code>nmemb * size</code>
+乘法溢出</strong>，溢出时返回 <code>NULL</code> 并设置
+<code>errno = ENOMEM</code>；<code>malloc()</code>
+不会检测，溢出后会分配一个过小的块导致越界写</li>
+</ul></li>
+<li>分配大数组时优先用 <code>calloc()</code>（更安全）</li>
+<li>释放同样用 <code>free()</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 分配 100 个 int 并全部初始化为 0 */</span></span><br><span class="line"><span class="type">int</span> *arr = <span class="built_in">calloc</span>(<span class="number">100</span>, <span class="keyword">sizeof</span>(<span class="type">int</span>));</span><br><span class="line"><span class="keyword">if</span> (arr == <span class="literal">NULL</span>) &#123;</span><br><span class="line">    perror(<span class="string">&quot;calloc&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">free</span>(arr);</span><br></pre></td></tr></table></figure>
+<h3 id="realloc-调整内存大小-补充">realloc() — 调整内存大小 ⭐ 补充</h3>
+<p><strong>作用</strong>:: 调整之前由 <code>malloc()</code> /
+<code>calloc()</code> / <code>realloc()</code>
+分配的内存块大小（扩大或缩小）。扩大时若原位置空间不足，会<strong>搬移到新位置</strong>，旧内容自动拷贝过去；缩小时内容保留前部分。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> *<span class="title function_">realloc</span><span class="params">(<span class="type">void</span> *ptr, <span class="type">size_t</span> size)</span>;</span><br><span class="line"><span class="comment">// 成功：返回新内存地址（可能和原来相同，也可能不同）</span></span><br><span class="line"><span class="comment">// 失败：返回 NULL，原内存块保持不变（仍然有效）</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>ptr</code>：原内存指针（若为 <code>NULL</code>，等价于
+<code>malloc(size)</code>）</li>
+<li><code>size</code>：新的大小（若为 0，等价于
+<code>free(ptr)</code>，但行为是实现定义，谨慎）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>经典坑：不要直接
+<code>ptr = realloc(ptr, new_size)</code></strong>——若
+<code>realloc()</code> 失败返回
+<code>NULL</code>，会把原指针覆盖掉，导致原内存泄漏且无法释放。正确写法：</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> *tmp = <span class="built_in">realloc</span>(ptr, new_size);</span><br><span class="line"><span class="keyword">if</span> (tmp != <span class="literal">NULL</span>) &#123;</span><br><span class="line">    ptr = tmp;      <span class="comment">/* 成功才更新指针 */</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">/* 失败：ptr 仍然指向旧内存，仍然有效，可继续使用或释放 */</span></span><br><span class="line">    perror(<span class="string">&quot;realloc&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="2" type="1">
+<li>扩大后新增的部分<strong>内容未初始化</strong></li>
+<li>返回的地址可能变了，<strong>所有指向旧内存的指针都会失效</strong>，必须用新返回值</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> *arr = <span class="built_in">malloc</span>(<span class="number">4</span> * <span class="keyword">sizeof</span>(<span class="type">int</span>));</span><br><span class="line"><span class="comment">/* ... 使用 ... */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 扩容到 8 个 int */</span></span><br><span class="line"><span class="type">int</span> *tmp = <span class="built_in">realloc</span>(arr, <span class="number">8</span> * <span class="keyword">sizeof</span>(<span class="type">int</span>));</span><br><span class="line"><span class="keyword">if</span> (tmp == <span class="literal">NULL</span>) &#123;</span><br><span class="line">    perror(<span class="string">&quot;realloc&quot;</span>);</span><br><span class="line">    <span class="built_in">free</span>(arr);      <span class="comment">/* 失败时原内存仍有效，记得释放 */</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line">arr = tmp;          <span class="comment">/* 更新指针 */</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>💡 堆内存小结：<code>malloc</code>（分配）→
+<code>calloc</code>（分配+清零）→ <code>realloc</code>（调整）→
+<code>free</code>（释放），四者配套使用；检查 NULL、不重复
+free、释放后置 NULL，是避免内存问题的三条铁律。</p>
+</blockquote>
+<hr>
+<h2 id="内存对齐">内存对齐</h2>
+<p><strong>为什么需要对齐</strong>：CPU
+访问<strong>对齐</strong>的数据更快——许多架构（如
+ARM）访问未对齐地址会触发异常或性能惩罚；硬件外设（DMA）、SIMD 指令（如
+AVX 需要 32 字节对齐）对内存地址有明确的对齐要求。</p>
+<p><strong>默认对齐</strong>：<code>malloc()</code>、<code>calloc()</code>
+分配内存返回的地址其实也是对齐的，但它俩的对齐都是<strong>固定</strong>的，并且对齐的字节边界比较小——譬如在
+32 位系统中通常是以 <strong>8 字节</strong>为边界进行对齐，在 64
+位系统中是以 <strong>16
+字节</strong>进行对齐。这个对齐度保证任何内置类型（<code>double</code>、<code>long long</code>）都能对齐访问，但满足不了
+SIMD、DMA
+等更大对齐的需求。如果想实现更大字节的对齐，则需要使用其他函数。</p>
+<p><strong>对齐要求</strong>：对齐数必须是 <strong>2 的幂</strong>（如
+2、4、8、16、32、64、4096）。</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">作用</th>
+<th style="text-align: left;">成功返回</th>
+<th style="text-align: left;">失败返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>posix_memalign()</code></td>
+<td style="text-align: left;">按指定对齐数分配堆内存（POSIX 标准）</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;">错误码（不设置 errno）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>aligned_alloc()</code></td>
+<td style="text-align: left;">按指定对齐数分配堆内存（C11 标准）</td>
+<td style="text-align: left;">内存指针</td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>memalign()</code></td>
+<td style="text-align: left;">按指定对齐数分配（过时，非标准）</td>
+<td style="text-align: left;">内存指针</td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>valloc()</code> /
+<code>pvalloc()</code></td>
+<td style="text-align: left;">页对齐分配（过时）</td>
+<td style="text-align: left;">内存指针</td>
+<td style="text-align: left;"><code>NULL</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="posix_memalign-指定对齐分配">posix_memalign() —
+指定对齐分配</h3>
+<p><strong>作用</strong>:: 用于在堆上分配 <code>size</code>
+个字节大小的对齐内存空间，将 <code>*memptr</code>
+指向分配的空间，分配的内存地址将是参数 <code>alignment</code>
+的整数倍。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">posix_memalign</span><span class="params">(<span class="type">void</span> **memptr, <span class="type">size_t</span> alignment, <span class="type">size_t</span> size)</span>;</span><br><span class="line"><span class="comment">// 成功：返回 0，*memptr 指向分配的内存</span></span><br><span class="line"><span class="comment">// 失败：返回错误码（EINVAL / ENOMEM），不设置 errno</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>memptr</code>：指向指针的指针，成功时 <code>*memptr</code>
+保存分配到的内存地址</li>
+<li><code>alignment</code>：对齐字节数。<strong>必须是 2
+的幂次方</strong>（譬如 2<sup>4、2</sup>5、2^8 等），同时也要是
+<code>sizeof(void *)</code> 的整数倍——对于 32 位系统来说
+<code>sizeof(void *)</code> 等于 4，如果是 64 位系统
+<code>sizeof(void *)</code> 等于 8</li>
+<li><code>size</code>：分配大小（字节）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>失败时不返回
+<code>NULL</code>，而是返回错误码</strong>：<code>EINVAL</code>（alignment
+不是 2 的幂或不是 <code>sizeof(void *)</code>
+的倍数）、<code>ENOMEM</code>（内存不足），且 <code>*memptr</code>
+的值未定义</li>
+<li>释放方式：用 <code>free()</code>（与 <code>malloc()</code>
+一样）</li>
+<li>是 POSIX 标准推荐的<strong>首选</strong>对齐分配函数</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> *ptr;</span><br><span class="line"><span class="comment">/* 分配 64 字节对齐的内存（如为 SIMD 准备） */</span></span><br><span class="line"><span class="type">int</span> ret = posix_memalign(&amp;ptr, <span class="number">64</span>, <span class="number">1024</span>);</span><br><span class="line"><span class="keyword">if</span> (ret != <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;posix_memalign error: %d\n&quot;</span>, ret);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;addr: %p (对齐到 64: %s)\n&quot;</span>, ptr,</span><br><span class="line">       ((<span class="type">unsigned</span> <span class="type">long</span>)ptr % <span class="number">64</span> == <span class="number">0</span>) ? <span class="string">&quot;yes&quot;</span> : <span class="string">&quot;no&quot;</span>);</span><br><span class="line"><span class="built_in">free</span>(ptr);</span><br></pre></td></tr></table></figure>
+<h3 id="aligned_alloc-c11-对齐分配">aligned_alloc() — C11 对齐分配</h3>
+<p><strong>作用</strong>:: 用于分配 <code>size</code>
+个字节大小的内存空间，返回指向该空间的指针，且地址按
+<code>alignment</code> 对齐。是 C11 标准函数，与
+<code>posix_memalign()</code> 功能等价。</p>
+<p><strong>用法</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> *<span class="title function_">aligned_alloc</span><span class="params">(<span class="type">size_t</span> alignment, <span class="type">size_t</span> size)</span>;</span><br><span class="line"><span class="comment">// 成功：返回对齐的内存指针</span></span><br><span class="line"><span class="comment">// 失败：返回 NULL</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>alignment</code>：对齐字节数（必须是 2 的幂）</li>
+<li><code>size</code>：分配大小（字节）</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li><strong>C11 要求 <code>size</code> 必须是 <code>alignment</code>
+的整数倍</strong>，否则行为未定义（Linux 上 glibc 会返回
+<code>NULL</code> 并设置 <code>errno = EINVAL</code>）——这是与
+<code>posix_memalign()</code> 最大的区别，后者对 size 无此要求</li>
+<li>失败返回 <code>NULL</code>（与 <code>malloc()</code> 风格一致）</li>
+<li>用 <code>free()</code> 释放；glibc 2.16+ 支持，需 C11
+标准（<code>-std=c11</code>）</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 注意：size = 4096 是 alignment = 4096 的整数倍 */</span></span><br><span class="line"><span class="type">void</span> *ptr = aligned_alloc(<span class="number">4096</span>, <span class="number">4096</span>);</span><br><span class="line"><span class="keyword">if</span> (ptr == <span class="literal">NULL</span>) &#123;</span><br><span class="line">    perror(<span class="string">&quot;aligned_alloc&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">free</span>(ptr);</span><br></pre></td></tr></table></figure>
+<h3 id="memalign-valloc-pvalloc-过时函数">memalign() / valloc() /
+pvalloc() — 过时函数</h3>
+<p><strong>作用</strong>:: 老的非标准对齐分配函数（BSD/GNU
+起源），功能已被 <code>posix_memalign()</code> 取代：</p>
+<ul>
+<li><code>memalign(alignment, size)</code>：按 <code>alignment</code>
+对齐分配（<code>alignment</code> 必须是 2
+的幂，但<strong>不要求</strong>是 <code>sizeof(void *)</code>
+的倍数）</li>
+<li><code>valloc(size)</code>：按<strong>页面大小</strong>对齐分配（等价
+<code>memalign(sysconf(_SC_PAGESIZE), size)</code>）</li>
+<li><code>pvalloc(size)</code>：将 <code>size</code>
+<strong>向上取整到页面大小</strong>后按页对齐分配</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span>   <span class="comment">/* 或 &lt;malloc.h&gt; */</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> *<span class="title function_">memalign</span><span class="params">(<span class="type">size_t</span> alignment, <span class="type">size_t</span> size)</span>;</span><br><span class="line"><span class="type">void</span> *<span class="title function_">valloc</span><span class="params">(<span class="type">size_t</span> size)</span>;</span><br><span class="line"><span class="type">void</span> *<span class="title function_">pvalloc</span><span class="params">(<span class="type">size_t</span> size)</span>;</span><br><span class="line"><span class="comment">// 成功：返回对齐内存指针；失败：返回 NULL</span></span><br></pre></td></tr></table></figure>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>三者均为<strong>过时</strong>函数（<code>valloc</code>/<code>pvalloc</code>
+在 POSIX.1-2001 中被标记 LEGACY，glibc 中已弃用），新代码不要使用</li>
+<li>释放均用 <code>free()</code></li>
+<li>统一替代品：<code>posix_memalign()</code>（POSIX）或
+<code>aligned_alloc()</code>（C11）</li>
+</ol>
+<blockquote>
+<p>💡
+补充：结构体的对齐由编译器自动处理——结构体成员之间可能被填充（padding）字节以对齐，可用
+<code>offsetof(type, member)</code> 查看成员偏移，用 <code>sizeof</code>
+查看含填充的总大小；<code>__attribute__((packed))</code>
+可取消填充（省空间但访问变慢，某些架构上还不能直接访问未对齐成员）。</p>
+</blockquote>
+<hr>
+<h2 id="proc-文件系统">proc 文件系统</h2>
+<h3 id="基本概念-1">基本概念</h3>
+<p>proc
+文件系统是一个<strong>虚拟文件系统</strong>，它以文件系统的方式为应用层访问系统内核数据提供了接口，用户和应用程序可以通过
+proc 文件系统得到系统信息和进程相关信息。</p>
+<ul>
+<li>proc
+文件系统是<strong>动态创建</strong>的，文件本身并不存在于磁盘当中、只存在于内存当中，与
+devfs 一样，都被称为<strong>虚拟文件系统</strong></li>
+<li>内核构建 proc
+虚拟文件系统，它会将内核运行时的一些关键数据信息<strong>以文件的方式</strong>呈现在
+proc
+文件系统下的一些特定文件中，这样相当于将一些不可见的内核中的数据结构<strong>以可视化的方式</strong>呈现给应用层</li>
+<li>挂在 <code>/proc</code> 目录下，大部分文件是只读的，文件大小显示为
+0（内容是动态生成的）</li>
+</ul>
+<h3 id="核心系统信息文件">核心系统信息文件</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">文件</th>
+<th style="text-align: left;">内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/proc/cmdline</code></td>
+<td style="text-align: left;">内核启动参数</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/cpuinfo</code></td>
+<td style="text-align: left;">CPU 的型号、频率、核心数等详细信息</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/meminfo</code></td>
+<td
+style="text-align: left;">系统内存的总大小、已用内存和剩余内存等</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/uptime</code></td>
+<td
+style="text-align: left;">系统启动了多长时间（第一个数），以及空闲时间（第二个数）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/version</code></td>
+<td style="text-align: left;">当前系统的 Linux 内核版本和编译器版本</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/loadavg</code></td>
+<td
+style="text-align: left;">系统的平均负载（1分钟、5分钟、15分钟）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/iomem</code></td>
+<td style="text-align: left;">IO 设备的内存使用情况</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/interrupts</code></td>
+<td style="text-align: left;">显示被占用的中断号和占用者相关的信息</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/ioports</code></td>
+<td style="text-align: left;">IO 端口的使用情况</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/kcore</code></td>
+<td
+style="text-align: left;">系统物理内存映像，<strong>不可读取</strong>（权限受限）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/modules</code></td>
+<td style="text-align: left;">加载的模块列表</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/mounts</code></td>
+<td style="text-align: left;">挂载的文件系统列表</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/partitions</code></td>
+<td style="text-align: left;">系统识别的分区表</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/swaps</code></td>
+<td style="text-align: left;">交换分区的利用情况</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/stat</code></td>
+<td style="text-align: left;">内核/系统统计信息（CPU
+时间、上下文切换、启动时间等）</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 <code>/proc/self</code>
+是一个指向<strong>当前进程自身目录</strong>的符号链接（等价于
+<code>/proc/当前PID</code>），程序内访问自己的进程信息时直接用
+<code>/proc/self/...</code> 即可，不用先获取 PID。</p>
+</blockquote>
+<h3 id="进程相关目录">进程相关目录</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">路径</th>
+<th style="text-align: left;">内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/proc/[PID]/</code></td>
+<td
+style="text-align: left;">每个正在运行的进程都有一个以它的进程号（PID）命名的目录</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/[PID]/cmdline</code></td>
+<td style="text-align: left;">启动该进程时使用的完整命令行</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/[PID]/status</code></td>
+<td
+style="text-align: left;">该进程的当前状态（如运行、挂起）、内存占用等</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/[PID]/cwd</code></td>
+<td style="text-align: left;">符号链接，指向该进程的当前工作目录</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/[PID]/exe</code></td>
+<td style="text-align: left;">符号链接，指向该进程的可执行文件</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/[PID]/fd/</code></td>
+<td
+style="text-align: left;">该进程打开的所有文件描述符（符号链接）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/[PID]/maps</code></td>
+<td
+style="text-align: left;">该进程的虚拟内存映射（每个段的地址范围、权限、映射文件）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/proc/[PID]/environ</code></td>
+<td style="text-align: left;">该进程的环境变量</td>
+</tr>
+</tbody>
+</table>
+<h3 id="网络与设备控制">网络与设备控制</h3>
+<ul>
+<li><code>/proc/net/</code>：存放网络相关的统计信息，如路由表（<code>route</code>）、网络连接（<code>netstat</code>）等</li>
+<li><code>/proc/sys/</code>：用来<strong>读取和修改内核运行参数的控制中心</strong>（例如通过修改这里的某些文件可以调整网络转发或内存分配）。它对应
+<code>sysctl</code> 命令（如 <code>/proc/sys/net/ipv4/ip_forward</code>
+↔︎ <code>sysctl net.ipv4.ip_forward</code>）</li>
+</ul>
+<h3 id="编程读取示例">编程读取示例</h3>
+<p>proc
+文件系统是虚拟文件系统，<strong>在程序中读取它和读取普通文件完全一样</strong>（<code>open</code>
++ <code>read</code>，或用标准 I/O）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">    <span class="comment">/* 读取系统运行时间（等价 sysinfo 的 uptime） */</span></span><br><span class="line">    FILE *fp = fopen(<span class="string">&quot;/proc/uptime&quot;</span>, <span class="string">&quot;r&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (fp == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        perror(<span class="string">&quot;fopen&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">double</span> uptime, idle;</span><br><span class="line">    <span class="built_in">fscanf</span>(fp, <span class="string">&quot;%lf %lf&quot;</span>, &amp;uptime, &amp;idle);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;uptime: %.0f s (%.2f days), idle: %.0f s\n&quot;</span>,</span><br><span class="line">           uptime, uptime / <span class="number">86400.0</span>, idle);</span><br><span class="line"></span><br><span class="line">    fclose(fp);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>注意事项</strong>：</p>
+<ol type="1">
+<li>proc 文件是<strong>动态生成</strong>的：每次
+<code>open</code>/<code>read</code> 时内核现场生成内容，所以
+<code>ls -l</code> 看到大小是 0，但读出来的内容有数据</li>
+<li>大多数文件<strong>只读</strong>；只有 <code>/proc/sys/</code>
+下的一部分文件可写（且需要 root 权限）</li>
+<li><code>/proc/kcore</code>
+等内容涉及系统内存映像，普通用户无权限读取</li>
+<li>编程时优先考虑库函数/系统调用（<code>sysinfo()</code>、<code>uname()</code>
+等），proc 文件适合命令行查看、shell 脚本和需要解析细粒度数据的场景</li>
+</ol>
+<hr />
+<h2 id="本系列文章">📚 本系列文章</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">#</th>
+<th style="text-align: left;">文章</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: left;"><a href="/posts/linux-stdio.html">Linux
+应用编程：标准文件 IO</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: left;"><a
+href="/posts/linux-file-attr.html">Linux
+应用编程：文件属性与目录</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: left;"><a href="/posts/linux-string.html">Linux
+应用编程：字符串处理函数全解</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td style="text-align: left;"><a href="/posts/linux-sysinfo.html">Linux
+应用编程：系统信息与资源</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td style="text-align: left;"><a href="/posts/linux-signal.html">Linux
+应用编程：信号</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">6</td>
+<td style="text-align: left;"><a href="/posts/linux-process.html">Linux
+应用编程：进程基础</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">7</td>
+<td style="text-align: left;"><a href="/posts/linux-thread.html">Linux
+应用编程：线程基本概念</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">8</td>
+<td style="text-align: left;"><a
+href="/posts/linux-thread-sync.html">Linux 应用编程：线程同步</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">9</td>
+<td style="text-align: left;"><a
+href="/posts/linux-advanced-io.html">Linux 应用编程：高级 IO</a></td>
+</tr>
+</tbody>
+</table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xxh123.online">Kikyo</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xxh123.online/posts/linux-sysinfo.html">https://xxh123.online/posts/linux-sysinfo.html</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://xxh123.online" target="_blank">Kikyo</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Linux/">Linux</a><a class="post-meta__tags" href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/">系统调用</a><a class="post-meta__tags" href="/tags/%E6%97%B6%E9%97%B4/">时间</a><a class="post-meta__tags" href="/tags/proc/">proc</a></div><div class="post_share"><div class="social-share" data-image="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/06_photo_2026-11-15_15-33-25.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/posts/linux-signal.html" title="Linux 应用编程：信号"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/07_photo_2026-11-15_15-33-22.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Linux 应用编程：信号</div></div></a></div><div class="next-post pull-right"><a href="/posts/linux-string.html" title="Linux 应用编程：字符串处理函数全解"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/05_photo_2026-11-15_15-33-27.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Linux 应用编程：字符串处理函数全解</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/posts/af-unix-ipc.html" title="Unix域套接字（AF_UNIX）实现进程间双向通信"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260828001706915.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-28</div><div class="title">Unix域套接字（AF_UNIX）实现进程间双向通信</div></div></a></div><div><a href="/posts/jsoncpp-guide.html" title="JSONcpp 完整使用指南"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260716232238119.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-16</div><div class="title">JSONcpp 完整使用指南</div></div></a></div><div><a href="/posts/79494db.html" title="Docker 使用手册"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260705232331789.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-05</div><div class="title">Docker 使用手册</div></div></a></div><div><a href="/posts/86a23c4b.html" title="CMake 的使用方法"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260705235814295.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-07</div><div class="title">CMake 的使用方法</div></div></a></div><div><a href="/posts/697f8e4b.html" title="shell 语法"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/20260707000813836.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-07</div><div class="title">shell 语法</div></div></a></div><div><a href="/posts/9aa43288.html" title="嵌入式Linux学习笔记-基础知识篇"><img class="cover" src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/blog/img/xxh/20240926204301.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-26</div><div class="title">嵌入式Linux学习笔记-基础知识篇</div></div></a></div></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com/open/img/202405192117137.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Kikyo</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">51</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">58</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ywj77"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon faa-parent animated-hover" href="https://github.com/ywj77" target="_blank" title="Github"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-github"></use></svg></a><a class="social-icon faa-parent animated-hover" href="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&amp;email=3442237157@qq.com" target="_blank" title="Email"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-youjian1"></use></svg></a><a class="social-icon faa-parent animated-hover" href="/atom.xml" target="_blank" title="RSS"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-rss"></use></svg></a><a class="social-icon faa-parent animated-hover" href="https://space.bilibili.com/3546385680959950" target="_blank" title="BiliBili"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-wf_Bzhan"></use></svg></a><a class="social-icon faa-parent animated-hover" href="tencent://Message/?Uin=3442237157&amp;amp;websiteName=local.edu.com:8888=&amp;amp;Menu=yes" target="_blank" title="QQ"><svg class="icon faa-tada" aria-hidden="true"><use xlink:href="#icon-qq"></use></svg></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF%E4%B8%8E%E8%B5%84%E6%BA%90"><span class="toc-number">1.</span> <span class="toc-text">系统信息与资源</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF"><span class="toc-number">1.1.</span> <span class="toc-text">系统信息</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#uname-%E8%8E%B7%E5%8F%96%E7%B3%BB%E7%BB%9F%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">1.1.1.</span> <span class="toc-text">uname() — 获取系统基本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sysinfo-%E8%8E%B7%E5%8F%96%E7%B3%BB%E7%BB%9F%E6%80%BB%E4%BD%93%E4%BF%A1%E6%81%AF"><span class="toc-number">1.1.2.</span> <span class="toc-text">sysinfo() — 获取系统总体信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gethostname-%E8%8E%B7%E5%8F%96%E4%B8%BB%E6%9C%BA%E5%90%8D"><span class="toc-number">1.1.3.</span> <span class="toc-text">gethostname() — 获取主机名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sysconf-%E8%8E%B7%E5%8F%96%E8%BF%90%E8%A1%8C%E6%97%B6%E7%B3%BB%E7%BB%9F%E9%99%90%E5%88%B6"><span class="toc-number">1.1.4.</span> <span class="toc-text">sysconf() — 获取运行时系统限制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%97%B6%E9%97%B4"><span class="toc-number">1.2.</span> <span class="toc-text">时间</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-number">1.2.1.</span> <span class="toc-text">基本概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#time-%E8%8E%B7%E5%8F%96%E6%97%A5%E5%8E%86%E6%97%B6%E9%97%B4"><span class="toc-number">1.2.2.</span> <span class="toc-text">time() — 获取日历时间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gettimeofday-%E8%8E%B7%E5%8F%96%E6%97%A5%E5%8E%86%E6%97%B6%E9%97%B4%E5%BE%AE%E7%A7%92%E7%BA%A7"><span class="toc-number">1.2.3.</span> <span class="toc-text">gettimeofday() —
+获取日历时间（微秒级）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#clock_gettime-%E8%8E%B7%E5%8F%96%E6%8C%87%E5%AE%9A%E6%97%B6%E9%92%9F%E6%97%B6%E9%97%B4%E7%BA%B3%E7%A7%92%E7%BA%A7-%E6%8E%A8%E8%8D%90"><span class="toc-number">1.2.4.</span> <span class="toc-text">clock_gettime() —
+获取指定时钟时间（纳秒级）⭐ 推荐</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ctime-ctime_r-%E5%B0%86%E6%97%A5%E5%8E%86%E6%97%B6%E9%97%B4%E8%BD%AC%E4%B8%BA%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">1.2.5.</span> <span class="toc-text">ctime() &amp; ctime_r() —
+将日历时间转为字符串</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#localtime-localtime_r-%E8%BD%AC%E4%B8%BA%E6%9C%AC%E5%9C%B0%E6%97%B6%E9%97%B4%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-number">1.2.6.</span> <span class="toc-text">localtime() &amp;
+localtime_r() — 转为本地时间结构体</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gmtime-gmtime_r-%E8%BD%AC%E4%B8%BA-utc-%E6%97%B6%E9%97%B4%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-number">1.2.7.</span> <span class="toc-text">gmtime() &amp; gmtime_r() —
+转为 UTC 时间结构体</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#asctime-asctime_r-%E5%B0%86-struct-tm-%E8%BD%AC%E4%B8%BA%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">1.2.8.</span> <span class="toc-text">asctime() &amp;
+asctime_r() — 将 struct tm 转为字符串</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#strftime-%E8%87%AA%E5%AE%9A%E4%B9%89%E6%97%B6%E9%97%B4%E6%A0%BC%E5%BC%8F"><span class="toc-number">1.2.9.</span> <span class="toc-text">strftime() — 自定义时间格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#mktime-%E5%B0%86-struct-tm-%E8%BD%AC%E4%B8%BA-time_t"><span class="toc-number">1.2.10.</span> <span class="toc-text">mktime() — 将 struct tm 转为
+time_t</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#settimeofday-%E8%AE%BE%E7%BD%AE%E7%B3%BB%E7%BB%9F%E6%97%B6%E9%97%B4"><span class="toc-number">1.2.11.</span> <span class="toc-text">settimeofday() — 设置系统时间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%B6%E9%97%B4%E8%BD%AC%E6%8D%A2%E5%85%B3%E7%B3%BB%E5%B0%8F%E7%BB%93"><span class="toc-number">1.2.12.</span> <span class="toc-text">时间转换关系小结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E6%97%B6%E9%97%B4"><span class="toc-number">1.3.</span> <span class="toc-text">进程时间</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#times-%E8%8E%B7%E5%8F%96%E8%BF%9B%E7%A8%8B%E6%97%B6%E9%97%B4"><span class="toc-number">1.3.1.</span> <span class="toc-text">times() — 获取进程时间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#clock-%E8%8E%B7%E5%8F%96%E6%80%BB%E8%BF%9B%E7%A8%8B-cpu-%E6%97%B6%E9%97%B4"><span class="toc-number">1.3.2.</span> <span class="toc-text">clock() — 获取总进程 CPU 时间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#getrusage-%E8%8E%B7%E5%8F%96%E8%BF%9B%E7%A8%8B%E8%B5%84%E6%BA%90%E4%BD%BF%E7%94%A8%E6%83%85%E5%86%B5-%E8%A1%A5%E5%85%85"><span class="toc-number">1.3.3.</span> <span class="toc-text">getrusage() —
+获取进程资源使用情况 ⭐ 补充</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9A%8F%E6%9C%BA%E6%95%B0"><span class="toc-number">1.4.</span> <span class="toc-text">随机数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#rand-srand-%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E4%B8%8E%E7%A7%8D%E5%AD%90"><span class="toc-number">1.4.1.</span> <span class="toc-text">rand() &amp; srand() —
+伪随机数与种子</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#random-srandom-%E6%9B%B4%E9%AB%98%E8%B4%A8%E9%87%8F%E7%9A%84%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0-%E8%A1%A5%E5%85%85"><span class="toc-number">1.4.2.</span> <span class="toc-text">random() &amp; srandom()
+— 更高质量的伪随机数 ⭐ 补充</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#getrandom-%E5%86%85%E6%A0%B8%E7%9C%9F%E9%9A%8F%E6%9C%BA%E6%95%B0-%E8%A1%A5%E5%85%85"><span class="toc-number">1.4.3.</span> <span class="toc-text">getrandom() — 内核真随机数 ⭐
+补充</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%91%E7%9C%A0"><span class="toc-number">1.5.</span> <span class="toc-text">休眠</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#sleep-%E7%A7%92%E7%BA%A7%E4%BC%91%E7%9C%A0"><span class="toc-number">1.5.1.</span> <span class="toc-text">sleep() — 秒级休眠</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#usleep-%E5%BE%AE%E7%A7%92%E7%BA%A7%E4%BC%91%E7%9C%A0"><span class="toc-number">1.5.2.</span> <span class="toc-text">usleep() — 微秒级休眠</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#nanosleep-%E9%AB%98%E7%B2%BE%E5%BA%A6%E4%BC%91%E7%9C%A0"><span class="toc-number">1.5.3.</span> <span class="toc-text">nanosleep() — 高精度休眠</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#clock_nanosleep-%E6%8C%87%E5%AE%9A%E6%97%B6%E9%92%9F%E7%9A%84%E9%AB%98%E7%B2%BE%E5%BA%A6%E4%BC%91%E7%9C%A0-%E8%A1%A5%E5%85%85"><span class="toc-number">1.5.4.</span> <span class="toc-text">clock_nanosleep() —
+指定时钟的高精度休眠 ⭐ 补充</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%B3%E8%AF%B7%E5%A0%86%E5%86%85%E5%AD%98"><span class="toc-number">1.6.</span> <span class="toc-text">申请堆内存</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#malloc-free-%E5%88%86%E9%85%8D%E4%B8%8E%E9%87%8A%E6%94%BE%E5%A0%86%E5%86%85%E5%AD%98"><span class="toc-number">1.6.1.</span> <span class="toc-text">malloc() &amp; free() —
+分配与释放堆内存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#calloc-%E5%88%86%E9%85%8D%E5%B9%B6%E6%B8%85%E9%9B%B6"><span class="toc-number">1.6.2.</span> <span class="toc-text">calloc() — 分配并清零</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#realloc-%E8%B0%83%E6%95%B4%E5%86%85%E5%AD%98%E5%A4%A7%E5%B0%8F-%E8%A1%A5%E5%85%85"><span class="toc-number">1.6.3.</span> <span class="toc-text">realloc() — 调整内存大小 ⭐ 补充</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90"><span class="toc-number">1.7.</span> <span class="toc-text">内存对齐</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#posix_memalign-%E6%8C%87%E5%AE%9A%E5%AF%B9%E9%BD%90%E5%88%86%E9%85%8D"><span class="toc-number">1.7.1.</span> <span class="toc-text">posix_memalign() —
+指定对齐分配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#aligned_alloc-c11-%E5%AF%B9%E9%BD%90%E5%88%86%E9%85%8D"><span class="toc-number">1.7.2.</span> <span class="toc-text">aligned_alloc() — C11 对齐分配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#memalign-valloc-pvalloc-%E8%BF%87%E6%97%B6%E5%87%BD%E6%95%B0"><span class="toc-number">1.7.3.</span> <span class="toc-text">memalign() &#x2F; valloc() &#x2F;
+pvalloc() — 过时函数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#proc-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.8.</span> <span class="toc-text">proc 文件系统</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5-1"><span class="toc-number">1.8.1.</span> <span class="toc-text">基本概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF%E6%96%87%E4%BB%B6"><span class="toc-number">1.8.2.</span> <span class="toc-text">核心系统信息文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%9B%B8%E5%85%B3%E7%9B%AE%E5%BD%95"><span class="toc-number">1.8.3.</span> <span class="toc-text">进程相关目录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BD%91%E7%BB%9C%E4%B8%8E%E8%AE%BE%E5%A4%87%E6%8E%A7%E5%88%B6"><span class="toc-number">1.8.4.</span> <span class="toc-text">网络与设备控制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E7%A8%8B%E8%AF%BB%E5%8F%96%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.8.5.</span> <span class="toc-text">编程读取示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AC%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0"><span class="toc-number">1.9.</span> <span class="toc-text">📚 本系列文章</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-advanced-io.html" title="Linux 应用编程：高级 IO"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/13_photo_2026-11-15_15-33-42.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：高级 IO"/></a><div class="content"><a class="title" href="/posts/linux-advanced-io.html" title="Linux 应用编程：高级 IO">Linux 应用编程：高级 IO</a><time datetime="2026-11-15T09:00:00.000Z" title="发表于 2026-11-15 17:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-thread-sync.html" title="Linux 应用编程：线程同步"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/12_photo_2026-11-15_15-33-39.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：线程同步"/></a><div class="content"><a class="title" href="/posts/linux-thread-sync.html" title="Linux 应用编程：线程同步">Linux 应用编程：线程同步</a><time datetime="2026-11-15T08:00:00.000Z" title="发表于 2026-11-15 16:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-thread.html" title="Linux 应用编程：线程基本概念"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/11_photo_2026-11-15_15-33-36.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：线程基本概念"/></a><div class="content"><a class="title" href="/posts/linux-thread.html" title="Linux 应用编程：线程基本概念">Linux 应用编程：线程基本概念</a><time datetime="2026-11-15T07:00:00.000Z" title="发表于 2026-11-15 15:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-process.html" title="Linux 应用编程：进程基础"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/08_photo_2026-11-15_15-33-19.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：进程基础"/></a><div class="content"><a class="title" href="/posts/linux-process.html" title="Linux 应用编程：进程基础">Linux 应用编程：进程基础</a><time datetime="2026-11-15T06:00:00.000Z" title="发表于 2026-11-15 14:00:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/linux-signal.html" title="Linux 应用编程：信号"><img src="https://uek-1314584698.cos.ap-beijing.myqcloud.com//blog/img/wallpaper/07_photo_2026-11-15_15-33-22.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Linux 应用编程：信号"/></a><div class="content"><a class="title" href="/posts/linux-signal.html" title="Linux 应用编程：信号">Linux 应用编程：信号</a><time datetime="2026-11-15T05:00:00.000Z" title="发表于 2026-11-15 13:00:00">2026-11-15</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2026 By Kikyo</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>if (!window.MathJax) {
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      tags: 'ams'
+    },
+    chtml: {
+      scale: 1.1
+    },
+    options: {
+      renderActions: {
+        findScript: [10, doc => {
+          for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+            const display = !!node.type.match(/; *mode=display/)
+            const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+            const text = document.createTextNode('')
+            node.parentNode.replaceChild(text, node)
+            math.start = {node: text, delim: '', n: 0}
+            math.end = {node: text, delim: '', n: 0}
+            doc.math.push(math)
+          }
+        }, '']
+      }
+    }
+  }
+  
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js'
+  script.id = 'MathJax-script'
+  script.async = true
+  document.head.appendChild(script)
+} else {
+  MathJax.startup.document.state(0)
+  MathJax.texReset()
+  MathJax.typesetPromise()
+}</script><script>(() => {
+  const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaid.length === 0) return
+  const runMermaid = () => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    Array.from($mermaid).forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+      const mermaidID = 'mermaid-' + index
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+
+      const renderV10 = () => {
+        renderFn.then(({svg}) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svg)
+        })
+      }
+
+      const renderV9 = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      typeof renderFn === 'string' ? renderV9(renderFn) : renderV10()
+    })
+  }
+
+  const loadMermaid = () => {
+    window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js').then(runMermaid)
+  }
+
+  btf.addGlobalFn('themeChange', runMermaid, 'mermaid')
+
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://twikoo.xxh123.online/',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = () => {
+    twikoo.init(Object.assign({
+      el: '#twikoo-wrap',
+      envId: 'https://twikoo.xxh123.online/',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      }
+    }, null))
+
+    
+  }
+
+  const loadTwikoo = () => {
+    if (typeof twikoo === 'object') setTimeout(init,0)
+    else getScript('https://cdn.jsdelivr.net/npm/twikoo@1.6.31/dist/twikoo.all.min.js').then(init)
+  }
+
+  if ('Twikoo' === 'Twikoo' || !true) {
+    if (true) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script></div><div class="aplayer no-destroy" data-id="10081861680" data-server="netease" data-type="playlist"   data-order="list" data-fixed="true" data-preload="auto" data-autoplay="false" data-mutex="true" ></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener
+  btf.removeGlobalFnEvent('pjax')
+  btf.removeGlobalFnEvent('themeChange')
+
+  document.getElementById('rightside').classList.remove('rightside-show')
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', e => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><div class="app-refresh" id="app-refresh" style="position: fixed;top: -2.2rem;left: 0;right: 0;z-index: 99999;padding: 0 1rem;font-size: 15px;height: 2.2rem;transition: all 0.3s ease;"><div class="app-refresh-wrap" style=" display: flex;color: #fff;height: 100%;align-items: center;justify-content: center;"><label>✨ 有新文章啦！ 👉</label><a href="javascript:void(0)" onclick="location.reload()"><span style="color: #fff;text-decoration: underline;cursor: pointer;">🍗点击食用🍔</span></a></div></div><script>if ('serviceWorker' in navigator) {
+if (navigator.serviceWorker.controller) {
+navigator.serviceWorker.addEventListener('controllerchange', function() {
+showNotification()
+})
+}
+window.addEventListener('load', function() {
+navigator.serviceWorker.register('/sw.js')
+})
+}
+function showNotification() {
+if (GLOBAL_CONFIG.Snackbar) {
+var snackbarBg =
+document.documentElement.getAttribute('data-theme') === 'light' ?
+GLOBAL_CONFIG.Snackbar.bgLight :
+GLOBAL_CONFIG.Snackbar.bgDark
+var snackbarPos = GLOBAL_CONFIG.Snackbar.position
+Snackbar.show({
+text: '✨ 有新文章啦！ 👉',
+backgroundColor: snackbarBg,
+duration: 500000,
+pos: snackbarPos,
+actionText: '🍗点击食用🍔',
+actionTextColor: '#fff',
+onActionClick: function(e) {
+location.reload()
+},
+})
+} else {
+var showBg =
+document.documentElement.getAttribute('data-theme') === 'light' ?
+'#3b70fc' :
+'#1f1f1f'
+var cssText = `top: 0; background: ${showBg};`
+document.getElementById('app-refresh').style.cssText = cssText
+}
+}</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_footer_beautify_injector_config(){
+    var parent_div_git = document.getElementById('footer-wrap');
+    var item_html = '<div id="workboard"></div><p id="ghbdages"><a class="github-badge" target="_blank" href="https://hexo.io/" style="margin-inline:5px" data-title="博客框架为Hexo_v5.4.0" title=""><img src="https://img.shields.io/badge/Frame-Hexo-blue?style=flat&amp;logo=hexo" alt=""/></a><a class="github-badge" target="_blank" href="https://butterfly.js.org/" style="margin-inline:5px" data-title="主题版本Butterfly_v4.2.2" title=""><img src="https://img.shields.io/badge/Theme-Butterfly-6513df?style=flat&amp;logo=bitdefender" alt=""/></a><a class="github-badge" target="_blank" href="https://www.jsdelivr.com/" style="margin-inline:5px" data-title="本站使用JsDelivr为静态资源提供CDN加速" title=""><img src="https://img.shields.io/badge/CDN-jsDelivr-orange?style=flat&amp;logo=jsDelivr" alt=""/></a><a class="github-badge" target="_blank" href="https://beian.miit.gov.cn/#/Integrated/index" style="margin-inline:5px" data-title="本站已在湘进行备案" title=""><img src="https://img.shields.io/badge/湘ICP备-2022004213号-e1d492?style=flat&amp;logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAdCAYAAAC9pNwMAAABS2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDIgNzkuMTYwOTI0LCAyMDE3LzA3LzEzLTAxOjA2OjM5ICAgICAgICAiPgogPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIi8+CiA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgo8P3hwYWNrZXQgZW5kPSJyIj8+nhxg7wAACNlJREFUSInF1mmMVeUdx/Hv2e+5+519mJWBYQZkGxZZxLKJqBXGoLS1iXWrmihotFXaJiTWWlsbl6q1aetWd5u0VkKjNG4YEJSlOCibDLMwM8x679z9nnPP1jcVJUxf+7z6J8+LT37/Z4VvaQhfFS8+sBXbctCDGrVTKlBUH4mxAbI9Hfj0IJLsp6paJ5/tmn20N/D0wKDRMq9F/c3M2U1/V0vDfWMFh+tv/Ig1zYPMabDImPJ52OaXO87W580KggCiiOsJOJ6I3wcNFaaeNKxrt72f2fLGu4FpJ/sDQABRzD22fH7/Yze069vGc6mrDLNIJCDik10sxz2by3VdPM87xzkP9jwPTZFRVI1YUJKH+oy7n3tbvv/P2wW/UQxRWe6w4ZJRptYLHDoCuz8v5cP92XbI762O+h6UVWHnUFbPpU0fEb2A60mMJ7MUi9b/b7UgKhiZMaIxm8YLplLMDPz8hl/EH+rs8TNlUpFf32uyZJGLPDwCiTGUyTWodTN49eUCdz2YwXb9NNcObp1X98WDoufynzMVCEKGn27ayPTWBi5ad8P5iQUkJEnFLjqM9Z+hrVX0vfDe6K2dPRWsW2bwyp9EUifSJB84gdxrkR0eRgv1o/3I4fbbprJ6scqamzVO9pffec1S5ZWY2Nfz5qEy/FqOC2Y3s3j53HMSi18VRjFPwSwg+1RfVbl115vvJrsfej7UGIsYPPGgQ7JXoO+Xx5B3dHEomyJ9x1qiQozkr95h5937aFnVyouPlgJK+Ss7Fxz64OTSxSX+LHYxT2IsRW5kbGI4oHcR0jqoqTjV9se3I7/f8rS/ClS23GxSXhph6L5d9Akm7qqZhHWBQGUJ+CWGFzcg7e7m6D3/ZuW1Ea5YKdA3EojuONi813TqNi+YPYOKUhXDtCeGL26/hakLLiEcdsaHRkRAoLRc4fJrmhnekyF0apgZowWSwwkaa+rw3f8WA1GZZsPP5JEChX8dhZTN6iU6kAcs5s+dHd183SJ0VVKL57pfw6YdRQw23aeWTns47DPTALWlRTR7kMLew6hGgYqUhWXYFFUdPZ6lUBahLA8hVcOftckfi7No7VRAAQqsX1dybfvG1qwriM9mM5mJ4e4jO5Cc01dPqixbr8tWGBQUL4vjGigEEShi+xUmZ2RiR/sJ1pbS8NkgZrKAGw0TsgQsQyFaF/nfYTGprAlMFysbA1pI3mhkR6snhGsaymYGvPyFEb9IdbUE2AzFFTwpRqCtBY0wmdER+hZW4j63gcJj38V+/ErSUZXsYBfjIZHIRW0c2Z8BskCAqN+CbBJBFnyyKjR+Ez57nBxLqpfMUeSISElMBFz6x2Q6OxzWrYjyxWVzEewioU3LCS5vQY6nMUrLwNaxXvoQ59IloFSx54PPAZtQLExVZZDxsVE8J4dn6v4JYatgbSjk0owPw7RGH2ADMo88Z7L20ip8f7gC7fAo0q4+0rt7kEQDvaghVZbiPHUHcyeXcfLjT3jmpR7AYsnSScya3UR8bARVMck7Y/cB75/X6rDf3Fg2dw2jKZm5dXGm1LuAzO5DCo9v6aT0ibco5kzOvLOP+NGTFJtDpPYeZKijk/Rn3QxsfZV7txwhX7ABiZUXBsGvIvguQApNQQva9RMmTvZ2dpVUls+tX/UD7GN/Y8Ws05w6rQF+9vyzg1vZjbvMRJhXiRSU8DpTFFe0QE8S6SfPkOkZoktrB2oAhZWrwljxOPmchiSMYOWNoxNuruFU5vWeXdsojiUon345113dBBQBmTYlTimgdB8nfPo4WjaNFgN9OMEkJ02dnadVt5ki54Esqy+bzKJltVhSPbI3iN2zCyMTeXNCuG7Omm2Zok7PR2+R7jvD8ouruHhmCrB5jVZeYxLdrTP4sr4Vtd9g4MA4qc4c+6cu5NPamfw4P59t2WrA4YdXKkASf7SFivo6PDdEPmf1fRM++zp1bH/0r4I1dD1ODtOWaW4IsvPjL7nqXhloQiSPwjjgMYkMASyGEBkjhISCQwkwzve/18AbT+pk8pVY4UacQi9y+gyZ0eRAw4qHa89LXEx1LXMSPfhDJYRb59BtlLKg2WPT2l6qYl1svtGkrLYckyA1S+t5+2ATm37WCui0LSynsckDNH5zTxAchbQtkx08hDHYiW6NgC0enHBzEZ102UDH8QORdEckjEzZrNWkRydzyx17uGnDXqbUnGZ6dRPjSY91q2TqwjFuvTxLo5Zn5Qo/pumRSFcTLQtybEhGE0fQrDhhJ0VvH2lTnnHPhGtsmWan469apERjI2MH3qN7+7MEfH6ql29CbV7PvsMG32k6yU2XDhEKyZw66eJaRdrXR7CzCcqUNC3zwgymPJRCH4KRRLINimpL14A5Y4GDeOqbsPRVcfuN7Xj44pav/hFfrNT2kr2rsqf2Ibp5pEA14ZIImUyW3t5REkkTXRGQ/DGGhtLginhqCWknQDE5hKf5UFSF9Lj020Q2ul5V1AR2hr+8vuP8Vlc2zMPRxoSjnx7XBC14sDoydahSGq7KdO/HFyrBchxCVfX4fDKp4T7SCQejYODZLrYgIqgKFsNIgQqEYob8mW6yiUyb7Z64LVK/+B85xznnJ3AWzqTzuIX46mr5wLs+UUTyIriBCjRNxguHMJIFDLEEvXEOVRWnSJ0+jCd4CJoGjoedM1CLcXQziW3nMV2TSMBeOx7vWZvPt1r+cMPzE8KunaUkFn0vNrvtqXj34c1W6gzxlEQ6naIoBahtnkMwoFMwIVzSRNguMt53Aj2s4nkSlgPoGqLkICsRNF0gl8rYWuP8+11/w/OOJDEhHPKLCIpOXmi+M9AgP+maiesLifF2T1Rn5ZNj5Lo/Qc/GcPMmhdoqlEgIGzCK4PiCmJKK68p4KfF3qYGuF0qCRUkJTzleUbvQyWRTuE5xYthxQbBs7EISAbkzUFG3VfXXbK2YFi3X/eryfKKnqVBItNjJxDzH8erddC4SqWwcN5WyTtlyO1RP/Lh3eHD76MB40swmiDVJyDLYRhpc5+ub6tse/wWKbvSQEAw1awAAAABJRU5ErkJggg==" alt=""/></a><a class="github-badge" target="_blank" href="https://github.com/" style="margin-inline:5px" data-title="本站项目由Github托管" title=""><img src="https://img.shields.io/badge/Source-Github-d021d6?style=flat&amp;logo=GitHub" alt=""/></a><a class="github-badge" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" style="margin-inline:5px" data-title="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可" title=""><img src="https://img.shields.io/badge/Copyright-BY--NC--SA%204.0-d42328?style=flat&amp;logo=Claris" alt=""/></a></p>';
+    console.log('已挂载butterfly_footer_beautify')
+    parent_div_git.insertAdjacentHTML("beforeend",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_footer_beautify_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_footer_beautify_injector_config();
+  }
+  </script><script async src="/js/runtime/runtime.js"></script><script async src="/js/ali_font.js"></script><div class="js-pjax"><script async="async">var arr = document.getElementsByClassName('recent-post-item');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__zoomIn');
+    arr[i].setAttribute('data-wow-duration', '1.5s');
+    arr[i].setAttribute('data-wow-delay', '200ms');
+    arr[i].setAttribute('data-wow-offset', '30');
+    arr[i].setAttribute('data-wow-iteration', '1');
+  }</script><script async="async">var arr = document.getElementsByClassName('card-widget');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__zoomIn');
+    arr[i].setAttribute('data-wow-duration', '');
+    arr[i].setAttribute('data-wow-delay', '200ms');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('flink-list-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__flipInY');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('flink-list-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__animated');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('article-sort-item');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__slideInRight');
+    arr[i].setAttribute('data-wow-duration', '1.5s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('site-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__flipInY');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script><script async="async">var arr = document.getElementsByClassName('site-card');
+for(var i = 0;i<arr.length;i++){
+    arr[i].classList.add('wow');
+    arr[i].classList.add('animate__animated');
+    arr[i].setAttribute('data-wow-duration', '3s');
+    arr[i].setAttribute('data-wow-delay', '');
+    arr[i].setAttribute('data-wow-offset', '');
+    arr[i].setAttribute('data-wow-iteration', '');
+  }</script></div><script defer src="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/wow.min.js"></script><script defer src="https://cdn.cbd.int/hexo-butterfly-wowjs/lib/wow_init.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"position":"left","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script></body></html>
