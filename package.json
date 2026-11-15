@@ -1,0 +1,1 @@
+{"name":"uek2233-blog","version":"1.0.0","private":true,"description":"Hexo 生成的纯静态站点，Vercel 通过 engines.node 决定构建使用的 Node.js 版本","engines":{"node":"26.x"}}
