@@ -1,8 +1,0 @@
-{
-  "name": "uek2233-blog",
-  "private": true,
-  "description": "Hexo 生成的纯静态站点（Vercel 用它读取 engines.node 决定构建用哪个 Node 版本）",
-  "engines": {
-    "node": "26.x"
-  }
-}
